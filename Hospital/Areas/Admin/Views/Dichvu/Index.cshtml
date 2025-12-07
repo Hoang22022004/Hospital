@@ -1,0 +1,75 @@
+﻿@model IEnumerable<Hospital.Models.DichVu>
+
+@{
+    ViewData["Title"] = "Quản lý Dịch vụ";
+}
+
+<div class="container p-3">
+    <div class="row pt-4">
+        <div class="col-6">
+            <h2 class="text-primary">Danh sách Dịch vụ</h2>
+        </div>
+        <div class="col-6 text-end">
+            <a asp-controller="DichVu" asp-action="Create" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> &nbsp; Thêm Dịch vụ mới
+            </a>
+        </div>
+    </div>
+    <br /><br />
+
+    @if (Model.Any())
+    {
+        <table class="table table-bordered table-striped" style="width:100%">
+            <thead>
+                <tr>
+                    <th width="15%">@Html.DisplayNameFor(model => model.TenDichVu)</th>
+                    <th width="10%">@Html.DisplayNameFor(model => model.AnhDichVuUrl)</th>
+                    <th width="20%">@Html.DisplayNameFor(model => model.MoTaNgan)</th>
+                    <th width="20%">@Html.DisplayNameFor(model => model.MoTaChiTiet)</th> @* ⬅️ CỘT MỚI: MÔ TẢ CHI TIẾT *@
+                    <th width="10%">@Html.DisplayNameFor(model => model.Gia)</th>
+                    <th width="10%">@Html.DisplayNameFor(model => model.IsActive)</th> @* ⬅️ CỘT MỚI: TRẠNG THÁI HOẠT ĐỘNG *@
+                    <th width="15%"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var obj in Model)
+                {
+                    <tr>
+                        <td>@obj.TenDichVu</td>
+                        <td>
+                            @if (!string.IsNullOrEmpty(obj.AnhDichVuUrl))
+                            {
+                                @* ⬅️ HIỂN THỊ ẢNH THUMBNAIL *@
+                                <img src="@obj.AnhDichVuUrl" style="width: 80px; height: 80px; object-fit: cover; border-radius: 5px;" />
+                            }
+                        </td>
+                        <td>@obj.MoTaNgan</td>
+                        <td>
+                            @* ⬅️ HIỂN THỊ MÔ TẢ CHI TIẾT (có thể cắt ngắn nếu quá dài) *@
+                            @(obj.MoTaChiTiet != null && obj.MoTaChiTiet.Length > 50 ? obj.MoTaChiTiet.Substring(0, 50) + "..." : obj.MoTaChiTiet)
+                        </td>
+                        <td>@obj.Gia.ToString("N0") VNĐ</td>
+                        <td>
+                            @* ⬅️ HIỂN THỊ TRẠNG THÁI HOẠT ĐỘNG *@
+                            @(obj.IsActive ? "Có" : "Không")
+                        </td>
+                        <td>
+                            <div class="w-100 btn-group" role="group">
+                                <a asp-controller="DichVu" asp-action="Edit" asp-route-id="@obj.DichVuId" class="btn btn-primary mx-1">
+                                    <i class="bi bi-pencil-square"></i> Sửa
+                                </a>
+                                <a asp-controller="DichVu" asp-action="Delete" asp-route-id="@obj.DichVuId" class="btn btn-danger mx-1">
+                                    <i class="bi bi-trash-fill"></i> Xóa
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p>Không có dịch vụ nào tồn tại.</p>
+    }
+</div>

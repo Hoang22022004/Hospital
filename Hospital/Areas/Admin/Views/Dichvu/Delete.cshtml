@@ -1,0 +1,37 @@
+﻿@model Hospital.Models.DichVu
+
+@{
+    ViewData["Title"] = "Xác nhận Xóa Dịch vụ";
+}
+
+<form method="post" asp-action="Delete">
+    @* Quan trọng: Thêm trường ẩn để gửi ID của đối tượng *@
+    <input asp-for="DichVuId" hidden />
+
+    <div class="border p-3 mt-4">
+        <div class="row pb-2">
+            <h2 class="text-danger">Xác nhận Xóa Dịch vụ</h2>
+            <hr />
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="TenDichVu"></label>
+            <input asp-for="TenDichVu" disabled class="form-control" /> @* disabled để Admin không sửa được *@
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Gia"></label>
+            <input asp-for="Gia" disabled class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="MoTaNgan"></label>
+            <textarea asp-for="MoTaNgan" disabled class="form-control"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-danger" style="width:150px">Xóa vĩnh viễn</button>
+        <a asp-controller="DichVu" asp-action="Index" class="btn btn-secondary" style="width:150px">
+            Quay lại Danh sách
+        </a>
+    </div>
+</form>

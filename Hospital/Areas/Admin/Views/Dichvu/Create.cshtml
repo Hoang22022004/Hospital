@@ -1,0 +1,72 @@
+﻿@model Hospital.Models.DichVu
+
+@{
+    ViewData["Title"] = "Thêm Dịch vụ mới";
+}
+
+@* QUAN TRỌNG: Thêm enctype="multipart/form-data" để cho phép gửi file *@
+<form method="post" enctype="multipart/form-data">
+    <div class="border p-3 mt-4">
+        <div class="row pb-2">
+            <h2 class="text-primary">Thêm Dịch vụ</h2>
+            <hr />
+        </div>
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        <div class="row">
+            <div class="col-12">
+
+                <div class="mb-3">
+                    <label asp-for="TenDichVu"></label>
+                    <input asp-for="TenDichVu" class="form-control" />
+                    <span asp-validation-for="TenDichVu" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Gia"></label>
+                    <input asp-for="Gia" class="form-control" />
+                    <span asp-validation-for="Gia" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="MoTaNgan"></label>
+                    <textarea asp-for="MoTaNgan" rows="3" class="form-control"></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="MoTaChiTiet"></label>
+                    <textarea asp-for="MoTaChiTiet" rows="5" class="form-control"></textarea>
+                </div>
+
+
+                <div class="mb-3">
+                    <label for="file" class="form-label">@Html.DisplayNameFor(m => m.AnhDichVuUrl)</label>
+                    <input type="file" name="file" id="file" class="form-control" />
+                </div>
+
+     
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" asp-for="IsHot">
+                    <label class="form-check-label" asp-for="IsHot"></label>
+                </div>
+
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" asp-for="IsActive">
+                    <label class="form-check-label" asp-for="IsActive"></label>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width:150px">Thêm Dịch vụ</button>
+                <a asp-controller="DichVu" asp-action="Index" class="btn btn-secondary" style="width:150px">
+                    Quay lại Danh sách
+                </a>
+
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    @{
+        <partial name="_ValidationScriptsPartial" />
+    }
+}
