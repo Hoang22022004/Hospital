@@ -1,4 +1,7 @@
-﻿namespace Hospital
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Hospital.Data;
+namespace Hospital
 {
     using Hospital.Data;
     using Microsoft.EntityFrameworkCore;

@@ -3,29 +3,22 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Hospital.Models
 {
-    // Kế thừa từ IdentityUser để có sẵn các thuộc tính:
-    // Id, UserName, NormalizedUserName, Email, PhoneNumber, PasswordHash, v.v.
+    // Kế thừa từ IdentityUser
     public class ApplicationUser : IdentityUser
     {
-        // Thêm các thuộc tính tùy chỉnh cho người dùng của bệnh viện
-
-        // Ví dụ: Tên đầy đủ
-        [Required]
+        // TRƯỚC: [Required] public string FullName { get; set; }
+        // SAU: BỎ [Required] và thêm dấu ? để cho phép NULL
         [StringLength(100)]
-        public string FullName { get; set; }
+        public string? FullName { get; set; } // ⬅️ Sửa thành public string?
 
-        // Ví dụ: Địa chỉ (Nếu cần)
+        // Đã sửa ở lần trước, giữ nguyên để cho phép NULL
         [StringLength(255)]
-        public string Address { get; set; }
+        public string? Address { get; set; } // ⬅️ Giữ nguyên public string?
 
-        // Ví dụ: Ngày sinh (Nếu cần cho hồ sơ bệnh nhân)
+        // Ví dụ: Ngày sinh
         public DateTime? DateOfBirth { get; set; }
 
-        // *************************************************************
-        // Mối quan hệ với bảng BacSi (Quan trọng cho tài khoản Bác sĩ)
-        // Đây là Navigation Property để liên kết Tài khoản với Hồ sơ Bác sĩ
-        // Nếu một tài khoản có Role là Doctor, nó sẽ liên kết với một hồ sơ BacSi
+        // Mối quan hệ với bảng BacSi
         public BacSi? BacSiProfile { get; set; }
-        // *************************************************************
     }
 }

@@ -14,6 +14,7 @@ namespace Hospital.Data
 
         // Khai báo DbSet cho các Models cốt lõi của đề tài
         public DbSet<DichVu> DichVu { get; set; }
+        public DbSet<ApplicationUser> ApplicationUser { get; set; }
         public DbSet<BacSi> BacSi { get; set; }
         public DbSet<BenhLy> BenhLy { get; set; }
         public DbSet<PhacDoDieuTri> PhacDoDieuTri { get; set; }

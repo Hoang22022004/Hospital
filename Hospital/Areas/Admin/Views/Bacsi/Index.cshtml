@@ -1,0 +1,82 @@
+﻿@model IEnumerable<Hospital.Models.BacSi>
+
+@{
+    ViewData["Title"] = "Quản lý Bác sĩ";
+}
+
+<div class="container p-3">
+    <div class="row pt-4">
+        <div class="col-6">
+            <h2 class="text-primary">Danh sách Bác sĩ</h2>
+        </div>
+        <div class="col-6 text-end">
+            <a asp-controller="BacSi" asp-action="Create" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> &nbsp; Thêm Bác sĩ mới
+            </a>
+        </div>
+    </div>
+    <br /><br />
+
+    <table class="table table-bordered table-striped" style="width:100%">
+        <thead>
+            <tr>
+                <th>Ảnh</th>
+                <th>Tên Bác sĩ</th>
+                <th>Chuyên môn</th>
+                <th>Email Liên kết</th>
+                <th>Trạng thái</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var obj in Model)
+            {
+                <tr>
+             
+                    <td style="width: 100px;">
+                        @if (!string.IsNullOrEmpty(obj.HinhAnhUrl))
+                        {
+                            <img src="@obj.HinhAnhUrl" style="width: 100px; height: 100px; object-fit: cover;" alt="Ảnh Bác sĩ" />
+                        }
+                    </td>
+                    
+                    <td style="vertical-align: middle;">
+                        @obj.HoTen
+                        <br />
+                        <small class="text-muted">(@obj.BangCap)</small>
+                    </td>
+               
+                    <td style="vertical-align: middle;">@obj.ChuyenMon</td>
+
+                    
+                    <td style="vertical-align: middle;">
+                        @if (obj.User != null)
+                        {
+                            <span>@obj.User.Email</span>
+                        }
+                        else
+                        {
+                            <span class="text-danger">Không tìm thấy User</span>
+                        }
+                    </td>
+
+                    <td style="vertical-align: middle;">
+                        @(obj.IsActive ? "Hoạt động" : "Ẩn")
+                    </td>
+
+             
+                    <td style="vertical-align: middle;">
+                        <div class="w-100 btn-group" role="group">
+                            <a asp-controller="BacSi" asp-action="Edit" asp-route-id="@obj.BacSiId" class="btn btn-primary mx-2">
+                                <i class="bi bi-pencil-square"></i> Sửa
+                            </a>
+                            <a asp-controller="BacSi" asp-action="Delete" asp-route-id="@obj.BacSiId" class="btn btn-danger mx-2">
+                                <i class="bi bi-trash-fill"></i> Xóa
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
