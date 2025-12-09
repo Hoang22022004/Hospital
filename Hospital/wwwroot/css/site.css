@@ -1,22 +1,54 @@
-html {
-  font-size: 14px;
+﻿/* SELECT2 Bootstrap 5 Optimized UI */
+.select2-container--bootstrap-5 .select2-selection {
+    border: 1px solid #ced4da !important;
+    border-radius: .50rem !important;
+    background-color: #fff;
+    min-height: 46px !important;
+    display: flex !important;
+    align-items: center !important;
+    padding: 6px 18px !important;
+    font-size: 16px !important;
+    font-weight: 500 !important;
+    position: relative;
 }
 
-@media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
+/* Text hiển thị trong select */
+.select2-container--bootstrap-5 .select2-selection__rendered {
+    margin-right: 2.2rem !important;
+    font-size: 16px !important;
+    font-weight: 500 !important;
+    color: #212529 !important;
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+/* Placeholder đẹp hơn */
+.select2-container--bootstrap-5 .select2-selection__placeholder {
+    color: #6c757d !important;
+    opacity: 0.8;
 }
 
-html {
-  position: relative;
-  min-height: 100%;
+/* Hover */
+.select2-container--bootstrap-5 .select2-selection:hover {
+    border-color: #86b7fe !important;
 }
 
-body {
-  margin-bottom: 60px;
+/* Focus */
+.select2-container--bootstrap-5.select2-container--focus .select2-selection {
+    border-color: #0d6efd !important;
+    box-shadow: 0 0 0 .25rem rgba(13,110,253,.25) !important;
 }
+
+/* Nút clear (X) */
+.select2-container--bootstrap-5 .select2-selection__clear {
+    position: absolute !important;
+    right: 10px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    font-weight: 700 !important;
+    font-size: 20px !important;
+    color: #6c757d !important;
+    cursor: pointer;
+}
+
+    .select2-container--bootstrap-5 .select2-selection__clear:hover {
+        color: #dc3545 !important;
+    }

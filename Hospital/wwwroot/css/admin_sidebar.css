@@ -1,0 +1,75 @@
+﻿/* File: wwwroot/css/admin_sidebar.css */
+
+#wrapper {
+    overflow-x: hidden;
+    /* Đảm bảo Sidebar nằm dưới Navbar */
+}
+
+#sidebar-wrapper {
+    min-height: 100vh;
+    margin-left: -15rem;
+    transition: margin .25s ease-out;
+    width: 15rem;
+    position: fixed; /* Cố định Sidebar */
+    z-index: 1000; /* Đảm bảo nó luôn ở trên nội dung */
+}
+
+    #sidebar-wrapper .sidebar-heading {
+        padding: 1.2rem 1.25rem;
+        font-size: 1.3rem;
+        font-weight: bold;
+        color: #fff !important; /* Màu tiêu đề */
+    }
+
+    #sidebar-wrapper .list-group-item {
+        background-color: #343a40 !important; /* Màu nền đen/xám cho menu */
+        color: #fff;
+        border: none;
+        padding: 0.8rem 1.25rem;
+        font-weight: 500;
+    }
+
+        #sidebar-wrapper .list-group-item:hover {
+            background-color: #495057 !important; /* Màu sáng hơn khi hover */
+            color: #fff;
+        }
+
+#page-content-wrapper {
+    min-width: 100vw;
+    margin-left: 15rem; /* Bù trừ chiều rộng Sidebar */
+    transition: margin .25s ease-out;
+}
+
+/* Khi Toggle được bấm */
+#wrapper.toggled #sidebar-wrapper {
+    margin-left: 0;
+}
+
+#wrapper.toggled #page-content-wrapper {
+    margin-left: 0;
+}
+
+#wrapper.toggled #sidebar-wrapper {
+    margin-left: -15rem; /* Ẩn sidebar khi bấm toggle */
+}
+
+/* Media query cho thiết bị nhỏ hơn */
+@media (min-width: 768px) {
+    #sidebar-wrapper {
+        margin-left: 0;
+    }
+
+    #page-content-wrapper {
+        min-width: 0;
+        width: 100%;
+        margin-left: 15rem;
+    }
+
+    #wrapper.toggled #sidebar-wrapper {
+        margin-left: -15rem;
+    }
+
+    #wrapper.toggled #page-content-wrapper {
+        margin-left: 0;
+    }
+}

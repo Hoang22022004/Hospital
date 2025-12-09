@@ -16,11 +16,11 @@
     </div>
 
     <form method="post" asp-action="Delete">
-        {{-- Gửi ID Bác sĩ lên Controller để xóa --}}
+       
         <input asp-for="BacSiId" hidden />
 
         <div class="row">
-            {{-- Cột 1: Hiển thị thông tin chi tiết --}}
+        
             <div class="col-8">
 
                 <div class="mb-3">
@@ -51,7 +51,7 @@
                 </a>
             </div>
 
-            {{-- Cột 2: Hiển thị ảnh hiện tại --}}
+   
             <div class="col-4">
                 @if (Model.HinhAnhUrl != null)
                 {

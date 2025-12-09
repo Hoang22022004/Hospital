@@ -4,73 +4,92 @@
     ViewData["Title"] = "Quản lý Bác sĩ";
 }
 
-<div class="container p-3">
-    <div class="row pt-4">
+
+<div class="row mb-2">
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                        <i class="bi bi-people-fill text-primary display-6"></i>
+                    </div>
+                    <div class="col">
+                        <h6 class="text-uppercase text-muted mb-0">Tổng số Bác sĩ</h6>
+                        <span class="h4 mb-0">@Model.Count()</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid p-0">
+    <div class="row pt-2 align-items-center">
+        
         <div class="col-6">
-            <h2 class="text-primary">Danh sách Bác sĩ</h2>
+            <h2 class="text-primary mb-0">Danh sách bác sĩ</h2>
         </div>
         <div class="col-6 text-end">
-            <a asp-controller="BacSi" asp-action="Create" class="btn btn-primary">
+            <a asp-controller="BacSi" asp-action="Create" class="btn btn-primary shadow-sm">
                 <i class="bi bi-plus-circle"></i> &nbsp; Thêm Bác sĩ mới
             </a>
         </div>
     </div>
-    <br /><br />
+    <hr class="mt-2 mb-4" />
 
-    <table class="table table-bordered table-striped" style="width:100%">
+    <table id="tblData" class="table table-striped table-hover" style="width:100%">
         <thead>
             <tr>
-                <th>Ảnh</th>
-                <th>Tên Bác sĩ</th>
+                <th style="width: 100px;">Ảnh</th>
+                <th>Tên Bác sĩ & Bằng cấp</th>
                 <th>Chuyên môn</th>
                 <th>Email Liên kết</th>
                 <th>Trạng thái</th>
-                <th></th>
+                <th style="width: 150px;">Thao tác</th>
             </tr>
         </thead>
         <tbody>
             @foreach (var obj in Model)
             {
                 <tr>
-             
-                    <td style="width: 100px;">
+                    <td>
                         @if (!string.IsNullOrEmpty(obj.HinhAnhUrl))
                         {
-                            <img src="@obj.HinhAnhUrl" style="width: 100px; height: 100px; object-fit: cover;" alt="Ảnh Bác sĩ" />
+                            <img src="@obj.HinhAnhUrl" class="rounded-circle shadow-sm" style="width: 80px; height: 80px; object-fit: cover;" alt="Ảnh Bác sĩ" />
                         }
                     </td>
-                    
                     <td style="vertical-align: middle;">
-                        @obj.HoTen
+                        <strong class="text-dark">@obj.HoTen</strong>
                         <br />
-                        <small class="text-muted">(@obj.BangCap)</small>
+                        <span class="text-muted small">(@obj.BangCap)</span>
                     </td>
-               
                     <td style="vertical-align: middle;">@obj.ChuyenMon</td>
-
-                    
                     <td style="vertical-align: middle;">
                         @if (obj.User != null)
                         {
-                            <span>@obj.User.Email</span>
+                            <span class="text-info">@obj.User.Email</span>
                         }
                         else
                         {
-                            <span class="text-danger">Không tìm thấy User</span>
+                            <span class="badge bg-danger">Thiếu User</span>
                         }
                     </td>
-
                     <td style="vertical-align: middle;">
-                        @(obj.IsActive ? "Hoạt động" : "Ẩn")
+                        @if (obj.IsActive)
+                        {
+                            <span class="badge rounded-pill bg-success">Hoạt động</span>
+                        }
+                        else
+                        {
+                            <span class="badge rounded-pill bg-secondary">Tạm ẩn</span>
+                        }
                     </td>
-
-             
                     <td style="vertical-align: middle;">
-                        <div class="w-100 btn-group" role="group">
-                            <a asp-controller="BacSi" asp-action="Edit" asp-route-id="@obj.BacSiId" class="btn btn-primary mx-2">
+                        <div class="btn-group" role="group">
+                            <a asp-controller="BacSi" asp-action="Edit" asp-route-id="@obj.BacSiId" class="btn btn-sm btn-outline-primary">
                                 <i class="bi bi-pencil-square"></i> Sửa
                             </a>
-                            <a asp-controller="BacSi" asp-action="Delete" asp-route-id="@obj.BacSiId" class="btn btn-danger mx-2">
+                            <a asp-controller="BacSi" asp-action="Delete" asp-route-id="@obj.BacSiId" class="btn btn-sm btn-outline-danger">
                                 <i class="bi bi-trash-fill"></i> Xóa
                             </a>
                         </div>
@@ -80,3 +99,23 @@
         </tbody>
     </table>
 </div>
+
+@section Scripts {
+     
+    <script src="https://cdn.datatables.net/2.0.8/js/dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/2.0.8/js/dataTables.bootstrap5.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#tblData').DataTable({
+                "language": {
+                    "url": "/js/i18n/vi.json"
+                },
+                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "Tất cả"]],
+                "pagingType": "full_numbers",
+
+                // 🛑 THÊM OPTION NÀY ĐỂ BỎ THÔNG TIN ĐẾM DÒNG
+                "info": false
+            });
+        });
+    </script>
+}

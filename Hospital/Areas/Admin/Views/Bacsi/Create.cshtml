@@ -1,13 +1,14 @@
 ﻿@model Hospital.Models.BacSi
+@using Microsoft.AspNetCore.Mvc.Rendering
+@inject IHtmlHelper<dynamic> Html
 
 @{
     ViewData["Title"] = "Thêm Bác sĩ mới";
-    // Ép kiểu ViewData sang SelectList để kiểm tra
     var userList = (SelectList)ViewData["IdentityUserId"];
 }
 
 <form method="post" enctype="multipart/form-data">
-    <div class="border p-3 mt-4">
+    <div class="border p-4 mt-4 bg-white shadow-sm rounded">
         <div class="row pb-2">
             <h2 class="text-primary">Thêm Bác sĩ</h2>
             <hr />
@@ -15,69 +16,76 @@
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
         <div class="row">
-            <div class="col-12">
 
-                @* TRƯỜNG: IdentityUserId (Tài khoản liên kết) - Dùng Dropdown *@
+            <div class="col-md-8">
+
                 <div class="mb-3">
                     <label asp-for="IdentityUserId" class="form-label">Tài khoản liên kết (Email)</label>
                     @if (userList != null && userList.Any())
                     {
-                        <select asp-for="IdentityUserId" asp-items="@userList" class="form-select">
-                            <option disabled selected>-- Chọn tài khoản --</option>
+                        <select asp-for="IdentityUserId" asp-items="@userList" class="form-select select2-dropdown">
+                            <option value="">-- Nhập Email để tìm kiếm tài khoản --</option>
                         </select>
                         <span asp-validation-for="IdentityUserId" class="text-danger"></span>
                     }
                     else
                     {
                         <p class="text-danger">Không có tài khoản người dùng nào chưa có hồ sơ Bác sĩ để liên kết.</p>
-                        <p class="text-muted">Hãy tạo tài khoản mới trước khi tạo hồ sơ Bác sĩ.</p>
                     }
                 </div>
 
-                @* TRƯỜNG: HoTen *@
                 <div class="mb-3">
-                    <label asp-for="HoTen"></label>
+                    <label asp-for="HoTen" class="form-label"></label>
                     <input asp-for="HoTen" class="form-control" />
                     <span asp-validation-for="HoTen" class="text-danger"></span>
                 </div>
 
-                @* TRƯỜNG: ChuyenMon *@
                 <div class="mb-3">
-                    <label asp-for="ChuyenMon"></label>
+                    <label asp-for="ChuyenMon" class="form-label"></label>
                     <input asp-for="ChuyenMon" class="form-control" />
                     <span asp-validation-for="ChuyenMon" class="text-danger"></span>
                 </div>
 
-                @* TRƯỜNG: BangCap *@
                 <div class="mb-3">
-                    <label asp-for="BangCap"></label>
+                    <label asp-for="BangCap" class="form-label"></label>
                     <input asp-for="BangCap" class="form-control" />
+                    <span asp-validation-for="BangCap" class="text-danger"></span>
                 </div>
 
-                @* TRƯỜNG: MoTaChiTiet *@
+                
                 <div class="mb-3">
-                    <label asp-for="MoTaChiTiet"></label>
-                    <textarea asp-for="MoTaChiTiet" rows="5" class="form-control"></textarea>
+                    <label asp-for="MoTaChiTiet" class="form-label">Mô tả chi tiết và Kinh nghiệm</label>
+                  
+                    <textarea asp-for="MoTaChiTiet" id="MoTaChiTiet" rows="10" class="form-control"></textarea>
                 </div>
-
-                @* TRƯỜNG: HinhAnhUrl (File Upload) *@
-                <div class="mb-3">
-                    <label for="file" class="form-label">Ảnh Đại diện</label>
-                    <input type="file" name="file" id="file" class="form-control" />
-                </div>
-
-                @* TRƯỜNG: IsActive *@
-                <div class="form-check mb-3">
-                    <input class="form-check-input" type="checkbox" asp-for="IsActive">
-                    <label class="form-check-label" asp-for="IsActive"></label>
-                </div>
-
-                <button type="submit" class="btn btn-primary" style="width:150px">Thêm Bác sĩ</button>
-                <a asp-controller="BacSi" asp-action="Index" class="btn btn-secondary" style="width:150px">
-                    Quay lại Danh sách
-                </a>
 
             </div>
+
+            <div class="col-md-4">
+
+                <div class="card p-3 mb-4 shadow-sm">
+                    <label for="file" class="form-label">Ảnh Đại diện</label>
+                    <input type="file" name="file" id="file" class="form-control" />
+                    @if (!string.IsNullOrEmpty(Model?.HinhAnhUrl))
+                    {
+                        <img src="@Model.HinhAnhUrl" class="img-thumbnail mt-3 rounded-circle" style="width:100%; height:auto; object-fit:cover;" />
+                    }
+                </div>
+
+               
+                <div class="form-check form-switch mb-3 p-3 border rounded shadow-sm d-flex justify-content-between align-items-center">
+                    <label class="form-check-label" for="IsActiveSwitch">Kích hoạt hồ sơ</label>
+                    <input class="form-check-input" type="checkbox" role="switch" asp-for="IsActive" id="IsActiveSwitch">
+                </div>
+
+            </div>
+        </div>
+
+        <div class="mt-4 pt-3 border-top text-end">
+            <button type="submit" class="btn btn-primary" style="width:150px">Thêm Bác sĩ</button>
+            <a asp-controller="BacSi" asp-action="Index" class="btn btn-secondary" style="width:150px">
+                Quay lại
+            </a>
         </div>
     </div>
 </form>
@@ -86,4 +94,26 @@
     @{
         <partial name="_ValidationScriptsPartial" />
     }
+
+    <script>
+        $(document).ready(function () {
+
+            // 1. Kích hoạt Select2 (Sử dụng theme Bootstrap 5 mới)
+            $('.select2-dropdown').select2({
+                placeholder: "Nhập Email để tìm kiếm tài khoản",
+                allowClear: true,
+                theme: 'bootstrap-5' // ĐÃ CẬP NHẬT THEME MỚI
+            });
+
+            // 2. Kích hoạt TinyMCE (Trình soạn thảo nâng cao)
+            tinymce.init({
+                selector: 'textarea#MoTaChiTiet', // Chỉ định chính xác textarea
+                plugins: 'lists link image code help wordcount table',
+                toolbar: 'undo redo | formatselect | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image table | code',
+                height: 300,
+                // THÊM API KEY VÀO ĐÂY
+                // apiKey: 'vy399c75h6gyw1xkemhoj245q01aqnsusy14yaiket9jmz1h'
+            });
+        });
+    </script>
 }
