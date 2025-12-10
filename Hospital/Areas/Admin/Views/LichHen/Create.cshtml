@@ -1,0 +1,181 @@
+﻿@model Hospital.Models.LichHen
+@using Microsoft.AspNetCore.Mvc.Rendering
+@{
+    ViewData["Title"] = "Đặt Lịch hẹn mới";
+    var bacSiList = ViewData["BacSiId"] as SelectList;
+    var dichVuList = ViewData["DichVuId"] as SelectList;
+}
+
+<form method="post">
+    <div class="border p-4 mt-4 bg-white shadow-sm rounded">
+        <div class="row pb-2">
+            <h2 class="text-primary">Đặt Lịch hẹn mới</h2>
+            <hr />
+        </div>
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        <div class="row">
+            <div class="col-md-6">
+
+                <h3>Thông tin Khách hàng</h3>
+                <hr class="mb-3 mt-0" />
+
+                <div class="mb-3">
+                    <label asp-for="TenKhachHang" class="form-label"></label>
+                    <input asp-for="TenKhachHang" class="form-control" placeholder="Ví dụ: Nguyễn Văn A" />
+                    <span asp-validation-for="TenKhachHang" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="SoDienThoai" class="form-label"></label>
+                    <input asp-for="SoDienThoai" class="form-control" placeholder="Ví dụ: 0901234567" />
+                    <span asp-validation-for="SoDienThoai" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Email" class="form-label"></label>
+                    <input asp-for="Email" class="form-control" placeholder="Ví dụ: email@khachhang.com (Nếu có)" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="TrieuChung" class="form-label">Triệu chứng/Yêu cầu</label>
+                    <textarea asp-for="TrieuChung" rows="3" class="form-control" placeholder="Mô tả sơ lược triệu chứng hoặc yêu cầu đặc biệt"></textarea>
+                </div>
+
+            </div>
+
+            <div class="col-md-6">
+
+                <h3>Thông tin Lịch hẹn</h3>
+                <hr class="mb-3 mt-0" />
+
+                <div class="mb-3">
+                    <label asp-for="BacSiId" class="form-label">Chọn Bác sĩ</label>
+                    <select id="BacSiDropdown" asp-for="BacSiId" asp-items="@bacSiList" class="form-select select2-dropdown-full">
+                        <option value="">-- Chọn Bác sĩ --</option>
+                    </select>
+                    <span asp-validation-for="BacSiId" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="LichLamViecId" class="form-label">Chọn Ca làm việc trống</label>
+                    <select asp-for="LichLamViecId" class="form-select select2-dropdown-full" disabled>
+                        <option value="">-- Chọn Bác sĩ trước --</option>
+                    </select>
+
+                    <span id="LichLamViecGuide" class="text-muted small">Chỉ hiển thị các ca làm việc đang hoạt động và chưa bị đặt.</span>
+
+               
+                    <span id="LichLamViecError" class="text-danger" style="display: none;"></span>
+                    <span asp-validation-for="LichLamViecId" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="DichVuId" class="form-label">Chọn Dịch vụ</label>
+                    <select asp-for="DichVuId" asp-items="@dichVuList" class="form-select select2-dropdown-full">
+                        <option value="">-- Tìm kiếm Dịch vụ --</option>
+                    </select>
+                    <span asp-validation-for="DichVuId" class="text-danger"></span>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="mt-4 pt-3 border-top text-end">
+            <button type="submit" class="btn btn-primary btn-lg shadow-lg" style="width:200px">
+                <i class="bi bi-calendar-plus"></i> Hoàn tất Đặt lịch
+            </button>
+            <a asp-controller="LichHen" asp-action="Index" class="btn btn-secondary btn-lg" style="width:180px">
+                <i class="bi bi-arrow-left"></i> Quay lại
+            </a>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    @{
+        <partial name="_ValidationScriptsPartial" />
+    }
+
+    <script>
+        $(document).ready(function () {
+
+            var bacSiDropdown = $('#BacSiDropdown');
+            var caLamViecDropdown = $('#LichLamViecId');
+            var errorSpan = $('#LichLamViecError');
+            var guideSpan = $('#LichLamViecGuide'); // Lấy dòng hướng dẫn
+
+            // Kích hoạt Select2 cho tất cả các dropdown
+            $('.select2-dropdown-full').select2({
+                placeholder: "-- Tìm kiếm...",
+                allowClear: true,
+                theme: 'bootstrap-5',
+                width: '100%'
+            });
+
+            // Gắn sự kiện khi Bác sĩ được chọn thay đổi
+            bacSiDropdown.on('change', function () {
+                var selectedBacSiId = $(this).val();
+
+                // 1. Reset trạng thái lỗi và hướng dẫn
+                errorSpan.text('').hide();
+                guideSpan.show();
+
+                caLamViecDropdown.attr('disabled', true);
+                caLamViecDropdown.empty().append('<option value="">Đang tải ca làm việc...</option>');
+
+                if (selectedBacSiId) {
+                    // 2. Gọi AJAX để lấy danh sách ca làm việc trống
+                    $.ajax({
+                        url: '@Url.Action("GetLichLamViecByBacSi", "LichHen")',
+                        type: 'GET',
+                        data: { bacSiId: selectedBacSiId },
+                        success: function (data) {
+                            caLamViecDropdown.empty();
+                            if (data.length > 0) {
+                                // THÀNH CÔNG: Có ca làm việc
+                                caLamViecDropdown.append('<option value="">-- Chọn Ca làm việc --</option>');
+                                $.each(data, function (i, item) {
+                                    caLamViecDropdown.append($('<option>', {
+                                        value: item.id,
+                                        text: item.text
+                                    }));
+                                });
+                                caLamViecDropdown.attr('disabled', false); // Kích hoạt dropdown
+                                // guideSpan vẫn show (đã được đặt ở trên)
+                            } else {
+                                // KHÔNG CÓ CA LÀM VIỆC: Hiện thông báo lỗi và ẨN hướng dẫn
+                                caLamViecDropdown.append('<option value="">Không có ca trống</option>');
+                                caLamViecDropdown.val('');
+
+                                errorSpan.text('⚠️ Bác sĩ này hiện không có ca làm việc trống hoặc ca đã hết hạn.').show();
+                                guideSpan.hide(); // ẨN DÒNG HƯỚNG DẪN
+                            }
+                            caLamViecDropdown.trigger('change');
+                        },
+                        error: function (xhr, status, error) {
+                            // LỖI HỆ THỐNG
+                            caLamViecDropdown.empty().append('<option value="">Lỗi khi tải dữ liệu ca làm việc</option>');
+                            errorSpan.text('⚠️ Lỗi hệ thống khi tải ca làm việc. Vui lòng thử lại.').show();
+                            guideSpan.hide(); // ẨN DÒNG HƯỚNG DẪN
+                            caLamViecDropdown.trigger('change');
+                        }
+                    });
+                } else {
+                    // Nếu không chọn Bác sĩ
+                    caLamViecDropdown.empty().append('<option value="">-- Chọn Bác sĩ trước --</option>');
+                    caLamViecDropdown.attr('disabled', true);
+                    // Hiển thị hướng dẫn mặc định
+                    guideSpan.show();
+                    caLamViecDropdown.trigger('change');
+                }
+            });
+
+            // Trigger lần đầu để load ca làm việc nếu Bác sĩ đã được chọn
+            if (bacSiDropdown.val()) {
+                 bacSiDropdown.trigger('change');
+            }
+        });
+    </script>
+}
