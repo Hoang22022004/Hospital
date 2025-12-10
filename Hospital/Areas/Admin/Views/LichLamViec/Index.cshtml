@@ -1,0 +1,232 @@
+﻿@model IEnumerable<Hospital.Models.LichLamViec>
+@using Microsoft.AspNetCore.Mvc.Rendering
+@{
+    ViewData["Title"] = "Quản lý Lịch làm việc";
+    var bacSis = ViewBag.BacSis as SelectList;
+}
+
+<div class="container-fluid p-0">
+
+    <div class="row pt-4 align-items-center">
+        <div class="col-6">
+            <h2 class="text-primary mb-0">Lịch làm việc của Bác sĩ</h2>
+        </div>
+        <div class="col-6 text-end">
+            <a asp-controller="LichLamViec" asp-action="Create" class="btn btn-primary shadow-sm">
+                <i class="bi bi-calendar-plus"></i> &nbsp; Thêm Ca làm việc
+            </a>
+        </div>
+    </div>
+
+    <hr class="mt-2 mb-4" />
+
+
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <div class="dropdown">
+                <button class="btn btn-outline-info dropdown-toggle w-100"
+                        type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-funnel"></i> Lọc theo
+                </button>
+
+                <ul class="dropdown-menu w-100">
+                    <li>
+                        <a class="dropdown-item filter-option" data-filter="bacsi">
+                            <i class="bi bi-person-badge"></i> Bác sĩ
+                        </a>
+                    </li>
+
+                    <li>
+                        <a class="dropdown-item filter-option" data-filter="ngay">
+                            <i class="bi bi-calendar-event"></i> Ngày làm việc
+                        </a>
+                    </li>
+
+                    <li>
+                        <a class="dropdown-item filter-option" data-filter="trangthai">
+                            <i class="bi bi-toggle2-on"></i> Trạng thái
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="col-md-2">
+            <button id="resetFilter" class="btn btn-outline-secondary w-100">
+                <i class="bi bi-x-circle"></i> Đặt lại
+            </button>
+        </div>
+    </div>
+
+
+    
+    <div id="filterBacSi" class="mb-3 d-none">
+        <label class="form-label">Lọc theo Bác sĩ:</label>
+        <select id="bacSiFilter" class="form-select select2-dropdown">
+            <option value="">-- Tất cả --</option>
+            @if (bacSis != null)
+            {
+                @foreach (var item in bacSis)
+                {
+                    <option value="@item.Text">@item.Text</option>
+                }
+            }
+        </select>
+    </div>
+
+    <div id="filterNgay" class="mb-3 d-none">
+        <label class="form-label">Chọn Ngày:</label>
+        <input type="date" id="ngayFilter" class="form-control" />
+    </div>
+
+    <div id="filterTrangThai" class="mb-3 d-none">
+        <label class="form-label">Trạng thái:</label>
+        <select id="trangThaiFilter" class="form-select">
+            <option value="">-- Tất cả --</option>
+            <option value="Hoạt động">Hoạt động</option>
+            <option value="Tạm dừng">Tạm dừng</option>
+        </select>
+    </div>
+
+
+    <table id="tblData" class="table table-striped table-hover" style="width:100%">
+        <thead>
+            <tr>
+                <th>Bác sĩ</th>
+                <th>Ngày làm việc</th>
+                <th>Giờ bắt đầu</th>
+                <th>Giờ kết thúc</th>
+                <th>Trạng thái</th>
+                <th>Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var obj in Model)
+            {
+                <tr>
+                    <td style="vertical-align: middle;">@obj.BacSi.HoTen</td>
+                    <td style="vertical-align: middle;">@obj.NgayLamViec.ToString("dd/MM/yyyy")</td>
+                    <td style="vertical-align: middle;">@obj.GioBatDau.ToString("HH:mm")</td>
+                    <td style="vertical-align: middle;">@obj.GioKetThuc.ToString("HH:mm")</td>
+
+                    <td style="vertical-align: middle;">
+                        @{
+                            string statusText = obj.IsActive ? "Hoạt động" : "Tạm dừng";
+                            string statusClass = obj.IsActive ? "bg-success" : "bg-secondary";
+                        }
+                        <span class="badge rounded-pill @statusClass">
+                            @statusText
+                        </span>
+                    </td>
+
+                    <td style="vertical-align: middle;">
+                        <div class="btn-group" role="group">
+                            <a asp-controller="LichLamViec" asp-action="Edit" asp-route-id="@obj.LichLamViecId" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-pencil-square"></i>
+                            </a>
+                            <a asp-controller="LichLamViec" asp-action="Delete" asp-route-id="@obj.LichLamViecId" class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-trash-fill"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+
+@section Scripts {
+    <script src="https://cdn.datatables.net/2.0.8/js/dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/2.0.8/js/dataTables.bootstrap5.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+
+            var table = $('#tblData').DataTable({
+                "language": { "url": "/js/i18n/vi.json" },
+                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "Tất cả"]],
+                "pagingType": "full_numbers"
+            });
+
+            $('#bacSiFilter').select2({
+                placeholder: "-- Tất cả --",
+                allowClear: true,
+                theme: 'bootstrap-5'
+            });
+
+            // --- HÀM ỨNG DỤNG TẤT CẢ LỌC (Cộng dồn) ---
+            // Lưu ý: Với cách lọc menu này, chúng ta không cần dùng logic 'Độc quyền' phức tạp nữa
+            // mà chỉ cần gọi hàm applyFilters() khi bất kỳ dropdown nào thay đổi.
+            function applyFilters() {
+                // Reset tất cả các bộ lọc DataTables trên cột
+                table.columns().search('');
+
+                // 1. Lọc theo Bác sĩ (Cột 0)
+                var bacSi = $('#bacSiFilter').val();
+                if (bacSi) {
+                    // Lọc chính xác
+                    table.column(0).search('^' + bacSi + '$', true, false);
+                }
+
+                // 2. Lọc theo Trạng thái (Cột 4)
+                var trangThai = $('#trangThaiFilter').val();
+                if (trangThai) {
+                    // Lọc chính xác
+                    table.column(4).search('^' + trangThai + '$', true, false);
+                }
+
+                // 3. Lọc theo Ngày (Cột 1)
+                var ngay = $('#ngayFilter').val();
+                if (ngay) {
+                    var parts = ngay.split('-');
+                    var dateFormat = parts[2] + '/' + parts[1] + '/' + parts[0];
+                    table.column(1).search(dateFormat); // Tìm chuỗi ngày đã format
+                }
+
+                table.draw(); // Áp dụng tất cả bộ lọc đã đặt
+            }
+
+
+            // --- GẮN SỰ KIỆN LỌC MENU VÀ APPLY ---
+
+            // 1. Gắn sự kiện Change cho các Filter để áp dụng lọc cộng dồn
+            $('#bacSiFilter, #ngayFilter, #trangThaiFilter').on('change', applyFilters);
+
+            // 2. Hiển thị filter theo menu (Logic Menu Độc quyền chỉ để hiển thị)
+            $('.filter-option').on('click', function () {
+                var filter = $(this).data('filter');
+
+                // Ẩn tất cả các khối trước
+                $('#filterBacSi, #filterNgay, #filterTrangThai').addClass('d-none');
+
+                // Hiển thị khối được chọn
+                if (filter === 'bacsi') {
+                    $('#filterBacSi').removeClass('d-none');
+                } else if (filter === 'ngay') {
+                    $('#filterNgay').removeClass('d-none');
+                } else if (filter === 'trangthai') {
+                    $('#filterTrangThai').removeClass('d-none');
+                }
+
+                // Áp dụng lọc ngay sau khi chọn menu (dùng hàm applyFilters để lọc)
+                applyFilters();
+            });
+
+
+            // 3. RESET
+            $('#resetFilter').on('click', function () {
+                // Reset giá trị
+                $('#bacSiFilter').val('').trigger('change.select2');
+                $('#ngayFilter').val('');
+                $('#trangThaiFilter').val('');
+
+                // Ẩn tất cả các khối filter
+                $('#filterBacSi, #filterNgay, #filterTrangThai').addClass('d-none');
+
+                // Xóa tất cả các bộ lọc trên DataTables
+                table.search('').columns().search('').draw();
+            });
+        });
+    </script>
+}

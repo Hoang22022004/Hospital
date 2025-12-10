@@ -32,17 +32,34 @@ namespace Hospital.Data
                 .HasForeignKey<BacSi>(b => b.IdentityUserId);
 
             // ***************************************************************
-            // CẤU HÌNH KHẮC PHỤC LỖI MULTIPLE CASCADE PATHS (RẤT QUAN TRỌNG)
+            // CẤU HÌNH KHẮC PHỤC LỖI MULTIPLE CASCADE PATHS (Tối ưu)
             // ***************************************************************
 
-            // Khi xóa một LichLamViec, KHÔNG tự động xóa LichHen liên quan.
-            // Điều này vô hiệu hóa CASCADE trên mối quan hệ LichLamViec <-> LichHen,
-            // giúp giải quyết xung đột với các mối quan hệ CASCADE khác (như BacSi <-> LichHen).
+            // Vô hiệu hóa CASCADE trên mối quan hệ LichLamViec <-> LichHen.
+            // Khi xóa LichLamViec, KHÔNG tự động xóa LichHen liên quan.
             builder.Entity<LichHen>()
                 .HasOne(lh => lh.LichLamViec)
                 .WithMany(llv => llv.LichHens)
                 .HasForeignKey(lh => lh.LichLamViecId)
-                .OnDelete(DeleteBehavior.Restrict); // Dùng Restrict (hoặc NoAction)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Vô hiệu hóa CASCADE trên mối quan hệ BacSi <-> LichHen.
+            // Khi xóa Bác sĩ, KHÔNG tự động xóa Lịch hẹn, mà cần xóa thủ công (hoặc hiển thị lỗi).
+            builder.Entity<LichHen>()
+                .HasOne(lh => lh.BacSi)
+                .WithMany() // Nếu không định nghĩa Navigation Property ngược lại trong BacSi
+                .HasForeignKey(lh => lh.BacSiId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Vô hiệu hóa CASCADE trên mối quan hệ DichVu <-> LichHen.
+            // Khi xóa Dịch vụ, KHÔNG tự động xóa Lịch hẹn liên quan.
+            builder.Entity<LichHen>()
+               .HasOne(lh => lh.DichVu)
+               .WithMany() // Nếu không định nghĩa Navigation Property ngược lại trong DichVu
+               .HasForeignKey(lh => lh.DichVuId)
+               .OnDelete(DeleteBehavior.Restrict);
+
+            // ***************************************************************
         }
     }
 }

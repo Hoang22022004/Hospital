@@ -9,6 +9,7 @@
   <ItemGroup>
     <Folder Include="Areas\Admin\Data\" />
     <Folder Include="Areas\Admin\Models\" />
+    <Folder Include="Areas\Admin\Views\LichHen\" />
     <Folder Include="ViewModels\" />
     <Folder Include="wwwroot\images\dichvu\" />
     <Folder Include="wwwroot\images\bacsi\" />

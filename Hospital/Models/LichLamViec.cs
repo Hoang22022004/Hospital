@@ -1,44 +1,44 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace Hospital.Models
 {
     public class LichLamViec
     {
-        // Khóa chính
         [Key]
         public int LichLamViecId { get; set; }
 
-        // Khóa ngoại liên kết với Bác sĩ
+        // Ngày làm việc cụ thể
         [Required]
-        public int BacSiId { get; set; }
-
-        // Navigation Property: Bác sĩ phụ trách
-        [ForeignKey("BacSiId")]
-        public virtual BacSi BacSi { get; set; }
-
-        // Ngày làm việc
-        [Required(ErrorMessage = "Ngày làm việc là bắt buộc.")]
         [DataType(DataType.Date)]
+        [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
         public DateTime NgayLamViec { get; set; }
 
-        // Khung giờ bắt đầu và kết thúc (cho ngày đó)
-        [Required(ErrorMessage = "Giờ bắt đầu là bắt buộc.")]
-        [DataType(DataType.Time)]
-        public TimeSpan GioBatDau { get; set; }
-
-        [Required(ErrorMessage = "Giờ kết thúc là bắt buộc.")]
-        [DataType(DataType.Time)]
-        public TimeSpan GioKetThuc { get; set; }
-
-        // Thời gian cho mỗi cuộc hẹn (ví dụ: 30 phút, 45 phút)
+        // Giờ bắt đầu ca làm việc
         [Required]
-        public int ThoiGianMoiLanKhamPhut { get; set; } = 30;
+        [DataType(DataType.Time)]
+        [DisplayFormat(DataFormatString = "{0:HH:mm}", ApplyFormatInEditMode = true)]
+        public DateTime GioBatDau { get; set; }
 
-        // Trạng thái: Có thể là Ngày nghỉ (False) hoặc Ngày làm việc (True)
-        public bool IsAvailable { get; set; } = true;
+        // Giờ kết thúc ca làm việc
+        [Required]
+        [DataType(DataType.Time)]
+        [DisplayFormat(DataFormatString = "{0:HH:mm}", ApplyFormatInEditMode = true)]
+        public DateTime GioKetThuc { get; set; }
 
-        // Navigation Property: Các lịch hẹn đã được đặt trong khung giờ này
-        public virtual ICollection<LichHen> LichHens { get; set; }
+        // Khóa ngoại: Bác sĩ nào làm việc trong ca này
+        [Required]
+        public int BacSiId { get; set; }
+        [ForeignKey("BacSiId")]
+        [ValidateNever]
+        public BacSi BacSi { get; set; }
+        
+        // Trạng thái ca làm việc (Ví dụ: Đã duyệt, Đã hủy)
+        public bool IsActive { get; set; } = true;
+
+        // Navigation Property: Lịch hẹn được đặt trong ca này
+        [ValidateNever]
+        public ICollection<LichHen> LichHens { get; set; }
     }
 }
