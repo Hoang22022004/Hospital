@@ -1,0 +1,57 @@
+﻿@model Hospital.Models.ChuyenKhoa
+@{
+    ViewData["Title"] = "Chỉnh sửa Chuyên khoa";
+}
+
+<form method="post" asp-action="Edit">
+
+    <input asp-for="ChuyenKhoaId" hidden />
+
+    <div class="border p-4 mt-4 bg-white shadow-sm rounded">
+        <div class="row pb-2">
+            <h2 class="text-primary">Chỉnh sửa Chuyên khoa</h2>
+            <hr />
+        </div>
+
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        {{-- TRƯỜNG 1: Tên Chuyên khoa (BẮT BUỘC) --}}
+        <div class="mb-3">
+            <label asp-for="TenChuyenKhoa" class="form-label"></label>
+            <input asp-for="TenChuyenKhoa" class="form-control" />
+            <span asp-validation-for="TenChuyenKhoa" class="text-danger"></span>
+        </div>
+
+        {{-- TRƯỜNG 2: Mô tả (Tùy chọn) --}}
+        <div class="mb-3">
+            <label asp-for="MoTa" class="form-label"></label>
+            <textarea asp-for="MoTa" rows="3" class="form-control"></textarea>
+            <span asp-validation-for="MoTa" class="text-danger"></span>
+        </div>
+
+        <div class="mt-4 pt-3 border-top text-end">
+            <button type="submit" class="btn btn-primary btn-lg shadow-lg" style="width:200px">
+                <i class="bi bi-arrow-up-circle"></i> Cập nhật
+            </button>
+            <a asp-controller="ChuyenKhoa" asp-action="Index" class="btn btn-secondary btn-lg" style="width:180px">
+                <i class="bi bi-arrow-left"></i> Quay lại
+            </a>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    @{
+        <partial name="_ValidationScriptsPartial" />
+    }
+
+    <script>
+        // Kích hoạt TinyMCE cho trường Mô tả (Nếu cần)
+        tinymce.init({
+            selector: 'textarea#MoTa',
+            plugins: 'lists link image media table',
+            toolbar: 'undo redo | formatselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image table',
+            height: 300
+        });
+    </script>
+}

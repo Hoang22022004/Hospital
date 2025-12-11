@@ -5,30 +5,31 @@
 }
 
 <div class="container p-3">
-    <div class="row pt-4">
+
+    <div class="row pt-4 align-items-center">
         <div class="col-6">
-            <h2 class="text-primary">Danh sách Dịch vụ</h2>
+            <h2 class="text-primary mb-0">Danh sách Dịch vụ</h2>
         </div>
         <div class="col-6 text-end">
-            <a asp-controller="DichVu" asp-action="Create" class="btn btn-primary">
+            <a asp-controller="DichVu" asp-action="Create" class="btn btn-primary shadow-sm">
                 <i class="bi bi-plus-circle"></i> &nbsp; Thêm Dịch vụ mới
             </a>
         </div>
     </div>
-    <br /><br />
+    <hr class="mt-2 mb-4" />
 
     @if (Model.Any())
     {
-        <table class="table table-bordered table-striped" style="width:100%">
+        <table id="tblData" class="table table-bordered table-striped" style="width:100%">
             <thead>
                 <tr>
-                    <th width="15%">@Html.DisplayNameFor(model => model.TenDichVu)</th>
-                    <th width="10%">@Html.DisplayNameFor(model => model.AnhDichVuUrl)</th>
-                    <th width="20%">@Html.DisplayNameFor(model => model.MoTaNgan)</th>
-                    <th width="20%">@Html.DisplayNameFor(model => model.MoTaChiTiet)</th> @* ⬅️ CỘT MỚI: MÔ TẢ CHI TIẾT *@
-                    <th width="10%">@Html.DisplayNameFor(model => model.Gia)</th>
-                    <th width="10%">@Html.DisplayNameFor(model => model.IsActive)</th> @* ⬅️ CỘT MỚI: TRẠNG THÁI HOẠT ĐỘNG *@
-                    <th width="15%"></th>
+                    <th width="15%" class="no-wrap-header">@Html.DisplayNameFor(model => model.TenDichVu)</th>
+                    <th width="10%" class="no-wrap-header text-center">@Html.DisplayNameFor(model => model.AnhDichVuUrl)</th>
+                    <th width="15%" class="no-wrap-header">Chuyên khoa</th> {{-- CẦN THÊM CỘT CHUYÊN KHOA VÀO ĐÂY --}}
+                    <th width="15%" class="no-wrap-header">@Html.DisplayNameFor(model => model.MoTaNgan)</th>
+                    <th width="15%" class="no-wrap-header">@Html.DisplayNameFor(model => model.Gia)</th>
+                    <th width="10%" class="no-wrap-header">@Html.DisplayNameFor(model => model.IsActive)</th>
+                    <th width="15%" class="no-wrap-header">Thao tác</th>
                 </tr>
             </thead>
             <tbody>
@@ -36,24 +37,32 @@
                 {
                     <tr>
                         <td>@obj.TenDichVu</td>
-                        <td>
+                        <td class="text-center" style="vertical-align: middle;">
+
                             @if (!string.IsNullOrEmpty(obj.AnhDichVuUrl))
                             {
-                                @* ⬅️ HIỂN THỊ ẢNH THUMBNAIL *@
                                 <img src="@obj.AnhDichVuUrl" style="width: 80px; height: 80px; object-fit: cover; border-radius: 5px;" />
                             }
                         </td>
-                        <td>@obj.MoTaNgan</td>
-                        <td>
-                            @* ⬅️ HIỂN THỊ MÔ TẢ CHI TIẾT (có thể cắt ngắn nếu quá dài) *@
-                            @(obj.MoTaChiTiet != null && obj.MoTaChiTiet.Length > 50 ? obj.MoTaChiTiet.Substring(0, 50) + "..." : obj.MoTaChiTiet)
+                        <td style="vertical-align: middle;">
+                            @if (obj.ChuyenKhoaDichVus != null && obj.ChuyenKhoaDichVus.Any())
+                            {
+                                @foreach (var link in obj.ChuyenKhoaDichVus)
+                                {
+                                    <span class="badge bg-primary me-1 mb-1">@link.ChuyenKhoa.TenChuyenKhoa</span>
+                                }
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Chưa gán</span>
+                            }
                         </td>
-                        <td>@obj.Gia.ToString("N0") VNĐ</td>
-                        <td>
-                            @* ⬅️ HIỂN THỊ TRẠNG THÁI HOẠT ĐỘNG *@
+                        <td style="vertical-align: middle;">@obj.MoTaNgan</td>
+                        <td style="vertical-align: middle;">@obj.Gia.ToString("N0") VNĐ</td>
+                        <td style="vertical-align: middle;">
                             @(obj.IsActive ? "Có" : "Không")
                         </td>
-                        <td>
+                        <td style="vertical-align: middle;">
                             <div class="w-100 btn-group" role="group">
                                 <a asp-controller="DichVu" asp-action="Edit" asp-route-id="@obj.DichVuId" class="btn btn-primary mx-1">
                                     <i class="bi bi-pencil-square"></i> Sửa
@@ -73,3 +82,15 @@
         <p>Không có dịch vụ nào tồn tại.</p>
     }
 </div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // GỌI HÀM KHỞI TẠO DATATABLES CHUNG TỪ LAYOUT
+            initializeDataTable('tblData', {
+                "order": [[0, 'asc']] // Tùy chỉnh sắp xếp (Nếu cần)
+                // Các tùy chỉnh khác đã nằm trong hàm initializeDataTable() ở _LayoutAdmin.cshtml
+            });
+        });
+    </script>
+}

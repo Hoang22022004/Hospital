@@ -25,7 +25,7 @@
 
 <div class="container-fluid p-0">
     <div class="row pt-2 align-items-center">
-        
+
         <div class="col-6">
             <h2 class="text-primary mb-0">Danh sách bác sĩ</h2>
         </div>
@@ -42,6 +42,7 @@
             <tr>
                 <th style="width: 100px;">Ảnh</th>
                 <th>Tên Bác sĩ & Bằng cấp</th>
+                <th>Chuyên khoa</th>
                 <th>Chuyên môn</th>
                 <th>Email Liên kết</th>
                 <th>Trạng thái</th>
@@ -63,6 +64,19 @@
                         <br />
                         <span class="text-muted small">(@obj.BangCap)</span>
                     </td>
+
+                   
+                    <td style="vertical-align: middle;">
+                        @if (obj.ChuyenKhoa != null)
+                        {
+                            <span class="badge bg-info text-dark">@obj.ChuyenKhoa.TenChuyenKhoa</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">Chưa gán</span>
+                        }
+                    </td>
+
                     <td style="vertical-align: middle;">@obj.ChuyenMon</td>
                     <td style="vertical-align: middle;">
                         @if (obj.User != null)
@@ -101,7 +115,7 @@
 </div>
 
 @section Scripts {
-     
+
     <script src="https://cdn.datatables.net/2.0.8/js/dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/2.0.8/js/dataTables.bootstrap5.min.js"></script>
     <script>
@@ -112,8 +126,7 @@
                 },
                 "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "Tất cả"]],
                 "pagingType": "full_numbers",
-
-                // 🛑 THÊM OPTION NÀY ĐỂ BỎ THÔNG TIN ĐẾM DÒNG
+                "order": [[1, 'asc']], // Sắp xếp theo Tên Bác sĩ
                 "info": false
             });
         });

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Hosting;
 using System.IO;
+using Microsoft.AspNetCore.Mvc.Rendering; // <--- CẦN THÊM DÒNG NÀY
 
 // Đặt Controller trong Admin Area
 namespace Hospital.Areas.Admin.Controllers
@@ -15,69 +16,117 @@ namespace Hospital.Areas.Admin.Controllers
     public class DichVuController : Controller
     {
         private readonly ApplicationDbContext _db;
-        private readonly IWebHostEnvironment _webHostEnvironment; // Khai báo biến môi trường
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        // SỬA LỖI: Thêm DI cho IWebHostEnvironment
         public DichVuController(ApplicationDbContext db, IWebHostEnvironment webHostEnvironment)
         {
             _db = db;
             _webHostEnvironment = webHostEnvironment;
         }
 
-        // Action: HIỂN THỊ DANH SÁCH (READ)
+        // Action phụ trợ: Lấy danh sách Chuyên khoa
+        private void PrepareChuyenKhoaForView(int? dichVuId = null)
+        {
+            // Lấy tất cả Chuyên khoa
+            var allChuyenKhoas = _db.ChuyenKhoa
+                .OrderBy(c => c.TenChuyenKhoa)
+                .Select(c => new SelectListItem
+                {
+                    Value = c.ChuyenKhoaId.ToString(),
+                    Text = c.TenChuyenKhoa
+                }).ToList();
+
+            // Nếu là Edit, xác định các chuyên khoa đã chọn
+            if (dichVuId.HasValue)
+            {
+                var selectedIds = _db.ChuyenKhoaDichVus
+                    .Where(cd => cd.DichVuId == dichVuId.Value)
+                    .Select(cd => cd.ChuyenKhoaId.ToString())
+                    .ToHashSet();
+
+                foreach (var item in allChuyenKhoas)
+                {
+                    if (selectedIds.Contains(item.Value))
+                    {
+                        item.Selected = true;
+                    }
+                }
+            }
+
+            ViewData["ChuyenKhoaList"] = allChuyenKhoas;
+        }
+
+        // Action: HIỂN THỊ DANH SÁCH (READ) - CẦN INCLUDE DỮ LIỆU
         public async Task<IActionResult> Index()
         {
-            var danhSachDichVu = await _db.DichVu.ToListAsync();
+            var danhSachDichVu = await _db.DichVu
+               .Include(d => d.ChuyenKhoaDichVus)
+                   .ThenInclude(cd => cd.ChuyenKhoa)
+               .ToListAsync();
             return View(danhSachDichVu);
         }
 
-        // Action: TẠO MỚI - GET
+        // Action: TẠO MỚI - GET <--- ĐÃ SỬA
         public IActionResult Create()
         {
+            PrepareChuyenKhoaForView(); // Gọi hàm tải Chuyên khoa
             return View();
         }
 
-        // Action: TẠO MỚI - POST (Đã thêm logic xử lý file)
+        // Action: TẠO MỚI - POST <--- CẦN THÊM XỬ LÝ LIÊN KẾT
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(DichVu dichVu, IFormFile? file) // Nhận IFormFile
+        public async Task<IActionResult> Create(DichVu dichVu, IFormFile? file, int[] selectedChuyenKhoaIds)
         {
             if (ModelState.IsValid)
             {
+                // ... (Logic File giữ nguyên) ...
                 string wwwRootPath = _webHostEnvironment.WebRootPath;
 
                 if (file != null)
                 {
-                    // Logic Lưu File
                     string fileName = Guid.NewGuid().ToString();
                     var uploads = Path.Combine(wwwRootPath, @"images\dichvu");
                     var extension = Path.GetExtension(file.FileName);
 
-                    // Tạo thư mục nếu chưa tồn tại
                     if (!Directory.Exists(uploads))
                     {
                         Directory.CreateDirectory(uploads);
                     }
 
-                    // Lưu file ảnh vào thư mục wwwroot
                     using (var fileStreams = new FileStream(Path.Combine(uploads, fileName + extension), FileMode.Create))
                     {
                         await file.CopyToAsync(fileStreams);
                     }
-
-                    // Cập nhật URL ảnh vào Model
                     dichVu.AnhDichVuUrl = @"\images\dichvu\" + fileName + extension;
                 }
 
+                // 1. Lưu DichVu trước để có ID
                 _db.DichVu.Add(dichVu);
                 await _db.SaveChangesAsync();
+
+                // 2. LƯU CÁC LIÊN KẾT CHUYÊN KHOA
+                if (selectedChuyenKhoaIds != null && selectedChuyenKhoaIds.Length > 0)
+                {
+                    var newLinks = selectedChuyenKhoaIds.Select(id => new ChuyenKhoaDichVu
+                    {
+                        DichVuId = dichVu.DichVuId,
+                        ChuyenKhoaId = id
+                    }).ToList();
+
+                    _db.ChuyenKhoaDichVus.AddRange(newLinks);
+                    await _db.SaveChangesAsync();
+                }
+
                 TempData["success"] = "Thêm dịch vụ thành công.";
                 return RedirectToAction(nameof(Index));
             }
+
+            PrepareChuyenKhoaForView(); // Load lại danh sách nếu lỗi
             return View(dichVu);
         }
 
-        // Action: SỬA (EDIT) - GET
+        // Action: SỬA (EDIT) - GET <--- ĐÃ SỬA
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null || id == 0)
@@ -90,21 +139,24 @@ namespace Hospital.Areas.Admin.Controllers
             {
                 return NotFound();
             }
+
+            PrepareChuyenKhoaForView(id); // Gọi hàm tải Chuyên khoa (đánh dấu đã chọn)
             return View(dichVuFromDb);
         }
 
-        // Action: SỬA (EDIT) - POST (Đã thêm logic xử lý file)
+        // Action: SỬA (EDIT) - POST <--- CẦN THÊM XỬ LÝ LIÊN KẾT
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(DichVu dichVu, IFormFile? file)
+        public async Task<IActionResult> Edit(DichVu dichVu, IFormFile? file, int[] selectedChuyenKhoaIds)
         {
             if (ModelState.IsValid)
             {
+                // ... (Logic File giữ nguyên) ...
                 string wwwRootPath = _webHostEnvironment.WebRootPath;
 
                 if (file != null)
                 {
-                    // 1. Xóa ảnh cũ (nếu tồn tại)
+                    // ... (Logic xóa ảnh cũ và lưu ảnh mới) ...
                     if (dichVu.AnhDichVuUrl != null)
                     {
                         var oldImagePath = Path.Combine(wwwRootPath, dichVu.AnhDichVuUrl.TrimStart('\\'));
@@ -114,7 +166,6 @@ namespace Hospital.Areas.Admin.Controllers
                         }
                     }
 
-                    // 2. Lưu ảnh mới và cập nhật URL
                     string fileName = Guid.NewGuid().ToString();
                     var uploads = Path.Combine(wwwRootPath, @"images\dichvu");
                     var extension = Path.GetExtension(file.FileName);
@@ -126,13 +177,35 @@ namespace Hospital.Areas.Admin.Controllers
                     dichVu.AnhDichVuUrl = @"\images\dichvu\" + fileName + extension;
                 }
 
+                // Cập nhật thông tin DichVu
                 _db.DichVu.Update(dichVu);
+
+                // XỬ LÝ LIÊN KẾT CHUYÊN KHOA (Many-to-Many)
+                // 1. Xóa các liên kết cũ
+                var oldLinks = _db.ChuyenKhoaDichVus.Where(cd => cd.DichVuId == dichVu.DichVuId);
+                _db.ChuyenKhoaDichVus.RemoveRange(oldLinks);
+
+                // 2. Thêm các liên kết mới
+                if (selectedChuyenKhoaIds != null)
+                {
+                    var newLinks = selectedChuyenKhoaIds.Select(id => new ChuyenKhoaDichVu
+                    {
+                        DichVuId = dichVu.DichVuId,
+                        ChuyenKhoaId = id
+                    }).ToList();
+                    _db.ChuyenKhoaDichVus.AddRange(newLinks);
+                }
+
                 await _db.SaveChangesAsync();
                 TempData["success"] = "Cập nhật dịch vụ thành công.";
                 return RedirectToAction(nameof(Index));
             }
+
+            PrepareChuyenKhoaForView(dichVu.DichVuId); // Load lại danh sách nếu lỗi
             return View(dichVu);
         }
+
+        // ... (Delete GET/POST giữ nguyên, cần đảm bảo xóa cả liên kết trong DeletePOST)
 
         // Action: XÓA (DELETE) - GET (Hiển thị xác nhận Xóa)
         public async Task<IActionResult> Delete(int? id)
@@ -141,7 +214,12 @@ namespace Hospital.Areas.Admin.Controllers
             {
                 return NotFound();
             }
-            var dichVuFromDb = await _db.DichVu.FindAsync(id);
+            // CẦN INCLUDE CHUYÊN KHOA
+            var dichVuFromDb = await _db.DichVu
+                .Include(d => d.ChuyenKhoaDichVus)
+                    .ThenInclude(cd => cd.ChuyenKhoa)
+                .FirstOrDefaultAsync(d => d.DichVuId == id);
+
 
             if (dichVuFromDb == null)
             {
@@ -161,6 +239,10 @@ namespace Hospital.Areas.Admin.Controllers
             {
                 return NotFound();
             }
+
+            // XÓA LIÊN KẾT TRUNG GIAN TRƯỚC
+            var linksToDelete = _db.ChuyenKhoaDichVus.Where(cd => cd.DichVuId == id);
+            _db.ChuyenKhoaDichVus.RemoveRange(linksToDelete);
 
             // LOGIC XÓA ẢNH KHỎI SERVER
             if (obj.AnhDichVuUrl != null)

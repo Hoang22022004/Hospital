@@ -21,6 +21,13 @@ namespace Hospital.Data
         public DbSet<LichLamViec> LichLamViec { get; set; }
         public DbSet<LichHen> LichHen { get; set; }
 
+        // ********** ĐÃ THÊM: DbSet cho Chuyên khoa **********
+        public DbSet<ChuyenKhoa> ChuyenKhoa { get; set; }
+
+        // ********** ĐÃ THÊM MỚI: DbSet cho bảng trung gian N-N **********
+        public DbSet<ChuyenKhoaDichVu> ChuyenKhoaDichVus { get; set; }
+        // ***************************************************************
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -32,30 +39,55 @@ namespace Hospital.Data
                 .HasForeignKey<BacSi>(b => b.IdentityUserId);
 
             // ***************************************************************
-            // CẤU HÌNH KHẮC PHỤC LỖI MULTIPLE CASCADE PATHS (Tối ưu)
+            // CẤU HÌNH LIÊN KẾT: CHUYÊN KHOA <-> BÁC SĨ (1-N)
+            // ***************************************************************
+            builder.Entity<BacSi>()
+                .HasOne(b => b.ChuyenKhoa)
+                .WithMany(c => c.BacSis)
+                .HasForeignKey(b => b.ChuyenKhoaId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
+            // ***************************************************************
+            // CẤU HÌNH MỚI: CHUYÊN KHOA <-> DỊCH VỤ (N-N)
+            // ***************************************************************
+            builder.Entity<ChuyenKhoaDichVu>()
+                .HasKey(cd => new { cd.ChuyenKhoaId, cd.DichVuId }); // Thiết lập khóa chính kép
+
+            builder.Entity<ChuyenKhoaDichVu>()
+                .HasOne(cd => cd.ChuyenKhoa)
+                .WithMany(c => c.ChuyenKhoaDichVus)
+                .HasForeignKey(cd => cd.ChuyenKhoaId)
+                .OnDelete(DeleteBehavior.Restrict); // Vô hiệu hóa Cascade Delete
+
+            builder.Entity<ChuyenKhoaDichVu>()
+                .HasOne(cd => cd.DichVu)
+                .WithMany(d => d.ChuyenKhoaDichVus)
+                .HasForeignKey(cd => cd.DichVuId)
+                .OnDelete(DeleteBehavior.Restrict); // Vô hiệu hóa Cascade Delete
+
+            // ***************************************************************
+            // CẤU HÌNH LIÊN KẾT: LỊCH HẸN (Vô hiệu hóa CASCADE PATHS)
             // ***************************************************************
 
-            // Vô hiệu hóa CASCADE trên mối quan hệ LichLamViec <-> LichHen.
-            // Khi xóa LichLamViec, KHÔNG tự động xóa LichHen liên quan.
+            // LichLamViec <-> LichHen.
             builder.Entity<LichHen>()
                 .HasOne(lh => lh.LichLamViec)
                 .WithMany(llv => llv.LichHens)
                 .HasForeignKey(lh => lh.LichLamViecId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Vô hiệu hóa CASCADE trên mối quan hệ BacSi <-> LichHen.
-            // Khi xóa Bác sĩ, KHÔNG tự động xóa Lịch hẹn, mà cần xóa thủ công (hoặc hiển thị lỗi).
+            // BacSi <-> LichHen.
             builder.Entity<LichHen>()
                 .HasOne(lh => lh.BacSi)
-                .WithMany() // Nếu không định nghĩa Navigation Property ngược lại trong BacSi
+                .WithMany()
                 .HasForeignKey(lh => lh.BacSiId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Vô hiệu hóa CASCADE trên mối quan hệ DichVu <-> LichHen.
-            // Khi xóa Dịch vụ, KHÔNG tự động xóa Lịch hẹn liên quan.
+            // DichVu <-> LichHen.
             builder.Entity<LichHen>()
                .HasOne(lh => lh.DichVu)
-               .WithMany() // Nếu không định nghĩa Navigation Property ngược lại trong DichVu
+               .WithMany()
                .HasForeignKey(lh => lh.DichVuId)
                .OnDelete(DeleteBehavior.Restrict);
 

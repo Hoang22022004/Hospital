@@ -26,6 +26,22 @@
     <link rel="stylesheet" href="https://npmcdn.com/flatpickr/dist/themes/material_blue.css">
 
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+
+    {{-- CSS CHUNG CHO DATA TABLES VÀ CĂN GIỮA --}}
+    <style>
+        /* ÉP TIÊU ĐỀ CỘT VỀ MỘT DÒNG (Dùng cho các th có class .no-wrap-header) */
+        .no-wrap-header {
+            white-space: nowrap;
+        }
+        /* Căn chỉnh khoảng cách cho thanh lọc và tìm kiếm */
+        div.dataTables_wrapper div.row {
+            margin-bottom: 0.5rem !important;
+        }
+        /* CĂN GIỮA PHÂN TRANG */
+        .dataTables_wrapper .row:last-child .col-sm-12 {
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
     <div class="d-flex" id="wrapper">
@@ -37,38 +53,38 @@
             </div>
             <div class="list-group list-group-flush">
                 <a asp-area="Admin" asp-controller="Home" asp-action="Index"
-                                    class="list-group-item list-group-item-action bg-dark text-light">
+                   class="list-group-item list-group-item-action bg-dark text-light">
                     <i class="bi bi-speedometer2"></i> Dashboard
                 </a>
 
                 <a asp-area="Admin" asp-controller="BacSi" asp-action="Index"
-                                    class="list-group-item list-group-item-action bg-dark text-light">
+                   class="list-group-item list-group-item-action bg-dark text-light">
                     <i class="bi bi-person-badge"></i> Quản lý Bác sĩ
                 </a>
 
-              
+
                 <a asp-area="Admin" asp-controller="LichLamViec" asp-action="Index"
                    class="list-group-item list-group-item-action bg-dark text-light">
                     <i class="bi bi-calendar-range"></i> Quản lý Ca làm việc
                 </a>
 
                 <a asp-area="Admin" asp-controller="DichVu" asp-action="Index"
-                                    class="list-group-item list-group-item-action bg-dark text-light">
+                   class="list-group-item list-group-item-action bg-dark text-light">
                     <i class="bi bi-card-checklist"></i> Quản lý Dịch vụ
                 </a>
 
                 <a asp-area="Admin" asp-controller="ChuyenKhoa" asp-action="Index"
-                                    class="list-group-item list-group-item-action bg-dark text-light">
+                   class="list-group-item list-group-item-action bg-dark text-light">
                     <i class="bi bi-tags"></i> Quản lý Chuyên khoa
                 </a>
 
                 <a asp-area="Admin" asp-controller="LichHen" asp-action="Index"
-                                    class="list-group-item list-group-item-action bg-dark text-light">
+                   class="list-group-item list-group-item-action bg-dark text-light">
                     <i class="bi bi-calendar-check"></i> Lịch hẹn
                 </a>
 
                 <a asp-area="Admin" asp-controller="User" asp-action="Index"
-                                    class="list-group-item list-group-item-action bg-dark text-light">
+                   class="list-group-item list-group-item-action bg-dark text-light">
                     <i class="bi bi-people"></i> Quản lý Tài khoản
                 </a>
             </div>
@@ -122,6 +138,33 @@
             e.preventDefault();
             document.getElementById("wrapper").classList.toggle("toggled");
         });
+
+        // *******************************************************************
+        // HÀM KHỞI TẠO DATATABLES CHUNG
+        // *******************************************************************
+        function initializeDataTable(tableId, customOptions = {}) {
+
+            // Cấu hình mặc định
+            var defaultOptions = {
+                "language": {
+                    "url": "/js/i18n/vi.json"
+                },
+                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "Tất cả"]],
+                "pagingType": "full_numbers",
+                "info": false,
+                // DOM tùy chỉnh: l (length), f (filter), r (processing), t (table), p (pagination)
+                "dom": '<"row"<"col-sm-6"l><"col-sm-6"f>>rt<"row"<"col-sm-12"p>>',
+                "order": [[0, 'asc']] // Sắp xếp cột đầu tiên theo mặc định
+            };
+
+            // Hợp nhất các tùy chọn mặc định với tùy chọn tùy chỉnh
+            var options = $.extend(true, {}, defaultOptions, customOptions);
+
+            // Khởi tạo DataTables
+            $('#' + tableId).DataTable(options);
+        }
+        // *******************************************************************
+
     </script>
 
     @await RenderSectionAsync("Scripts", required: false)

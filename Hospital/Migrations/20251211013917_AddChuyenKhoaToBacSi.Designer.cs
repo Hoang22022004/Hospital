@@ -4,6 +4,7 @@ using Hospital.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Hospital.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251211013917_AddChuyenKhoaToBacSi")]
+    partial class AddChuyenKhoaToBacSi
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -201,21 +204,6 @@ namespace Hospital.Migrations
                     b.HasKey("ChuyenKhoaId");
 
                     b.ToTable("ChuyenKhoa");
-                });
-
-            modelBuilder.Entity("Hospital.Models.ChuyenKhoaDichVu", b =>
-                {
-                    b.Property<int>("ChuyenKhoaId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("DichVuId")
-                        .HasColumnType("int");
-
-                    b.HasKey("ChuyenKhoaId", "DichVuId");
-
-                    b.HasIndex("DichVuId");
-
-                    b.ToTable("ChuyenKhoaDichVus");
                 });
 
             modelBuilder.Entity("Hospital.Models.DichVu", b =>
@@ -531,25 +519,6 @@ namespace Hospital.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Hospital.Models.ChuyenKhoaDichVu", b =>
-                {
-                    b.HasOne("Hospital.Models.ChuyenKhoa", "ChuyenKhoa")
-                        .WithMany("ChuyenKhoaDichVus")
-                        .HasForeignKey("ChuyenKhoaId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Hospital.Models.DichVu", "DichVu")
-                        .WithMany("ChuyenKhoaDichVus")
-                        .HasForeignKey("DichVuId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("ChuyenKhoa");
-
-                    b.Navigation("DichVu");
-                });
-
             modelBuilder.Entity("Hospital.Models.LichHen", b =>
                 {
                     b.HasOne("Hospital.Models.BacSi", "BacSi")
@@ -668,13 +637,6 @@ namespace Hospital.Migrations
             modelBuilder.Entity("Hospital.Models.ChuyenKhoa", b =>
                 {
                     b.Navigation("BacSis");
-
-                    b.Navigation("ChuyenKhoaDichVus");
-                });
-
-            modelBuilder.Entity("Hospital.Models.DichVu", b =>
-                {
-                    b.Navigation("ChuyenKhoaDichVus");
                 });
 
             modelBuilder.Entity("Hospital.Models.LichLamViec", b =>

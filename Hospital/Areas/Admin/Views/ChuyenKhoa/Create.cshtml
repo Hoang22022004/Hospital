@@ -1,0 +1,57 @@
+﻿@model Hospital.Models.ChuyenKhoa
+@{
+    ViewData["Title"] = "Tạo Chuyên khoa mới";
+}
+
+<form method="post" asp-action="Create">
+    <div class="border p-4 mt-4 bg-white shadow-sm rounded">
+        <div class="row pb-2">
+            <h2 class="text-primary">Tạo Chuyên khoa mới</h2>
+            <hr />
+        </div>
+
+        
+        <div asp-validation-summary="All" class="text-danger"></div>
+
+    
+        <div class="mb-3">
+            <label asp-for="TenChuyenKhoa" class="form-label"></label>
+            <input asp-for="TenChuyenKhoa" class="form-control" placeholder="Ví dụ: Da liễu Thẩm mỹ" />
+            <span asp-validation-for="TenChuyenKhoa" class="text-danger"></span>
+        </div>
+
+     
+        <div class="mb-3">
+            <label asp-for="MoTa" class="form-label"></label>
+            <textarea asp-for="MoTa" rows="3" class="form-control" placeholder="Mô tả phạm vi chuyên môn"></textarea>
+            <span asp-validation-for="MoTa" class="text-danger"></span>
+        </div>
+
+        <div class="mt-4 pt-3 border-top text-end">
+            <button type="submit" class="btn btn-primary btn-lg shadow-lg" style="width:200px">
+                <i class="bi bi-plus-circle"></i> Thêm Chuyên khoa
+            </button>
+            <a asp-controller="ChuyenKhoa" asp-action="Index" class="btn btn-secondary btn-lg" style="width:180px">
+                <i class="bi bi-arrow-left"></i> Quay lại
+            </a>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    @{
+        // Đảm bảo Validation Client-side hoạt động
+        <partial name="_ValidationScriptsPartial" />
+    }
+
+    <script>
+        // Kích hoạt TinyMCE cho trường Mô tả (Nếu bạn đã tích hợp TinyMCE trong Layout)
+        // Nếu không cần TinyMCE, bạn có thể bỏ qua phần này.
+        tinymce.init({
+            selector: 'textarea#MoTa',
+            plugins: 'lists link image media table',
+            toolbar: 'undo redo | formatselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image table',
+            height: 300
+        });
+    </script>
+}

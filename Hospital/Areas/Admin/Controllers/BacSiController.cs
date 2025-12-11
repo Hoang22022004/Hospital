@@ -5,8 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Hosting;
 using System.IO;
-using Microsoft.AspNetCore.Identity; // Cần cho UserManager
-using Microsoft.AspNetCore.Mvc.Rendering; // Cần cho SelectList
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 // Đặt Controller trong Admin Area
 namespace Hospital.Areas.Admin.Controllers
@@ -18,7 +18,6 @@ namespace Hospital.Areas.Admin.Controllers
     {
         private readonly ApplicationDbContext _db;
         private readonly IWebHostEnvironment _webHostEnvironment;
-        // KHAI BÁO THÊM USER MANAGER ĐỂ QUẢN LÝ TÀI KHOẢN
         private readonly UserManager<ApplicationUser> _userManager;
 
         // Cấu hình Dependency Injection (DI)
@@ -31,12 +30,26 @@ namespace Hospital.Areas.Admin.Controllers
             _userManager = userManager;
         }
 
+        // Action phụ trợ: Lấy danh sách Chuyên khoa
+        private void PrepareChuyenKhoaData(object selectedChuyenKhoa = null)
+        {
+            // Lấy danh sách Chuyên khoa để tạo dropdown
+            var chuyenKhoaList = _db.ChuyenKhoa
+                                    .OrderBy(c => c.TenChuyenKhoa)
+                                    .Select(c => new { c.ChuyenKhoaId, c.TenChuyenKhoa })
+                                    .ToList();
+
+            ViewData["ChuyenKhoaId"] = new SelectList(chuyenKhoaList, "ChuyenKhoaId", "TenChuyenKhoa", selectedChuyenKhoa);
+        }
+
+
         // Action: HIỂN THỊ DANH SÁCH (READ)
         public async Task<IActionResult> Index()
         {
-            // Eager loading ApplicationUser để hiển thị email/tên tài khoản
+            // Eager loading ApplicationUser và ChuyenKhoa để hiển thị thông tin chi tiết
             var danhSachBacSi = await _db.BacSi
                 .Include(b => b.User)
+                .Include(b => b.ChuyenKhoa) // <-- ĐÃ THÊM: Include Chuyên khoa
                 .ToListAsync();
             return View(danhSachBacSi);
         }
@@ -51,6 +64,10 @@ namespace Hospital.Areas.Admin.Controllers
                 .ToListAsync();
 
             ViewData["IdentityUserId"] = new SelectList(usersWithoutBacSiProfile, "Id", "Email");
+
+            // ĐÃ THÊM: Chuẩn bị dữ liệu Chuyên khoa
+            PrepareChuyenKhoaData();
+
             return View();
         }
 
@@ -59,6 +76,7 @@ namespace Hospital.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(BacSi bacSi, IFormFile? file)
         {
+            // Kiểm tra trạng thái Model hợp lệ
             if (ModelState.IsValid)
             {
                 string wwwRootPath = _webHostEnvironment.WebRootPath;
@@ -66,7 +84,7 @@ namespace Hospital.Areas.Admin.Controllers
                 if (file != null)
                 {
                     string fileName = Guid.NewGuid().ToString();
-                    var uploads = Path.Combine(wwwRootPath, @"images\bacsi"); // Thư mục lưu ảnh Bác sĩ
+                    var uploads = Path.Combine(wwwRootPath, @"images\bacsi");
                     var extension = Path.GetExtension(file.FileName);
 
                     if (!Directory.Exists(uploads))
@@ -90,12 +108,17 @@ namespace Hospital.Areas.Admin.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            // Nếu lỗi, load lại danh sách User cho View
+            // Nếu lỗi, load lại danh sách User và Chuyên khoa cho View
             var usersWithoutBacSiProfile = await _db.ApplicationUser
                 .Where(u => !_db.BacSi.Any(b => b.IdentityUserId == u.Id))
                 .Select(u => new { u.Id, u.Email })
                 .ToListAsync();
+
             ViewData["IdentityUserId"] = new SelectList(usersWithoutBacSiProfile, "Id", "Email", bacSi.IdentityUserId);
+
+            // ĐÃ THÊM: Load lại dữ liệu Chuyên khoa khi có lỗi
+            PrepareChuyenKhoaData(bacSi.ChuyenKhoaId);
+
             return View(bacSi);
         }
 
@@ -120,6 +143,10 @@ namespace Hospital.Areas.Admin.Controllers
                 .ToListAsync();
 
             ViewData["IdentityUserId"] = new SelectList(usersAvailable, "Id", "Email", bacSiFromDb.IdentityUserId);
+
+            // ĐÃ THÊM: Chuẩn bị dữ liệu Chuyên khoa
+            PrepareChuyenKhoaData(bacSiFromDb.ChuyenKhoaId);
+
             return View(bacSiFromDb);
         }
 
@@ -128,6 +155,7 @@ namespace Hospital.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(BacSi bacSi, IFormFile? file)
         {
+            // Do bạn đã thêm ChuyenKhoaId là [Required], nếu nó không hợp lệ, ModelState sẽ là false.
             if (ModelState.IsValid)
             {
                 string wwwRootPath = _webHostEnvironment.WebRootPath;
@@ -163,13 +191,17 @@ namespace Hospital.Areas.Admin.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            // Nếu lỗi, load lại danh sách User cho View
+            // Nếu lỗi, load lại danh sách User và Chuyên khoa cho View
             var usersAvailable = await _db.ApplicationUser
                 .Where(u => !_db.BacSi.Any(b => b.IdentityUserId == u.Id) || u.Id == bacSi.IdentityUserId)
                 .Select(u => new { u.Id, u.Email })
                 .ToListAsync();
 
             ViewData["IdentityUserId"] = new SelectList(usersAvailable, "Id", "Email", bacSi.IdentityUserId);
+
+            // ĐÃ THÊM: Load lại dữ liệu Chuyên khoa khi có lỗi
+            PrepareChuyenKhoaData(bacSi.ChuyenKhoaId);
+
             return View(bacSi);
         }
 
@@ -180,7 +212,11 @@ namespace Hospital.Areas.Admin.Controllers
             {
                 return NotFound();
             }
-            var bacSiFromDb = await _db.BacSi.Include(b => b.User).FirstOrDefaultAsync(b => b.BacSiId == id);
+            // ĐÃ SỬA: Include Chuyên khoa để hiển thị thông tin đầy đủ
+            var bacSiFromDb = await _db.BacSi
+                                       .Include(b => b.User)
+                                       .Include(b => b.ChuyenKhoa) // <-- ĐÃ THÊM
+                                       .FirstOrDefaultAsync(b => b.BacSiId == id);
 
             if (bacSiFromDb == null)
             {

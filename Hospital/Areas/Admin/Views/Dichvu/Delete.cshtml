@@ -5,33 +5,73 @@
 }
 
 <form method="post" asp-action="Delete">
-    @* Quan trọng: Thêm trường ẩn để gửi ID của đối tượng *@
+
     <input asp-for="DichVuId" hidden />
 
-    <div class="border p-3 mt-4">
+    <div class="border p-4 mt-4 bg-white shadow-sm rounded">
         <div class="row pb-2">
             <h2 class="text-danger">Xác nhận Xóa Dịch vụ</h2>
             <hr />
         </div>
 
-        <div class="mb-3">
-            <label asp-for="TenDichVu"></label>
-            <input asp-for="TenDichVu" disabled class="form-control" /> @* disabled để Admin không sửa được *@
+        <div class="row">
+            <div class="col-md-8">
+
+                <div class="alert alert-danger" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill"></i> **CẢNH BÁO:** Thao tác này sẽ xóa vĩnh viễn dịch vụ **@Model.TenDichVu** và tất cả các liên kết lịch hẹn liên quan.
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="TenDichVu"></label>
+                    <input asp-for="TenDichVu" disabled class="form-control" />
+                </div>
+
+              
+                <div class="mb-3">
+                    <label>Chuyên khoa liên quan</label>
+                    <div class="card card-body">
+                        @if (Model.ChuyenKhoaDichVus != null && Model.ChuyenKhoaDichVus.Any())
+                        {
+                            @foreach (var link in Model.ChuyenKhoaDichVus)
+                            {
+                                <span class="badge bg-danger me-1 mb-1 p-2">@link.ChuyenKhoa.TenChuyenKhoa</span>
+                            }
+                        }
+                        else
+                        {
+                            <span class="text-muted small">Dịch vụ này chưa được gán cho chuyên khoa nào.</span>
+                        }
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Gia"></label>
+                    <input asp-for="Gia" disabled class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="MoTaNgan"></label>
+                    <textarea asp-for="MoTaNgan" disabled class="form-control"></textarea>
+                </div>
+
+            </div>
+
+            <div class="col-md-4 text-center">
+                @if (!string.IsNullOrEmpty(Model.AnhDichVuUrl))
+                {
+                    <label class="d-block mb-3">Ảnh Đại diện</label>
+                    <img src="@Model.AnhDichVuUrl" width="100%" class="img-thumbnail" style="max-width: 250px; border-radius: 5px; border: 1px solid #ccc" />
+                }
+            </div>
         </div>
 
-        <div class="mb-3">
-            <label asp-for="Gia"></label>
-            <input asp-for="Gia" disabled class="form-control" />
+        <div class="mt-4 pt-3 border-top text-end">
+            <button type="submit" class="btn btn-danger btn-lg shadow-lg" style="width:200px">
+                <i class="bi bi-trash-fill"></i> Xóa vĩnh viễn
+            </button>
+            <a asp-controller="DichVu" asp-action="Index" class="btn btn-secondary btn-lg" style="width:200px">
+                <i class="bi bi-arrow-left"></i> Quay lại Danh sách
+            </a>
         </div>
-
-        <div class="mb-3">
-            <label asp-for="MoTaNgan"></label>
-            <textarea asp-for="MoTaNgan" disabled class="form-control"></textarea>
-        </div>
-
-        <button type="submit" class="btn btn-danger" style="width:150px">Xóa vĩnh viễn</button>
-        <a asp-controller="DichVu" asp-action="Index" class="btn btn-secondary" style="width:150px">
-            Quay lại Danh sách
-        </a>
     </div>
 </form>

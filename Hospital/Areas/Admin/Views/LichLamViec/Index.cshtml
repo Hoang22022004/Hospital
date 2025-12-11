@@ -92,12 +92,13 @@
     <table id="tblData" class="table table-striped table-hover" style="width:100%">
         <thead>
             <tr>
-                <th>Bác sĩ</th>
-                <th>Ngày làm việc</th>
-                <th>Giờ bắt đầu</th>
-                <th>Giờ kết thúc</th>
-                <th>Trạng thái</th>
-                <th>Thao tác</th>
+                <th class="no-wrap-header">Bác sĩ</th>
+                <th class="no-wrap-header">Ngày làm việc</th>
+                <th class="no-wrap-header">Giờ bắt đầu</th>
+                <th class="no-wrap-header">Giờ kết thúc</th>
+                <th class="no-wrap-header text-center">Thời lượng (Phút)</th> 
+                <th class="no-wrap-header">Trạng thái</th>
+                <th class="no-wrap-header">Thao tác</th>
             </tr>
         </thead>
         <tbody>
@@ -109,6 +110,8 @@
 
                     <td style="vertical-align: middle;">@obj.GioBatDau.ToString(@"hh\:mm")</td>
                     <td style="vertical-align: middle;">@obj.GioKetThuc.ToString(@"hh\:mm")</td>
+
+                    <td class="text-center" style="vertical-align: middle;">@obj.ThoiLuongKhungGioPhut</td> {{-- ĐÃ THÊM text-center --}}
 
                     <td style="vertical-align: middle;">
                         @{
@@ -138,33 +141,37 @@
 
 
 @section Scripts {
-    <script src="https://cdn.datatables.net/2.0.8/js/dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/2.0.8/js/dataTables.bootstrap5.min.js"></script>
+
     <script>
-        // DataTables và Select2 đã được định nghĩa ở các bước trước
 
         $(document).ready(function () {
 
-            var table = $('#tblData').DataTable({
-                "language": { "url": "/js/i18n/vi.json" },
-                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "Tất cả"]],
-                "pagingType": "full_numbers"
-            });
+            // Khởi tạo DataTables
+             // SỬ DỤNG HÀM KHỞI TẠO CHUNG TỪ LAYOUT (Nếu tồn tại)
+            if (typeof initializeDataTable === 'function') {
+                initializeDataTable('tblData', {
+                    "order": [[1, 'asc']] // Sắp xếp mặc định theo Ngày làm việc (cột 1)
+                });
+            } else {
+                 var table = $('#tblData').DataTable({
+                    "language": { "url": "/js/i18n/vi.json" },
+                    "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "Tất cả"]],
+                    "pagingType": "full_numbers"
+                 });
+            }
 
+            // Khởi tạo Select2
             $('#bacSiFilter').select2({
                 placeholder: "-- Tất cả --",
                 allowClear: true,
                 theme: 'bootstrap-5'
             });
 
-            // --- HÀM LỌC TÙY CHỈNH THEO NGÀY (Cần định nghĩa lại cho DataTables) ---
-
-            // Định nghĩa hàm lọc cho Ngày (Cột 1)
+            // --- HÀM LỌC TÙY CHỈNH THEO NGÀY (Cột 1) ---
             $.fn.dataTable.ext.search.push(
                 function(settings, data, dataIndex) {
                     var ngayFilter = $('#ngayFilter').val();
 
-                    // Nếu filter Ngày không được thiết lập hoặc không được hiển thị, bỏ qua bước lọc này
                     if (!ngayFilter || $('#filterNgay').hasClass('d-none')) {
                         return true;
                     }
@@ -173,37 +180,35 @@
 
                     // Chuyển đổi định dạng ngày: dd/MM/yyyy -> yyyy-MM-dd để so sánh với input type="date"
                     var parts = ngayHienThi.split('/');
-                    // Đảm bảo có đủ 3 phần tử trước khi truy cập index
                     if (parts.length === 3) {
                          var ngaySoSanh = parts[2] + '-' + parts[1] + '-' + parts[0];
                          return ngaySoSanh === ngayFilter;
                     }
 
-                    return false; // Trả về false nếu định dạng ngày không hợp lệ
+                    return false;
                 }
             );
 
             // Hàm áp dụng tất cả các bộ lọc (Cộng dồn)
             function applyFilters() {
-                // Xóa tìm kiếm cột cũ (trừ Ngày, vì Ngày dùng bộ lọc tùy chỉnh)
-                table.columns([0, 4]).search('');
+                var table = $('#tblData').DataTable();
+                // Sửa: Các cột lọc hiện tại: Cột 0 (Bác sĩ), Cột 5 (Trạng thái)
+                table.columns([0, 5]).search('');
 
                 // 1. Lọc theo Bác sĩ (Cột 0)
                 var bacSi = $('#bacSiFilter').val();
-                if (bacSi) {
+                if (bacSi && $('#filterBacSi').is(':visible')) {
                     table.column(0).search('^' + bacSi + '$', true, false);
                 }
 
-                // 2. Lọc theo Trạng thái (Cột 4)
+                // 2. Lọc theo Trạng thái (Cột 5)
                 var trangThai = $('#trangThaiFilter').val();
-                if (trangThai) {
-                    table.column(4).search('^' + trangThai + '$', true, false);
+                if (trangThai && $('#filterTrangThai').is(':visible')) {
+                    table.column(5).search(trangThai, false, false);
                 }
 
-                // 3. Lọc theo Ngày (Kích hoạt bộ lọc tùy chỉnh)
-                // KHÔNG cần search() trên cột 1, chỉ cần gọi table.draw()
-
-                table.draw(); // Áp dụng tất cả bộ lọc đã đặt (bao gồm bộ lọc Ngày tùy chỉnh)
+                // Lọc theo Ngày (Kích hoạt bộ lọc tùy chỉnh)
+                table.draw();
             }
 
 
@@ -215,12 +220,13 @@
             // 2. Hiển thị filter theo menu (Logic Menu Độc quyền chỉ để hiển thị)
             $('.filter-option').on('click', function () {
                 var filter = $(this).data('filter');
+                var table = $('#tblData').DataTable();
 
-                // Reset các giá trị lọc khi chuyển đổi (để tránh lọc chồng lên nhau)
+                // Reset các giá trị lọc và ẩn khối filter khi chuyển đổi
                 $('#bacSiFilter').val('').trigger('change.select2');
                 $('#ngayFilter').val('');
                 $('#trangThaiFilter').val('');
-                applyFilters(); // Áp dụng lọc ngay để xóa kết quả lọc cũ
+                table.search('').columns().search('').draw(); // Xóa tất cả lọc cũ
 
                 // Ẩn tất cả các khối trước
                 $('#filterBacSi, #filterNgay, #filterTrangThai').addClass('d-none');
@@ -233,14 +239,12 @@
                 } else if (filter === 'trangthai') {
                     $('#filterTrangThai').removeClass('d-none');
                 }
-
-
-                // applyFilters(); // Không cần gọi lại vì đã gọi ở trên
             });
 
 
             // 3. RESET
             $('#resetFilter').on('click', function () {
+                var table = $('#tblData').DataTable();
                 // Reset giá trị
                 $('#bacSiFilter').val('').trigger('change.select2');
                 $('#ngayFilter').val('');

@@ -1,12 +1,13 @@
 ﻿@model Hospital.Models.DichVu
-
+@using Microsoft.AspNetCore.Mvc.Rendering
 @{
     ViewData["Title"] = "Thêm Dịch vụ mới";
+    // Lấy danh sách Chuyên khoa đã được Controller chuẩn bị
+    var chuyenKhoaList = (List<SelectListItem>)ViewData["ChuyenKhoaList"];
 }
 
-@* QUAN TRỌNG: Thêm enctype="multipart/form-data" để cho phép gửi file *@
-<form method="post" enctype="multipart/form-data">
-    <div class="border p-3 mt-4">
+<form method="post" enctype="multipart/form-data" asp-action="Create">
+    <div class="border p-3 mt-4 bg-white shadow-sm rounded">
         <div class="row pb-2">
             <h2 class="text-primary">Thêm Dịch vụ</h2>
             <hr />
@@ -14,7 +15,9 @@
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
         <div class="row">
-            <div class="col-12">
+
+
+            <div class="col-md-7">
 
                 <div class="mb-3">
                     <label asp-for="TenDichVu"></label>
@@ -35,32 +38,62 @@
 
                 <div class="mb-3">
                     <label asp-for="MoTaChiTiet"></label>
-                    <textarea asp-for="MoTaChiTiet" rows="5" class="form-control"></textarea>
+                    <textarea asp-for="MoTaChiTiet" id="MoTaChiTiet" rows="5" class="form-control"></textarea>
                 </div>
 
+            </div>
+
+            <div class="col-md-5">
+
+                <div class="card p-3 mb-4 shadow-sm border-info">
+                    <h5 class="card-title text-info mb-3"><i class="bi bi-tags"></i> Liên kết Chuyên khoa</h5>
+                    @if (chuyenKhoaList != null && chuyenKhoaList.Any())
+                    {
+                        <div class="d-flex flex-column" style="max-height: 200px; overflow-y: auto;">
+                            
+                            @foreach (var item in chuyenKhoaList)
+                            {
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="selectedChuyenKhoaIds" value="@item.Value" id="ck_@item.Value" @(item.Selected ? "checked" : "")>
+                                    <label class="form-check-label" for="ck_@item.Value">@item.Text</label>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-danger">Vui lòng tạo chuyên khoa trước khi thêm dịch vụ.</p>
+                    }
+                </div>
 
                 <div class="mb-3">
                     <label for="file" class="form-label">@Html.DisplayNameFor(m => m.AnhDichVuUrl)</label>
                     <input type="file" name="file" id="file" class="form-control" />
+                    <small class="text-muted">Chỉ chọn file ảnh khi tạo mới hoặc muốn thay đổi.</small>
                 </div>
 
-     
-                <div class="form-check mb-3">
-                    <input class="form-check-input" type="checkbox" asp-for="IsHot">
-                    <label class="form-check-label" asp-for="IsHot"></label>
+         
+                <div class="form-check form-switch mb-3 p-3 border rounded d-flex justify-content-between align-items-center">
+                    <label class="form-check-label" asp-for="IsHot">@Html.DisplayNameFor(m => m.IsHot)</label>
+                    <input class="form-check-input" type="checkbox" role="switch" asp-for="IsHot">
                 </div>
 
-                <div class="form-check mb-3">
-                    <input class="form-check-input" type="checkbox" asp-for="IsActive">
-                    <label class="form-check-label" asp-for="IsActive"></label>
+                <div class="form-check form-switch mb-3 p-3 border rounded d-flex justify-content-between align-items-center">
+                    <label class="form-check-label" asp-for="IsActive">@Html.DisplayNameFor(m => m.IsActive)</label>
+                    <input class="form-check-input" type="checkbox" role="switch" asp-for="IsActive">
                 </div>
-
-                <button type="submit" class="btn btn-primary" style="width:150px">Thêm Dịch vụ</button>
-                <a asp-controller="DichVu" asp-action="Index" class="btn btn-secondary" style="width:150px">
-                    Quay lại Danh sách
-                </a>
 
             </div>
+
+        </div>
+
+        <div class="mt-4 pt-3 border-top text-end">
+            <button type="submit" class="btn btn-primary btn-lg shadow-lg" style="width:200px">
+                <i class="bi bi-plus-circle"></i> Thêm Dịch vụ
+            </button>
+            <a asp-controller="DichVu" asp-action="Index" class="btn btn-secondary btn-lg" style="width:200px">
+                <i class="bi bi-arrow-left"></i> Quay lại Danh sách
+            </a>
         </div>
     </div>
 </form>
@@ -69,4 +102,13 @@
     @{
         <partial name="_ValidationScriptsPartial" />
     }
+    <script>
+        // Kích hoạt TinyMCE cho Mô tả Chi tiết
+        tinymce.init({
+            selector: 'textarea#MoTaChiTiet',
+            plugins: 'lists link image code help wordcount table',
+            toolbar: 'undo redo | formatselect | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image table | code',
+            height: 300
+        });
+    </script>
 }
