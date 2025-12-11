@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using static Hospital.Models.LichHen; // Để sử dụng enum TrangThaiLichHen
+using System.Linq; // Cần dùng cho các query LINQ
 
 namespace Hospital.Areas.Admin.Controllers
 {
@@ -20,7 +21,7 @@ namespace Hospital.Areas.Admin.Controllers
         // Helper: Chuẩn bị SelectList cho các trường
         private void PrepareViewData(object selectedBacSi = null, object selectedDichVu = null)
         {
-            // Danh sách Bác sĩ (Chỉ cần SelectList cho Dropdown Bác sĩ)
+            // Danh sách Bác sĩ
             ViewData["BacSiId"] = new SelectList(_db.BacSi.OrderBy(b => b.HoTen), "BacSiId", "HoTen", selectedBacSi);
 
             // Danh sách Dịch vụ
@@ -28,39 +29,54 @@ namespace Hospital.Areas.Admin.Controllers
 
             // Danh sách trạng thái (dùng Enum)
             ViewData["TrangThaiList"] = Enum.GetValues(typeof(TrangThaiLichHen))
-                                            .Cast<TrangThaiLichHen>()
-                                            .Select(e => new SelectListItem
-                                            {
-                                                Value = e.ToString(),
-                                                Text = e.ToString()
-                                            }).ToList();
-
-            // LƯU Ý: KHÔNG CẦN CHUẨN BỊ LichLamViecId SelectList Ở ĐÂY NỮA
+                                                .Cast<TrangThaiLichHen>()
+                                                .Select(e => new SelectListItem
+                                                {
+                                                    Value = e.ToString(),
+                                                    Text = e.ToString()
+                                                }).ToList();
         }
 
-        // Action mới: Trả về danh sách Ca làm việc trống dựa trên ID Bác sĩ (Phục vụ AJAX)
+        // Action mới: Trả về chi tiết Ca làm việc và các Khung giờ đã đặt (Phục vụ AJAX)
         [HttpGet]
         public IActionResult GetLichLamViecByBacSi(int bacSiId)
         {
-            var availableShifts = _db.LichLamViec
-                                     .Include(l => l.BacSi)
-                                     .Where(l => l.IsActive
-                                              && l.NgayLamViec.Date >= DateTime.Today
-                                              && l.BacSiId == bacSiId)
-                                     // Lọc các ca đã có lịch hẹn chưa hủy
-                                     .Where(l => !_db.LichHen.Any(lh => lh.LichLamViecId == l.LichLamViecId
-                                                                    && lh.TrangThai != TrangThaiLichHen.DaHuy))
-                                     .OrderBy(l => l.NgayLamViec)
-                                     .ThenBy(l => l.GioBatDau)
-                                     .Select(l => new
-                                     {
-                                         id = l.LichLamViecId,
-                                         // Format hiển thị: [Ngày] ([Giờ Bắt đầu] - [Giờ Kết thúc])
-                                         text = $"{l.NgayLamViec.ToString("dd/MM/yyyy")} ({l.GioBatDau.ToString("HH:mm")} - {l.GioKetThuc.ToString("HH:mm")})"
-                                     })
-                                     .ToList();
+            // Lấy tất cả các ca làm việc LỚN hợp lệ
+            var shifts = _db.LichLamViec
+                             .Where(l => l.IsActive
+                                     && l.NgayLamViec.Date >= DateTime.Today
+                                     && l.BacSiId == bacSiId)
+                             .OrderBy(l => l.NgayLamViec)
+                             .ThenBy(l => l.GioBatDau)
+                             .ToList();
 
-            return Json(availableShifts);
+            var resultList = new List<object>();
+
+            foreach (var shift in shifts)
+            {
+                // Lấy các khung giờ ĐÃ ĐẶT (KhungGioBatDau) cho ca làm việc này
+                var bookedSlots = _db.LichHen
+                                      .Where(lh => lh.LichLamViecId == shift.LichLamViecId
+                                                && lh.TrangThai != TrangThaiLichHen.DaHuy)
+                                      // Chuyển TimeSpan sang chuỗi "HH:mm" để JS dễ xử lý
+                                      .Select(lh => lh.KhungGioBatDau.ToString(@"hh\:mm"))
+                                      .ToList();
+
+                // Chuẩn bị dữ liệu để JS xử lý phân chia khung giờ
+                resultList.Add(new
+                {
+                    id = shift.LichLamViecId,
+                    text = $"{shift.NgayLamViec.ToString("dd/MM/yyyy")} ({shift.GioBatDau.ToString(@"hh\:mm")} - {shift.GioKetThuc.ToString(@"hh\:mm")})",
+
+                    // THÔNG TIN QUY TẮC PHÂN CHIA
+                    gioBatDau = shift.GioBatDau.ToString(@"hh\:mm"),
+                    gioKetThuc = shift.GioKetThuc.ToString(@"hh\:mm"),
+                    thoiLuongPhut = shift.ThoiLuongKhungGioPhut, // Trường mới
+                    bookedSlots = bookedSlots // Danh sách các slot đã bị chiếm
+                });
+            }
+
+            return Json(resultList);
         }
 
         // ***************************************************************
@@ -118,20 +134,39 @@ namespace Hospital.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Create(LichHen lichHen)
         {
+            // Kiểm tra ModelState trước khi xử lý
             if (ModelState.IsValid)
             {
-                // Lấy thông tin Ca làm việc từ ID
+                // 1. Lấy thông tin Ca làm việc từ ID
                 var llv = _db.LichLamViec.Include(l => l.BacSi).FirstOrDefault(l => l.LichLamViecId == lichHen.LichLamViecId);
 
+                // 2. Kiểm tra tính hợp lệ của Ca làm việc lớn
                 if (llv == null || !llv.IsActive || llv.NgayLamViec.Date < DateTime.Today)
                 {
                     ModelState.AddModelError("LichLamViecId", "Ca làm việc này không hợp lệ hoặc đã kết thúc.");
                 }
+
+                // 3. KIỂM TRA TRÙNG LỊCH (Khung giờ nhỏ)
+                else if (_db.LichHen.Any(lh =>
+                         lh.LichLamViecId == lichHen.LichLamViecId &&
+                         lh.KhungGioBatDau == lichHen.KhungGioBatDau && // So sánh Khung giờ Bắt đầu
+                         lh.TrangThai != TrangThaiLichHen.DaHuy))
+                {
+                    ModelState.AddModelError("KhungGioBatDau", $"Khung giờ {lichHen.KhungGioBatDau.ToString(@"hh\:mm")} đã có người đặt!");
+                }
+
+                // 4. KIỂM TRA KhungGioBatDau nằm trong phạm vi GioBatDau và GioKetThuc của LLV
+                // (Chỉ cần kiểm tra nếu không dùng JS để enforce)
+                else if (lichHen.KhungGioBatDau < llv.GioBatDau || lichHen.KhungGioBatDau >= llv.GioKetThuc)
+                {
+                    ModelState.AddModelError("KhungGioBatDau", "Khung giờ được chọn nằm ngoài phạm vi của ca làm việc này.");
+                }
+
+                // 5. Thêm Lịch hẹn
                 else
                 {
-                    // Đảm bảo BacSiId khớp với ca làm việc được chọn
-                    lichHen.BacSiId = llv.BacSiId;
-
+                    // Cập nhật các trường tự động
+                    lichHen.BacSiId = llv.BacSiId; // Đảm bảo BacSiId khớp với ca làm việc
                     lichHen.TrangThai = TrangThaiLichHen.ChoDuyet;
                     lichHen.ThoiGianDat = DateTime.Now;
 
@@ -144,6 +179,7 @@ namespace Hospital.Areas.Admin.Controllers
 
             // Nếu lỗi, load lại SelectList và view
             PrepareViewData(lichHen.BacSiId, lichHen.DichVuId);
+            // LƯU Ý: Ở đây ta không cần tải lại LichLamViecId và KhungGioBatDau vì JS sẽ tự động xử lý.
             return View(lichHen);
         }
 
@@ -168,17 +204,33 @@ namespace Hospital.Areas.Admin.Controllers
         {
             if (ModelState.IsValid)
             {
-                // Cập nhật lại Khóa ngoại Bác sĩ dựa trên Ca làm việc mới được chọn (nếu có)
+                // 1. Cập nhật lại Khóa ngoại Bác sĩ dựa trên Ca làm việc mới được chọn
                 var llv = _db.LichLamViec.FirstOrDefault(l => l.LichLamViecId == lichHen.LichLamViecId);
-                if (llv != null)
+                if (llv == null)
                 {
-                    lichHen.BacSiId = llv.BacSiId;
+                    ModelState.AddModelError("LichLamViecId", "Ca làm việc không hợp lệ.");
                 }
 
-                _db.LichHen.Update(lichHen);
-                _db.SaveChanges();
-                TempData["success"] = "Cập nhật lịch hẹn thành công!";
-                return RedirectToAction("Index");
+                // 2. KIỂM TRA TRÙNG LỊCH (Khung giờ nhỏ) - Loại trừ bản ghi đang chỉnh sửa
+                else if (_db.LichHen.Any(lh =>
+                         lh.LichLamViecId == lichHen.LichLamViecId &&
+                         lh.KhungGioBatDau == lichHen.KhungGioBatDau &&
+                         lh.LichHenId != lichHen.LichHenId && // Loại trừ ID hiện tại
+                         lh.TrangThai != TrangThaiLichHen.DaHuy))
+                {
+                    ModelState.AddModelError("KhungGioBatDau", $"Khung giờ {lichHen.KhungGioBatDau.ToString(@"hh\:mm")} đã có người đặt!");
+                }
+
+                else
+                {
+                    lichHen.BacSiId = llv.BacSiId; // Cập nhật BacSiId
+                                                   // Giữ nguyên ThoiGianDat và TrangThai cũ nếu không có trường nào để cập nhật chúng trong View
+
+                    _db.LichHen.Update(lichHen);
+                    _db.SaveChanges();
+                    TempData["success"] = "Cập nhật lịch hẹn thành công!";
+                    return RedirectToAction("Index");
+                }
             }
 
             // Nếu lỗi

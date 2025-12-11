@@ -4,27 +4,21 @@
     ViewData["Title"] = "Chỉnh sửa Ca làm việc";
     var bacSiList = ViewData["BacSiId"] as SelectList;
 
-    // Lấy giá trị ngày tháng để hiển thị đúng trong Datepicker (dd/MM/yyyy)
-    // Model Binder của ASP.NET sẽ tự động format ngày giờ thành YYYY-MM-DD HH:MM:SS.SSS
-    // Cần trích xuất phần ngày (YYYY-MM-DD) và chuyển đổi nó sang dd/MM/yyyy
-    string ngayLamViecFormatted = "";
-    if (Model.NgayLamViec != default(DateTime))
-    {
-        // Chuyển DateTime sang chuỗi YYYY-MM-DD
-        string dateOnly = Model.NgayLamViec.ToString("yyyy-MM-dd");
-        // Khởi tạo Datepicker cần dd/MM/yyyy
-        ngayLamViecFormatted = Model.NgayLamViec.ToString("dd/MM/yyyy");
-    }
+    // Lấy giá trị NgayLamViec để hiển thị đúng trong Datepicker (dd/MM/yyyy)
+    // NgayLamViec là DateTime, cần format hiển thị
+    string ngayLamViecFormatted = Model.NgayLamViec.ToString("dd/MM/yyyy");
 
-    // Lấy giá trị giờ bắt đầu/kết thúc để Flatpickr hiển thị (HH:mm)
-    string gioBatDauFormatted = Model.GioBatDau.ToString("HH:mm");
-    string gioKetThucFormatted = Model.GioKetThuc.ToString("HH:mm");
+    // Lấy giá trị GioBatDau/GioKetThuc (TimeSpan) để Flatpickr hiển thị (HH:mm)
+    string gioBatDauFormatted = Model.GioBatDau.ToString(@"hh\:mm");
+    string gioKetThucFormatted = Model.GioKetThuc.ToString(@"hh\:mm");
 }
 
 <form method="post">
 
-  
+
     <input asp-for="LichLamViecId" hidden />
+    <input type="hidden" asp-for="NgayLamViec" id="NgayLamViecHidden" />
+
 
     <div class="border p-4 mt-4 bg-white shadow-sm rounded">
         <div class="row pb-2">
@@ -42,8 +36,6 @@
                     <select asp-for="BacSiId" asp-items="@bacSiList" class="form-select select2-dropdown">
                         <option value="">-- Tìm kiếm Bác sĩ --</option>
                     </select>
-                   
-                    <input type="hidden" asp-for="BacSiId" />
                     <span asp-validation-for="BacSiId" class="text-danger"></span>
                 </div>
 
@@ -51,7 +43,7 @@
                 <div class="mb-3">
                     <label asp-for="NgayLamViec" class="form-label">Ngày làm việc</label>
                     {{-- Gán giá trị dd/MM/yyyy cho input text --}}
-                    <input asp-for="NgayLamViec" type="text" id="datepickerNgayLamViec" class="form-control" value="@ngayLamViecFormatted" />
+                    <input type="text" id="datepickerNgayLamViec" class="form-control" value="@ngayLamViecFormatted" />
                     <span class="text-muted small">Định dạng hiển thị: Ngày/Tháng/Năm (dd/MM/yyyy)</span>
                     <span asp-validation-for="NgayLamViec" class="text-danger"></span>
                 </div>
@@ -61,7 +53,6 @@
                     <div class="col-6">
                         <div class="mb-3">
                             <label asp-for="GioBatDau" class="form-label">Giờ Bắt đầu</label>
-                
                             <input asp-for="GioBatDau" type="text" id="gioBatDau" class="form-control time-picker" placeholder="Chọn giờ" value="@gioBatDauFormatted" />
                             <span asp-validation-for="GioBatDau" class="text-danger"></span>
                         </div>
@@ -69,11 +60,18 @@
                     <div class="col-6">
                         <div class="mb-3">
                             <label asp-for="GioKetThuc" class="form-label">Giờ Kết thúc</label>
-                          
                             <input asp-for="GioKetThuc" type="text" id="gioKetThuc" class="form-control time-picker" placeholder="Chọn giờ" value="@gioKetThucFormatted" />
                             <span asp-validation-for="GioKetThuc" class="text-danger"></span>
                         </div>
                     </div>
+                </div>
+
+                @* TRƯỜNG MỚI: Thời lượng Khung giờ (Phút) *@
+                <div class="mb-3">
+                    <label asp-for="ThoiLuongKhungGioPhut" class="form-label">Thời lượng Khung giờ (Phút)</label>
+                    <input asp-for="ThoiLuongKhungGioPhut" type="number" class="form-control" placeholder="Ví dụ: 30, 45, 60" min="5" max="180" step="5" />
+                    <span class="text-muted small">Quy định thời gian cho mỗi lịch hẹn nhỏ trong ca này (Phút).</span>
+                    <span asp-validation-for="ThoiLuongKhungGioPhut" class="text-danger"></span>
                 </div>
 
                 @* TRƯỜNG 5: IsActive (Switch) *@
@@ -116,8 +114,23 @@
                 dateFormat: 'dd/mm/yy',
                 changeMonth: true,
                 changeYear: true,
-                yearRange: '2025:2030'
+                yearRange: '2025:2030',
+                // SỰ KIỆN: Cập nhật trường ẩn NgayLamViecHidden khi ngày được chọn
+                onSelect: function(dateText, inst) {
+                    // Chuyển đổi dd/mm/yyyy -> yyyy-mm-dd cho Model Binder
+                    var parts = dateText.split('/');
+                    var formattedDate = parts[2] + '-' + parts[1] + '-' + parts[0];
+                    $('#NgayLamViecHidden').val(formattedDate);
+                }
             });
+
+            // Khởi tạo giá trị trường ẩn NgayLamViecHidden khi tải trang (để giữ NgayLamViec cũ)
+            var initialDate = $('#datepickerNgayLamViec').val();
+            if (initialDate) {
+                 var parts = initialDate.split('/');
+                 var formattedDate = parts[2] + '-' + parts[1] + '-' + parts[0];
+                 $('#NgayLamViecHidden').val(formattedDate);
+            }
 
             // 3. KHỞI TẠO FLATPCIKR TIME PICKER (Giờ:Phút)
             flatpickr(".time-picker", {
@@ -129,7 +142,7 @@
                 locale: "vn"
             });
 
-            
+
         });
     </script>
 }

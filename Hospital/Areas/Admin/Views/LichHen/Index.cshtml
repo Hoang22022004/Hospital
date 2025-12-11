@@ -9,24 +9,24 @@
 }
 
 <style>
-    /* CSS ĐÃ CẬP NHẬT: ĐỔI MÀU CHỮ VÀ IN ĐẬM */
+    /* CSS Giữ nguyên */
     .text-choDuyet {
-        color: #ffc107 !important; /* Vàng */
+        color: #ffc107 !important;
         font-weight: bold !important;
     }
 
     .text-daXacNhan {
-        color: #198754 !important; /* Xanh lá */
+        color: #198754 !important;
         font-weight: bold !important;
     }
 
     .text-daHuy {
-        color: #dc3545 !important; /* Đỏ */
+        color: #dc3545 !important;
         font-weight: bold !important;
     }
 
     .text-hoanThanh {
-        color: #0dcaf0 !important; /* Xanh ngọc */
+        color: #0dcaf0 !important;
         font-weight: bold !important;
     }
 
@@ -34,7 +34,6 @@
         background-color: #f8f9fa;
     }
 
-    /* CSS CHO CĂN GIỮA NỘI DUNG BẢNG */
     #tblData tbody td {
         vertical-align: middle;
         text-align: center;
@@ -48,7 +47,7 @@
         min-width: 140px;
         margin: auto;
     }
-    /* Ẩn cột dùng để lọc */
+
     .hidden-column {
         display: none !important;
     }
@@ -148,7 +147,7 @@
             <tr>
                 <th style="text-align: left;">Khách hàng</th>
                 <th class="text-center">Điện thoại</th>
-                <th class="text-center">Ca làm việc</th>
+                <th class="text-center">Khung giờ hẹn</th>
                 <th class="text-center">Bác sĩ</th>
                 <th class="text-center">Dịch vụ</th>
                 <th class="text-center">Ngày đặt</th>
@@ -163,10 +162,19 @@
         <tbody>
             @foreach (var obj in Model)
             {
+                TimeSpan endTimeSlot = obj.KhungGioBatDau.Add(TimeSpan.FromMinutes(obj.LichLamViec.ThoiLuongKhungGioPhut));
+
                 <tr>
                     <td class="text-start">@obj.TenKhachHang</td>
                     <td>@obj.SoDienThoai</td>
-                    <td>@obj.LichLamViec.NgayLamViec.ToString("dd/MM/yyyy") (@obj.LichLamViec.GioBatDau.ToString("HH:mm") - @obj.LichLamViec.GioKetThuc.ToString("HH:mm"))</td>
+
+                    <td>
+                        @obj.LichLamViec.NgayLamViec.ToString("dd/MM/yyyy")
+                        (
+                        @obj.KhungGioBatDau.ToString(@"hh\:mm") - @endTimeSlot.ToString(@"hh\:mm")
+                        )
+                    </td>
+
                     <td>@obj.BacSi.HoTen</td>
                     <td>@obj.DichVu.TenDichVu</td>
                     <td>@obj.ThoiGianDat.ToString("dd/MM/yyyy HH:mm")</td>
@@ -234,7 +242,7 @@
     <script src="https://cdn.datatables.net/2.0.8/js/dataTables.bootstrap5.min.js"></script>
 
     <script>
-        // Hàm áp dụng màu chữ (text color) cho dropdown
+        // Hàm áp dụng màu chữ (text color) cho dropdown (Giữ nguyên)
         function applyStatusColor(selectElement) {
             var currentStatus = selectElement.val();
 
@@ -287,10 +295,7 @@
             });
 
             // --- HÀM LỌC ---
-            // *QUAN TRỌNG: CÁC COLUMN INDEX ĐÃ THAY ĐỔI*
-            // Bác sĩ: Index 3
-            // Dịch vụ: Index 4
-            // Cột Lọc Trạng thái (Text Ẩn): Index 6
+            // Bác sĩ: Index 3, Dịch vụ: Index 4, Trạng thái (Text Ẩn): Index 6
 
             function resetAllFilters() {
                 table.columns().search('');
@@ -308,7 +313,6 @@
 
                 var bacSi = $('#filterBacSi').is(':visible') ? $('#bacSiFilter').val() : '';
                 var dichVu = $('#filterDichVu').is(':visible') ? $('#dichVuFilter').val() : '';
-                // Lấy giá trị trạng thái tiếng Việt
                 var trangThai = $('#filterTrangThai').is(':visible') ? $('#trangThaiFilter').val() : '';
 
                 // Cột 3: Bác sĩ (Lọc chính xác)
@@ -318,7 +322,6 @@
                 table.column(4).search(dichVu ? '^' + dichVu + '$' : '', true, false);
 
                 // Cột 6: Trạng thái (SỬ DỤNG CỘT ẨN VÀ LỌC CHÍNH XÁC)
-                // Lọc trên nội dung text thuần của cột 6
                 table.column(6).search(trangThai ? '^' + trangThai + '$' : '', true, false);
 
                 table.draw();

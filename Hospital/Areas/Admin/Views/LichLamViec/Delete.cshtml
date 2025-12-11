@@ -6,7 +6,7 @@
 
 <form method="post" asp-action="Delete">
 
-  
+
     <input asp-for="LichLamViecId" hidden />
 
     <div class="border p-4 mt-4 bg-white shadow-sm rounded">
@@ -22,7 +22,7 @@
         <div class="row">
             <div class="col-8">
 
-       
+
                 <div class="mb-3">
                     <label asp-for="BacSi.HoTen" class="form-label text-primary">Bác sĩ phụ trách</label>
                     <input value="@Model.BacSi.HoTen" class="form-control" disabled />
@@ -33,17 +33,24 @@
                     <input value="@Model.NgayLamViec.ToString("dd/MM/yyyy")" class="form-control" disabled />
                 </div>
 
+                @* TRƯỜNG THỜI LƯỢNG KHUNG GIỜ MỚI *@
+                <div class="mb-3">
+                    <label asp-for="ThoiLuongKhungGioPhut" class="form-label text-primary">Thời lượng Khung giờ (Phút)</label>
+                    <input value="@Model.ThoiLuongKhungGioPhut" class="form-control" disabled />
+                </div>
+
+
                 <div class="row">
                     <div class="col-6">
                         <div class="mb-3">
                             <label asp-for="GioBatDau" class="form-label text-primary">Giờ Bắt đầu</label>
-                            <input value="@Model.GioBatDau.ToString("HH:mm")" class="form-control" disabled />
+                            <input value="@Model.GioBatDau.ToString(@"hh\:mm")" class="form-control" disabled />
                         </div>
                     </div>
                     <div class="col-6">
                         <div class="mb-3">
                             <label asp-for="GioKetThuc" class="form-label text-primary">Giờ Kết thúc</label>
-                            <input value="@Model.GioKetThuc.ToString("HH:mm")" class="form-control" disabled />
+                            <input value="@Model.GioKetThuc.ToString(@"hh\:mm")" class="form-control" disabled />
                         </div>
                     </div>
                 </div>
@@ -62,7 +69,7 @@
 
         <div class="mt-4 pt-3 border-top text-end">
             <button type="submit" class="btn btn-danger btn-lg shadow-lg" style="width:200px">
-                <i class="bi bi-trash-fill"></i> Xóa ca làm 
+                <i class="bi bi-trash-fill"></i> Xóa ca làm
             </button>
             <a asp-controller="LichLamViec" asp-action="Index" class="btn btn-secondary btn-lg" style="width:180px">
                 <i class="bi bi-arrow-left"></i> Quay lại

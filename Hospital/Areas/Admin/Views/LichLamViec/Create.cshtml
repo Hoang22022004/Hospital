@@ -28,7 +28,9 @@
                 @* TRƯỜNG 2: Ngày làm việc (JQUERY UI DATEPICKER) *@
                 <div class="mb-3">
                     <label asp-for="NgayLamViec" class="form-label">Ngày làm việc</label>
-                    <input asp-for="NgayLamViec" type="text" id="datepickerNgayLamViec" class="form-control" />
+                    <input type="text" id="datepickerNgayLamViec" class="form-control" />
+                    <input type="hidden" asp-for="NgayLamViec" id="NgayLamViecHidden" />
+
                     <span class="text-muted small">Định dạng hiển thị: Ngày/Tháng/Năm (dd/MM/yyyy)</span>
                     <span asp-validation-for="NgayLamViec" class="text-danger"></span>
                 </div>
@@ -49,6 +51,13 @@
                             <span asp-validation-for="GioKetThuc" class="text-danger"></span>
                         </div>
                     </div>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="ThoiLuongKhungGioPhut" class="form-label">Thời lượng Khung giờ (Phút)</label>
+                    <input asp-for="ThoiLuongKhungGioPhut" type="number" class="form-control" placeholder="Ví dụ: 30, 45, 60" min="5" max="180" step="5" />
+                    <span class="text-muted small">Quy định thời gian cho mỗi lịch hẹn nhỏ trong ca này (Phút).</span>
+                    <span asp-validation-for="ThoiLuongKhungGioPhut" class="text-danger"></span>
                 </div>
 
                 @* TRƯỜNG 5: IsActive (Switch) *@
@@ -78,6 +87,7 @@
 
     <script>
         $(document).ready(function () {
+
             // 1. Kích hoạt Select2
             $('.select2-dropdown').select2({
                 placeholder: "-- Tìm kiếm Bác sĩ...",
@@ -90,18 +100,33 @@
                 dateFormat: 'dd/mm/yy',
                 changeMonth: true,
                 changeYear: true,
-                yearRange: '2025:2030'
+                yearRange: '2025:2030',
+                // SỰ KIỆN: Cập nhật trường ẩn NgayLamViecHidden khi ngày được chọn
+                onSelect: function(dateText, inst) {
+                    // Chuyển đổi dd/mm/yyyy -> yyyy-mm-dd cho Model Binder
+                    var parts = dateText.split('/');
+                    var formattedDate = parts[2] + '-' + parts[1] + '-' + parts[0];
+                    $('#NgayLamViecHidden').val(formattedDate);
+                }
             });
 
             // 3. KHỞI TẠO FLATPCIKR TIME PICKER (Giờ:Phút)
             flatpickr(".time-picker", {
                 enableTime: true,
                 noCalendar: true, // Chỉ chọn giờ
-                dateFormat: "H:i", // Định dạng 24h: Giờ:Phút
+                dateFormat: "H:i", // Định dạng 24h: Giờ:Phút (sẽ gửi về server dưới dạng chuỗi 'HH:mm')
                 time_24hr: true,
                 minuteIncrement: 5, // Chọn phút theo bước 5 phút
                 locale: "vn" // Sử dụng ngôn ngữ Việt Nam
             });
+
+            // Nếu có giá trị lỗi (postback), cần chuyển đổi giá trị NgayLamViec (yyyy-MM-dd) thành dd/MM/yyyy cho datepicker
+            var hiddenDate = $('#NgayLamViecHidden').val();
+            if (hiddenDate) {
+                var parts = hiddenDate.split('-'); // yyyy-MM-dd
+                var displayDate = parts[2] + '/' + parts[1] + '/' + parts[0];
+                $('#datepickerNgayLamViec').val(displayDate);
+            }
         });
     </script>
 }

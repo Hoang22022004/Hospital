@@ -1,6 +1,9 @@
 ﻿@model Hospital.Models.LichHen
 @{
     ViewData["Title"] = "Xóa Lịch hẹn";
+
+    // Tính toán thời gian kết thúc của Khung giờ nhỏ
+    TimeSpan endTimeSlot = Model.KhungGioBatDau.Add(TimeSpan.FromMinutes(Model.LichLamViec.ThoiLuongKhungGioPhut));
 }
 
 <div class="border p-4 mt-4 bg-white shadow-sm rounded">
@@ -39,8 +42,13 @@
                     <dt class="col-sm-4">@Html.DisplayNameFor(model => model.BacSi)</dt>
                     <dd class="col-sm-8">@Model.BacSi.HoTen</dd>
 
-                    <dt class="col-sm-4">Ca làm việc</dt>
-                    <dd class="col-sm-8">@Model.LichLamViec.NgayLamViec.ToString("dd/MM/yyyy") (@Model.LichLamViec.GioBatDau.ToString("HH:mm"))</dd>
+                    <dt class="col-sm-4">Ngày hẹn</dt>
+                    <dd class="col-sm-8">@Model.LichLamViec.NgayLamViec.ToString("dd/MM/yyyy")</dd>
+
+                    <dt class="col-sm-4">Khung giờ hẹn</dt>
+                    <dd class="col-sm-8">
+                        @Model.KhungGioBatDau.ToString(@"hh\:mm") - @endTimeSlot.ToString(@"hh\:mm")
+                    </dd>
 
                     <dt class="col-sm-4">@Html.DisplayNameFor(model => model.DichVu)</dt>
                     <dd class="col-sm-8">@Model.DichVu.TenDichVu</dd>

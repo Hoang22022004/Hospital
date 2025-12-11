@@ -59,17 +59,23 @@
                 </div>
 
                 <div class="mb-3">
-                    <label asp-for="LichLamViecId" class="form-label">Chọn Ca làm việc trống</label>
-                    <select asp-for="LichLamViecId" class="form-select select2-dropdown-full" disabled>
+                    <label asp-for="LichLamViecId" class="form-label">Chọn Ngày và Ca làm việc</label>
+                    <select id="LichLamViecId" asp-for="LichLamViecId" class="form-select select2-dropdown-full" disabled>
                         <option value="">-- Chọn Bác sĩ trước --</option>
                     </select>
-
-                    <span id="LichLamViecGuide" class="text-muted small">Chỉ hiển thị các ca làm việc đang hoạt động và chưa bị đặt.</span>
-
-               
-                    <span id="LichLamViecError" class="text-danger" style="display: none;"></span>
                     <span asp-validation-for="LichLamViecId" class="text-danger"></span>
                 </div>
+
+                <div class="mb-3">
+                    <label asp-for="KhungGioBatDau" class="form-label">Chọn Khung giờ</label>
+                    <select id="KhungGioBatDau" asp-for="KhungGioBatDau" class="form-select" disabled>
+                        <option value="">-- Chọn Ca làm việc trước --</option>
+                    </select>
+                    <span asp-validation-for="KhungGioBatDau" class="text-danger"></span>
+                </div>
+
+                <span id="LichLamViecGuide" class="text-muted small">Khung giờ hiển thị dựa trên thời lượng khám của bác sĩ và các slot còn trống.</span>
+                <span id="LichLamViecError" class="text-danger" style="display: none;"></span>
 
                 <div class="mb-3">
                     <label asp-for="DichVuId" class="form-label">Chọn Dịch vụ</label>
@@ -99,14 +105,58 @@
     }
 
     <script>
+        // Hàm chuyển đổi HH:mm thành số phút từ nửa đêm
+        function timeToMinutes(timeStr) {
+            if (!timeStr) return 0;
+            var parts = timeStr.split(':');
+            return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+        }
+
+        // Hàm phân chia khung giờ (Time Slot Generator)
+        function generateTimeSlots(gioBatDauStr, gioKetThucStr, thoiLuongPhut, bookedSlots) {
+            var slots = [];
+            var startMinutes = timeToMinutes(gioBatDauStr);
+            var endMinutes = timeToMinutes(gioKetThucStr);
+
+            for (var currentMinutes = startMinutes; currentMinutes < endMinutes; currentMinutes += thoiLuongPhut) {
+
+                var hour = Math.floor(currentMinutes / 60);
+                var minute = currentMinutes % 60;
+
+                var nextMinutes = currentMinutes + thoiLuongPhut;
+                if (nextMinutes > endMinutes) continue;
+
+                var endHour = Math.floor(nextMinutes / 60);
+                var endMinute = nextMinutes % 60;
+
+                var startTimeValue = ('0' + hour).slice(-2) + ':' + ('0' + minute).slice(-2); // VD: "09:00"
+                var endTimeText = ('0' + endHour).slice(-2) + ':' + ('0' + endMinute).slice(-2);
+                var slotDisplayText = startTimeValue + ' - ' + endTimeText;
+
+                // Kiểm tra xem khung giờ này đã bị đặt chưa (bookedSlots là list chuỗi "HH:mm")
+                var isBooked = bookedSlots.includes(startTimeValue);
+
+                slots.push({
+                    // Giá trị gửi về Server phải là HH:mm:ss để Model Binder chuyển thành TimeSpan
+                    value: startTimeValue + ':00',
+                    text: slotDisplayText,
+                    disabled: isBooked
+                });
+            }
+            return slots;
+        }
+
         $(document).ready(function () {
 
             var bacSiDropdown = $('#BacSiDropdown');
             var caLamViecDropdown = $('#LichLamViecId');
+            var khungGioDropdown = $('#KhungGioBatDau');
             var errorSpan = $('#LichLamViecError');
-            var guideSpan = $('#LichLamViecGuide'); // Lấy dòng hướng dẫn
+            var guideSpan = $('#LichLamViecGuide');
+            var caLamViecData = []; // Biến tạm để lưu dữ liệu ca làm việc chi tiết (từ Server)
 
-            // Kích hoạt Select2 cho tất cả các dropdown
+
+            // Kích hoạt Select2
             $('.select2-dropdown-full').select2({
                 placeholder: "-- Tìm kiếm...",
                 allowClear: true,
@@ -114,68 +164,110 @@
                 width: '100%'
             });
 
-            // Gắn sự kiện khi Bác sĩ được chọn thay đổi
+
+            // --- BƯỚC 1: Tải Ca làm việc (Ngày và Giờ lớn) khi chọn Bác sĩ ---
             bacSiDropdown.on('change', function () {
                 var selectedBacSiId = $(this).val();
 
-                // 1. Reset trạng thái lỗi và hướng dẫn
                 errorSpan.text('').hide();
                 guideSpan.show();
 
                 caLamViecDropdown.attr('disabled', true);
                 caLamViecDropdown.empty().append('<option value="">Đang tải ca làm việc...</option>');
+                khungGioDropdown.attr('disabled', true).empty().append('<option value="">-- Chọn Ca làm việc trước --</option>');
 
                 if (selectedBacSiId) {
-                    // 2. Gọi AJAX để lấy danh sách ca làm việc trống
+                    // Gọi AJAX để lấy danh sách ca làm việc lớn (LLV) và các slot đã đặt
                     $.ajax({
                         url: '@Url.Action("GetLichLamViecByBacSi", "LichHen")',
                         type: 'GET',
                         data: { bacSiId: selectedBacSiId },
                         success: function (data) {
+                            caLamViecData = data; // Lưu dữ liệu ca làm việc chi tiết
                             caLamViecDropdown.empty();
-                            if (data.length > 0) {
-                                // THÀNH CÔNG: Có ca làm việc
-                                caLamViecDropdown.append('<option value="">-- Chọn Ca làm việc --</option>');
+
+                            if (data && data.length > 0) {
+                                caLamViecDropdown.append('<option value="">-- Chọn Ngày và Ca làm việc --</option>');
                                 $.each(data, function (i, item) {
                                     caLamViecDropdown.append($('<option>', {
-                                        value: item.id,
-                                        text: item.text
+                                        value: item.id, // ID của LLV lớn
+                                        text: item.text // Ngày (HH:mm - HH:mm)
                                     }));
                                 });
-                                caLamViecDropdown.attr('disabled', false); // Kích hoạt dropdown
-                                // guideSpan vẫn show (đã được đặt ở trên)
+                                caLamViecDropdown.attr('disabled', false);
+                                guideSpan.show();
                             } else {
-                                // KHÔNG CÓ CA LÀM VIỆC: Hiện thông báo lỗi và ẨN hướng dẫn
-                                caLamViecDropdown.append('<option value="">Không có ca trống</option>');
-                                caLamViecDropdown.val('');
-
-                                errorSpan.text('⚠️ Bác sĩ này hiện không có ca làm việc trống hoặc ca đã hết hạn.').show();
-                                guideSpan.hide(); // ẨN DÒNG HƯỚNG DẪN
+                                caLamViecDropdown.append('<option value="">Không có ca trống</option>').val('');
+                                errorSpan.text('⚠️ Bác sĩ này hiện không có ca làm việc trống.').show();
+                                guideSpan.hide();
                             }
-                            caLamViecDropdown.trigger('change');
+                            caLamViecDropdown.trigger('change.select2');
                         },
-                        error: function (xhr, status, error) {
-                            // LỖI HỆ THỐNG
-                            caLamViecDropdown.empty().append('<option value="">Lỗi khi tải dữ liệu ca làm việc</option>');
-                            errorSpan.text('⚠️ Lỗi hệ thống khi tải ca làm việc. Vui lòng thử lại.').show();
-                            guideSpan.hide(); // ẨN DÒNG HƯỚNG DẪN
-                            caLamViecDropdown.trigger('change');
+                        error: function () {
+                            errorSpan.text('⚠️ Lỗi hệ thống khi tải ca làm việc.').show();
+                            guideSpan.hide();
+                            caLamViecDropdown.empty().append('<option value="">Lỗi tải dữ liệu</option>').val('');
+                            caLamViecDropdown.attr('disabled', true);
+                            caLamViecDropdown.trigger('change.select2');
                         }
                     });
                 } else {
-                    // Nếu không chọn Bác sĩ
                     caLamViecDropdown.empty().append('<option value="">-- Chọn Bác sĩ trước --</option>');
                     caLamViecDropdown.attr('disabled', true);
-                    // Hiển thị hướng dẫn mặc định
+                    khungGioDropdown.empty().append('<option value="">-- Chọn Ca làm việc trước --</option>').attr('disabled', true);
                     guideSpan.show();
-                    caLamViecDropdown.trigger('change');
+                    caLamViecDropdown.trigger('change.select2');
                 }
             });
 
-            // Trigger lần đầu để load ca làm việc nếu Bác sĩ đã được chọn
-            if (bacSiDropdown.val()) {
-                 bacSiDropdown.trigger('change');
-            }
+
+            // --- BƯỚC 2: Tải Khung giờ nhỏ khi chọn Ca làm việc (Ngày) ---
+            caLamViecDropdown.on('change', function() {
+                var selectedLichLamViecId = $(this).val();
+                khungGioDropdown.attr('disabled', true).empty().append('<option value="">-- Chọn Khung giờ --</option>');
+                errorSpan.hide();
+                guideSpan.show();
+
+                if (selectedLichLamViecId) {
+                    // Tìm dữ liệu Ca làm việc lớn đã chọn
+                    var selectedCa = caLamViecData.find(item => item.id.toString() === selectedLichLamViecId);
+
+                    if (selectedCa && selectedCa.thoiLuongPhut > 0) {
+                        var slots = generateTimeSlots(
+                            selectedCa.gioBatDau,
+                            selectedCa.gioKetThuc,
+                            selectedCa.thoiLuongPhut,
+                            selectedCa.bookedSlots || []
+                        );
+
+                        khungGioDropdown.empty().append('<option value="">-- Chọn Khung giờ --</option>');
+
+                        var availableSlotsCount = 0;
+
+                        $.each(slots, function (i, slot) {
+                            khungGioDropdown.append($('<option>', {
+                                value: slot.value,
+                                text: slot.text,
+                                disabled: slot.disabled
+                            }));
+                            if (!slot.disabled) {
+                                availableSlotsCount++;
+                            }
+                        });
+
+                        if (availableSlotsCount > 0) {
+                            khungGioDropdown.attr('disabled', false);
+                        } else {
+                            errorSpan.text('⚠️ Tất cả khung giờ trong ca này đã được đặt hết.').show();
+                            guideSpan.hide();
+                        }
+                    } else {
+                        // Trường hợp ca không có thời lượng phân chia (lỗi dữ liệu)
+                        errorSpan.text('⚠️ Dữ liệu ca làm việc không đầy đủ hoặc thời lượng khám không xác định.').show();
+                        guideSpan.hide();
+                    }
+                }
+            });
         });
     </script>
 }

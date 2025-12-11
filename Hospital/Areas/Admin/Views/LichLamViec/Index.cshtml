@@ -59,7 +59,7 @@
     </div>
 
 
-    
+
     <div id="filterBacSi" class="mb-3 d-none">
         <label class="form-label">Lọc theo Bác sĩ:</label>
         <select id="bacSiFilter" class="form-select select2-dropdown">
@@ -106,8 +106,9 @@
                 <tr>
                     <td style="vertical-align: middle;">@obj.BacSi.HoTen</td>
                     <td style="vertical-align: middle;">@obj.NgayLamViec.ToString("dd/MM/yyyy")</td>
-                    <td style="vertical-align: middle;">@obj.GioBatDau.ToString("HH:mm")</td>
-                    <td style="vertical-align: middle;">@obj.GioKetThuc.ToString("HH:mm")</td>
+
+                    <td style="vertical-align: middle;">@obj.GioBatDau.ToString(@"hh\:mm")</td>
+                    <td style="vertical-align: middle;">@obj.GioKetThuc.ToString(@"hh\:mm")</td>
 
                     <td style="vertical-align: middle;">
                         @{
@@ -139,8 +140,9 @@
 @section Scripts {
     <script src="https://cdn.datatables.net/2.0.8/js/dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/2.0.8/js/dataTables.bootstrap5.min.js"></script>
-
     <script>
+        // DataTables và Select2 đã được định nghĩa ở các bước trước
+
         $(document).ready(function () {
 
             var table = $('#tblData').DataTable({
@@ -155,36 +157,53 @@
                 theme: 'bootstrap-5'
             });
 
-            // --- HÀM ỨNG DỤNG TẤT CẢ LỌC (Cộng dồn) ---
-            // Lưu ý: Với cách lọc menu này, chúng ta không cần dùng logic 'Độc quyền' phức tạp nữa
-            // mà chỉ cần gọi hàm applyFilters() khi bất kỳ dropdown nào thay đổi.
+            // --- HÀM LỌC TÙY CHỈNH THEO NGÀY (Cần định nghĩa lại cho DataTables) ---
+
+            // Định nghĩa hàm lọc cho Ngày (Cột 1)
+            $.fn.dataTable.ext.search.push(
+                function(settings, data, dataIndex) {
+                    var ngayFilter = $('#ngayFilter').val();
+
+                    // Nếu filter Ngày không được thiết lập hoặc không được hiển thị, bỏ qua bước lọc này
+                    if (!ngayFilter || $('#filterNgay').hasClass('d-none')) {
+                        return true;
+                    }
+
+                    var ngayHienThi = data[1]; // Lấy giá trị ngày tháng từ cột 1 (dd/MM/yyyy)
+
+                    // Chuyển đổi định dạng ngày: dd/MM/yyyy -> yyyy-MM-dd để so sánh với input type="date"
+                    var parts = ngayHienThi.split('/');
+                    // Đảm bảo có đủ 3 phần tử trước khi truy cập index
+                    if (parts.length === 3) {
+                         var ngaySoSanh = parts[2] + '-' + parts[1] + '-' + parts[0];
+                         return ngaySoSanh === ngayFilter;
+                    }
+
+                    return false; // Trả về false nếu định dạng ngày không hợp lệ
+                }
+            );
+
+            // Hàm áp dụng tất cả các bộ lọc (Cộng dồn)
             function applyFilters() {
-                // Reset tất cả các bộ lọc DataTables trên cột
-                table.columns().search('');
+                // Xóa tìm kiếm cột cũ (trừ Ngày, vì Ngày dùng bộ lọc tùy chỉnh)
+                table.columns([0, 4]).search('');
 
                 // 1. Lọc theo Bác sĩ (Cột 0)
                 var bacSi = $('#bacSiFilter').val();
                 if (bacSi) {
-                    // Lọc chính xác
                     table.column(0).search('^' + bacSi + '$', true, false);
                 }
 
                 // 2. Lọc theo Trạng thái (Cột 4)
                 var trangThai = $('#trangThaiFilter').val();
                 if (trangThai) {
-                    // Lọc chính xác
                     table.column(4).search('^' + trangThai + '$', true, false);
                 }
 
-                // 3. Lọc theo Ngày (Cột 1)
-                var ngay = $('#ngayFilter').val();
-                if (ngay) {
-                    var parts = ngay.split('-');
-                    var dateFormat = parts[2] + '/' + parts[1] + '/' + parts[0];
-                    table.column(1).search(dateFormat); // Tìm chuỗi ngày đã format
-                }
+                // 3. Lọc theo Ngày (Kích hoạt bộ lọc tùy chỉnh)
+                // KHÔNG cần search() trên cột 1, chỉ cần gọi table.draw()
 
-                table.draw(); // Áp dụng tất cả bộ lọc đã đặt
+                table.draw(); // Áp dụng tất cả bộ lọc đã đặt (bao gồm bộ lọc Ngày tùy chỉnh)
             }
 
 
@@ -196,6 +215,12 @@
             // 2. Hiển thị filter theo menu (Logic Menu Độc quyền chỉ để hiển thị)
             $('.filter-option').on('click', function () {
                 var filter = $(this).data('filter');
+
+                // Reset các giá trị lọc khi chuyển đổi (để tránh lọc chồng lên nhau)
+                $('#bacSiFilter').val('').trigger('change.select2');
+                $('#ngayFilter').val('');
+                $('#trangThaiFilter').val('');
+                applyFilters(); // Áp dụng lọc ngay để xóa kết quả lọc cũ
 
                 // Ẩn tất cả các khối trước
                 $('#filterBacSi, #filterNgay, #filterTrangThai').addClass('d-none');
@@ -209,8 +234,8 @@
                     $('#filterTrangThai').removeClass('d-none');
                 }
 
-                // Áp dụng lọc ngay sau khi chọn menu (dùng hàm applyFilters để lọc)
-                applyFilters();
+
+                // applyFilters(); // Không cần gọi lại vì đã gọi ở trên
             });
 
 
