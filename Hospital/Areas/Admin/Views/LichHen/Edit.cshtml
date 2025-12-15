@@ -3,21 +3,23 @@
 @{
     ViewData["Title"] = "Chỉnh sửa Lịch hẹn";
     var bacSiList = ViewData["BacSiId"] as SelectList;
-    var dichVuList = ViewData["DichVuId"] as SelectList;
+    // Bỏ dichVuList khỏi Razor vì nó sẽ được load động.
 
     // Lấy ID Ca làm việc và Khung giờ BẮT ĐẦU hiện tại để sử dụng trong JS
     var currentLichHenId = Model.LichHenId.ToString();
     var currentBacSiId = Model.BacSiId.ToString();
     var currentLichLamViecId = Model.LichLamViecId.ToString();
-    // Đã sửa: Sử dụng định dạng TimeSpan chính xác
     var currentKhungGioBatDau = Model.KhungGioBatDau.ToString(@"hh\:mm");
+
+    // THÊM: ID Dịch vụ hiện tại để chọn lại trong JS
+    var currentDichVuId = Model.DichVuId.ToString();
 }
 
 <form method="post">
     <input type="hidden" asp-for="LichHenId" />
     <input type="hidden" asp-for="ThoiGianDat" />
     <input type="hidden" asp-for="TrangThai" />
-    <input type="hidden" asp-for="BacSiId" />
+    @* LOẠI BỎ input hidden cho BacSiId vì nó đã có ở dropdown *@@* <input type="hidden" asp-for="BacSiId" /> *@
 
     <div class="border p-4 mt-4 bg-white shadow-sm rounded">
         <div class="row pb-2">
@@ -89,8 +91,9 @@
 
                 <div class="mb-3">
                     <label asp-for="DichVuId" class="form-label">Chọn Dịch vụ</label>
-                    <select asp-for="DichVuId" asp-items="@dichVuList" class="form-select select2-dropdown-full">
-                        <option value="">-- Tìm kiếm Dịch vụ --</option>
+
+                    <select id="DichVuId" asp-for="DichVuId" class="form-select select2-dropdown-full" disabled>
+                        <option value="@currentDichVuId">Đang tải dịch vụ...</option>
                     </select>
                     <span asp-validation-for="DichVuId" class="text-danger"></span>
                 </div>
@@ -139,25 +142,71 @@
                 var endHour = Math.floor(nextMinutes / 60);
                 var endMinute = nextMinutes % 60;
 
-                var startTimeValue = ('0' + hour).slice(-2) + ':' + ('0' + minute).slice(-2); // VD: "09:00"
+                var startTimeValue = ('0' + hour).slice(-2) + ':' + ('0' + minute).slice(-2);
                 var endTimeText = ('0' + endHour).slice(-2) + ':' + ('0' + endMinute).slice(-2);
                 var slotDisplayText = startTimeValue + ' - ' + endTimeText;
 
-                // Kiểm tra xem khung giờ này có phải là slot hiện tại không
                 var isCurrentSlot = startTimeValue === currentSlotTimeStr;
-                // Kiểm tra xem đã bị đặt chưa (Nếu đã đặt và KHÔNG phải là slot hiện tại thì disable)
                 var isBooked = bookedSlots.includes(startTimeValue) && !isCurrentSlot;
 
                 slots.push({
-                    // Giá trị gửi về Server phải là HH:mm:ss để Model Binder chuyển thành TimeSpan
                     value: startTimeValue + ':00',
                     text: slotDisplayText,
                     disabled: isBooked,
-                    selected: isCurrentSlot // Chọn lại slot cũ khi tải lần đầu
+                    selected: isCurrentSlot
                 });
             }
             return slots;
         }
+
+        // HÀM Tải Dịch vụ theo Bác sĩ (Edit version)
+        // **ĐÃ SỬA:** Lấy cờ isInitialLoad và sử dụng item.value/item.text
+        function loadDichVuByBacSi(selectedBacSiId) {
+            var dichVuDropdown = $('#DichVuId');
+            var currentDichVuId = '@currentDichVuId';
+            // Lấy cờ isInitialLoad từ thuộc tính data của dropdown Bác sĩ (do được gán trong document.ready)
+            var isInitialLoad = $('#BacSiDropdown').data('isInitialLoad');
+
+            dichVuDropdown.attr('disabled', true).empty().append('<option value="">Đang tải dịch vụ...</option>');
+            dichVuDropdown.trigger('change.select2');
+
+            if (selectedBacSiId) {
+                $.ajax({
+                    url: '@Url.Action("GetDichVuByBacSi", "LichHen")',
+                    type: 'GET',
+                    data: { bacSiId: selectedBacSiId },
+                    success: function (data) {
+                        dichVuDropdown.empty().append('<option value="">-- Tìm kiếm Dịch vụ --</option>');
+                        if (data.length > 0) {
+                            $.each(data, function (i, item) {
+                                // **SỬA LỖI:** Dùng item.value và item.text (camelCase)
+                                var isSelected = isInitialLoad && item.value.toString() === currentDichVuId;
+
+                                dichVuDropdown.append($('<option>', {
+                                    value: item.value, // <--- ĐÃ SỬA
+                                    text: item.text,   // <--- ĐÃ SỬA
+                                    selected: isSelected
+                                }));
+                            });
+                            dichVuDropdown.attr('disabled', false);
+                        } else {
+                            dichVuDropdown.append('<option value="">Không tìm thấy dịch vụ tương ứng</option>');
+                        }
+                        dichVuDropdown.trigger('change.select2');
+                    },
+                    error: function () {
+                        dichVuDropdown.empty().append('<option value="">Lỗi tải dịch vụ</option>').val('');
+                        dichVuDropdown.attr('disabled', true);
+                        dichVuDropdown.trigger('change.select2');
+                    }
+                });
+            } else {
+                dichVuDropdown.empty().append('<option value="">-- Chọn Bác sĩ trước --</option>').val('');
+                dichVuDropdown.attr('disabled', true);
+                dichVuDropdown.trigger('change.select2');
+            }
+        }
+
 
         $(document).ready(function () {
 
@@ -167,16 +216,20 @@
             var errorSpan = $('#LichLamViecError');
             var guideSpan = $('#LichLamViecGuide');
 
-            // Dữ liệu ban đầu từ Razor
+            // Dữ liệu ban đầu từ Razor (Dùng cho Edit)
             var currentLichHenId = '@currentLichHenId';
             var currentBacSiId = '@currentBacSiId';
             var currentLichLamViecId = '@currentLichLamViecId';
             var currentKhungGioBatDau = '@currentKhungGioBatDau';
-            var isInitialLoad = true;
-            var caLamViecData = []; // Biến tạm để lưu dữ liệu ca làm việc chi tiết (từ Server)
+            var currentDichVuId = '@currentDichVuId';
+
+            // **SỬA ĐỔI:** Thay vì dùng biến isInitialLoad trong scope hẹp, ta dùng data attribute
+            // để nó có thể được truy cập từ hàm loadDichVuByBacSi
+            bacSiDropdown.data('isInitialLoad', true);
+            var caLamViecData = [];
 
 
-            // Kích hoạt Select2 cho tất cả các dropdown
+            // Kích hoạt Select2
             $('.select2-dropdown-full').select2({
                 placeholder: "-- Tìm kiếm...",
                 allowClear: true,
@@ -184,10 +237,14 @@
                 width: '100%'
             });
 
-            // Hàm xử lý tải Khung giờ nhỏ
+
+            // Hàm xử lý tải Khung giờ nhỏ (GIỮ NGUYÊN)
             function loadKhungGio(selectedLichLamViecId) {
                 khungGioDropdown.attr('disabled', true).empty().append('<option value="">Đang tạo khung giờ...</option>');
                 errorSpan.text('').hide();
+
+                // Lấy cờ isInitialLoad từ data attribute
+                var isInitialLoad = bacSiDropdown.data('isInitialLoad');
 
                 if (selectedLichLamViecId) {
                     var selectedCa = caLamViecData.find(item => item.id.toString() === selectedLichLamViecId);
@@ -196,8 +253,6 @@
 
                         var isCurrentCa = selectedLichLamViecId === currentLichLamViecId;
 
-                        // Nếu là lần tải đầu tiên và là ca hiện tại, ta chọn lại slot cũ
-                        // Nếu không, ta truyền chuỗi rỗng để JS chọn slot trống đầu tiên (nếu có)
                         var currentSlotToSelect = (isInitialLoad && isCurrentCa) ? currentKhungGioBatDau : '';
 
                         var slots = generateTimeSlots(
@@ -217,7 +272,7 @@
                                 value: slot.value,
                                 text: slot.text,
                                 disabled: slot.disabled,
-                                selected: slot.selected // Chọn slot cũ
+                                selected: slot.selected
                             }));
                             if (!slot.disabled) availableSlotsCount++;
                             if (slot.selected) currentSlotFound = true;
@@ -225,14 +280,18 @@
 
                         if (slots.length > 0) {
                             khungGioDropdown.attr('disabled', false);
-                            // Nếu không phải là lần tải đầu tiên, hoặc slot cũ đã bị chiếm, reset về "-- Chọn Khung giờ --"
-                            if (isInitialLoad && currentLichLamViecId === selectedLichLamViecId && !currentSlotFound) {
-                                // Nếu slot cũ bị chiếm (rất hiếm trong edit), không cần làm gì, nó sẽ là option đầu tiên
-                            } else if (!isInitialLoad) {
-                                khungGioDropdown.val(''); // Nếu không phải là lần tải đầu, reset về option default
+                            if (!isInitialLoad && !currentSlotFound) {
+                                khungGioDropdown.val('');
                             }
+
+                            if (availableSlotsCount === 0 && !currentSlotFound) {
+                                errorSpan.text('⚠️ Tất cả khung giờ trong ca này đã được đặt hết.').show();
+                                guideSpan.hide();
+                            }
+
                         } else {
                             errorSpan.text('⚠️ Không có khung giờ trống trong ca này.').show();
+                            guideSpan.hide();
                         }
                     } else {
                         errorSpan.text('⚠️ Dữ liệu ca làm việc không đầy đủ.').show();
@@ -241,7 +300,8 @@
                 khungGioDropdown.trigger('change');
             }
 
-            // Hàm xử lý tải Ca làm việc (Ngày)
+
+            // Hàm xử lý tải Ca làm việc (Ngày) (CÓ SỬA NHỎ VỀ BIẾN isInitialLoad)
             function loadLichLamViec(selectedBacSiId) {
                 errorSpan.text('').hide();
                 guideSpan.show();
@@ -250,6 +310,9 @@
                 caLamViecDropdown.empty().append('<option value="">Đang tải ca làm việc...</option>');
                 khungGioDropdown.attr('disabled', true).empty().append('<option value="">-- Chọn Ca làm việc trước --</option>');
 
+                // Lấy cờ isInitialLoad từ data attribute
+                var isInitialLoad = bacSiDropdown.data('isInitialLoad');
+
                 if (selectedBacSiId) {
                     $.ajax({
                         url: '@Url.Action("GetLichLamViecByBacSi", "LichHen")',
@@ -257,7 +320,7 @@
                         // Truyền ID Lịch hẹn để Server biết loại trừ slot hiện tại khi kiểm tra trùng lịch
                         data: { bacSiId: selectedBacSiId, excludeLichHenId: currentLichHenId },
                         success: function (data) {
-                            caLamViecData = data; // Lưu dữ liệu ca làm việc lớn
+                            caLamViecData = data;
                             caLamViecDropdown.empty();
 
                             if (data && data.length > 0) {
@@ -266,6 +329,7 @@
                                     caLamViecDropdown.append($('<option>', {
                                         value: item.id,
                                         text: item.text,
+                                        // CHỌN CA LÀM VIỆC CŨ KHI TẢI LẦN ĐẦU
                                         selected: isInitialLoad && item.id.toString() === currentLichLamViecId
                                     }));
                                 });
@@ -279,12 +343,13 @@
                             caLamViecDropdown.trigger('change.select2');
 
                             // Nếu đây là lần tải đầu tiên VÀ có ca làm việc được chọn, tải khung giờ
-                            if (isInitialLoad && currentLichLamViecId && caLamViecDropdown.find(':selected').val() !== "") {
+                            if (isInitialLoad && currentLichLamViecId && caLamViecDropdown.find(':selected').val() === currentLichLamViecId) {
                                 loadKhungGio(currentLichLamViecId);
-                                isInitialLoad = false; // Đánh dấu đã tải xong lần đầu
-                            } else {
-                                isInitialLoad = false;
+                                bacSiDropdown.data('isInitialLoad', false); // Đặt lại cờ sau lần tải đầu tiên
+                            } else if (isInitialLoad && !currentLichLamViecId) {
+                                bacSiDropdown.data('isInitialLoad', false); // Đặt lại cờ nếu không có ca được chọn sẵn
                             }
+
 
                         },
                         error: function (xhr, status, error) {
@@ -293,7 +358,7 @@
                             caLamViecDropdown.empty().append('<option value="">Lỗi tải dữ liệu</option>').val('');
                             caLamViecDropdown.attr('disabled', true);
                             caLamViecDropdown.trigger('change.select2');
-                            isInitialLoad = false;
+                            bacSiDropdown.data('isInitialLoad', false); // Đặt lại cờ sau lỗi
                         }
                     });
                 } else {
@@ -302,14 +367,20 @@
                     khungGioDropdown.empty().append('<option value="">-- Chọn Ca làm việc trước --</option>').attr('disabled', true);
                     guideSpan.show();
                     caLamViecDropdown.trigger('change.select2');
-                    isInitialLoad = false;
+                    bacSiDropdown.data('isInitialLoad', false); // Đặt lại cờ nếu không có BS được chọn
                 }
             }
 
 
             // Gắn sự kiện khi Bác sĩ được chọn thay đổi
             bacSiDropdown.on('change', function () {
-                loadLichLamViec($(this).val());
+                var selectedBacSiId = $(this).val();
+
+                // B1: Tải Ca làm việc
+                loadLichLamViec(selectedBacSiId);
+
+                // B2: Tải Dịch vụ theo Bác sĩ
+                loadDichVuByBacSi(selectedBacSiId);
             });
 
             // Gắn sự kiện khi Ca làm việc (Ngày) thay đổi
@@ -318,13 +389,16 @@
             });
 
 
-            // THỰC HIỆN AJAX LẦN ĐẦU KHI TẢI TRANG
+            // THỰC HIỆN AJAX LẦN ĐẦU KHI TẢI TRANG (CHO EDIT)
             if (currentBacSiId) {
-                loadLichLamViec(currentBacSiId);
+                // Đảm bảo Bác sĩ được chọn khi tải lần đầu
+                // Tận dụng sự kiện change để kích hoạt tải LLV và DV
+                bacSiDropdown.val(currentBacSiId).trigger('change');
+            } else {
+                 // Nếu không có BS nào được chọn sẵn, đặt lại cờ isInitialLoad
+                 bacSiDropdown.data('isInitialLoad', false);
             }
 
-            // Nếu không có Bác sĩ được chọn ban đầu (hoặc currentBacSiId là 0), isInitialLoad vẫn là true
-            // nhưng các dropdown sẽ ở trạng thái mặc định.
         });
     </script>
 }

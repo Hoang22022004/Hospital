@@ -5,6 +5,31 @@
     var bacSis = ViewBag.BacSis as SelectList;
 }
 
+@* Thêm link cho Select2 theme Bootstrap 5 nếu bạn đang dùng *@
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+
+<style>
+    /* CSS Giữ nguyên */
+    .status-changer {
+        background-color: #f8f9fa;
+    }
+
+    #tblData tbody td {
+        vertical-align: middle;
+        text-align: center;
+    }
+
+    .hidden-column {
+        display: none !important;
+    }
+
+    /* Thêm CSS cho Tooltip trên nút disabled (Dù không dùng ở đây, giữ lại cho cấu trúc) */
+    .btn-group span.d-inline-block {
+        cursor: not-allowed;
+    }
+</style>
+
 <div class="container-fluid p-0">
 
     <div class="row pt-4 align-items-center">
@@ -59,7 +84,6 @@
     </div>
 
 
-
     <div id="filterBacSi" class="mb-3 d-none">
         <label class="form-label">Lọc theo Bác sĩ:</label>
         <select id="bacSiFilter" class="form-select select2-dropdown">
@@ -74,6 +98,7 @@
         </select>
     </div>
 
+    @* KHU VỰC LỌC THEO NGÀY *@
     <div id="filterNgay" class="mb-3 d-none">
         <label class="form-label">Chọn Ngày:</label>
         <input type="date" id="ngayFilter" class="form-control" />
@@ -92,13 +117,14 @@
     <table id="tblData" class="table table-striped table-hover" style="width:100%">
         <thead>
             <tr>
-                <th class="no-wrap-header">Bác sĩ</th>
-                <th class="no-wrap-header">Ngày làm việc</th>
-                <th class="no-wrap-header">Giờ bắt đầu</th>
-                <th class="no-wrap-header">Giờ kết thúc</th>
-                <th class="no-wrap-header text-center">Thời lượng (Phút)</th> 
-                <th class="no-wrap-header">Trạng thái</th>
-                <th class="no-wrap-header">Thao tác</th>
+                <th class="no-wrap-header">Bác sĩ</th>           @* Index 0 - Cột lọc Bác sĩ *@
+                <th class="no-wrap-header">Ngày làm việc</th>     @* Index 1 - Cột lọc Ngày *@
+                <th class="no-wrap-header">Giờ bắt đầu</th>       @* Index 2 *@
+                <th class="no-wrap-header">Giờ kết thúc</th>      @* Index 3 *@
+                <th class="no-wrap-header text-center">Thời lượng (Phút)</th> @* Index 4 *@
+                <th class="no-wrap-header">Trạng thái</th>       @* Index 5 *@
+                <th class="no-wrap-header hidden-column">Trạng thái (Text)</th> @* Index 6 - Cột lọc Trạng thái ẩn *@
+                <th class="no-wrap-header">Thao tác</th>         @* Index 7 *@
             </tr>
         </thead>
         <tbody>
@@ -106,12 +132,12 @@
             {
                 <tr>
                     <td style="vertical-align: middle;">@obj.BacSi.HoTen</td>
-                    <td style="vertical-align: middle;">@obj.NgayLamViec.ToString("dd/MM/yyyy")</td>
+                    <td style="vertical-align: middle;">@obj.NgayLamViec.ToString("dd/MM/yyyy")</td> @* Cột 1 *@
 
                     <td style="vertical-align: middle;">@obj.GioBatDau.ToString(@"hh\:mm")</td>
                     <td style="vertical-align: middle;">@obj.GioKetThuc.ToString(@"hh\:mm")</td>
 
-                    <td class="text-center" style="vertical-align: middle;">@obj.ThoiLuongKhungGioPhut</td> {{-- ĐÃ THÊM text-center --}}
+                    <td class="text-center" style="vertical-align: middle;">@obj.ThoiLuongKhungGioPhut</td>
 
                     <td style="vertical-align: middle;">
                         @{
@@ -122,6 +148,7 @@
                             @statusText
                         </span>
                     </td>
+                    <td class="hidden-column">@(obj.IsActive ? "Hoạt động" : "Tạm dừng")</td> @* Cột 6: Nội dung ẩn *@
 
                     <td style="vertical-align: middle;">
                         <div class="btn-group" role="group">
@@ -141,39 +168,38 @@
 
 
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.datatables.net/2.0.8/js/dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/2.0.8/js/dataTables.bootstrap5.min.js"></script>
 
     <script>
 
+        // Khởi tạo hàm DataTables (Để DataTables.js hoạt động)
+        function initializeDataTable(tableId, options) {
+            return $(`#${tableId}`).DataTable($.extend(true, {
+                "language": { "url": "/js/i18n/vi.json" },
+                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "Tất cả"]],
+                "pagingType": "full_numbers",
+                "responsive": true,
+                "order": [[1, 'asc']],
+            }, options));
+        }
+
         $(document).ready(function () {
 
-            // Khởi tạo DataTables
-             // SỬ DỤNG HÀM KHỞI TẠO CHUNG TỪ LAYOUT (Nếu tồn tại)
-            if (typeof initializeDataTable === 'function') {
-                initializeDataTable('tblData', {
-                    "order": [[1, 'asc']] // Sắp xếp mặc định theo Ngày làm việc (cột 1)
-                });
-            } else {
-                 var table = $('#tblData').DataTable({
-                    "language": { "url": "/js/i18n/vi.json" },
-                    "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "Tất cả"]],
-                    "pagingType": "full_numbers"
-                 });
-            }
+            // Khởi tạo Tooltip Bootstrap (Nếu cần dùng tooltip cho bất kỳ nút disabled nào)
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            })
 
-            // Khởi tạo Select2
-            $('#bacSiFilter').select2({
-                placeholder: "-- Tất cả --",
-                allowClear: true,
-                theme: 'bootstrap-5'
-            });
-
-            // --- HÀM LỌC TÙY CHỈNH THEO NGÀY (Cột 1) ---
+            // --- 1. THÊM CUSTOM FILTER CHO NGÀY (Cột 1) ---
             $.fn.dataTable.ext.search.push(
                 function(settings, data, dataIndex) {
-                    var ngayFilter = $('#ngayFilter').val();
+                    var ngayFilter = $('#ngayFilter').val(); // Định dạng YYYY-MM-DD
 
                     if (!ngayFilter || $('#filterNgay').hasClass('d-none')) {
-                        return true;
+                        return true; // Bỏ qua lọc nếu không chọn ngày hoặc filter đang ẩn
                     }
 
                     var ngayHienThi = data[1]; // Lấy giá trị ngày tháng từ cột 1 (dd/MM/yyyy)
@@ -189,25 +215,45 @@
                 }
             );
 
-            // Hàm áp dụng tất cả các bộ lọc (Cộng dồn)
+            // Khởi tạo DataTables
+            var table = initializeDataTable('tblData', {
+                "order": [[1, 'asc']],
+                "columnDefs": [
+                    // Cột 6 là cột ẩn Trạng thái
+                    { "targets": 6, "visible": false, "searchable": true }
+                ]
+            });
+
+
+            // Khởi tạo Select2
+            $('#bacSiFilter').select2({
+                placeholder: "-- Tất cả --",
+                allowClear: true,
+                theme: 'bootstrap-5',
+                width: '100%'
+            });
+
+            // --- 2. HÀM LỌC TỔNG HỢP ---
             function applyFilters() {
-                var table = $('#tblData').DataTable();
-                // Sửa: Các cột lọc hiện tại: Cột 0 (Bác sĩ), Cột 5 (Trạng thái)
-                table.columns([0, 5]).search('');
+                // Xóa tìm kiếm cột cũ
+                // Cột 0: Bác sĩ, Cột 6: Trạng thái (Text ẩn)
+                table.columns([0, 6]).search('');
 
                 // 1. Lọc theo Bác sĩ (Cột 0)
                 var bacSi = $('#bacSiFilter').val();
                 if (bacSi && $('#filterBacSi').is(':visible')) {
+                    // Lọc chính xác
                     table.column(0).search('^' + bacSi + '$', true, false);
                 }
 
-                // 2. Lọc theo Trạng thái (Cột 5)
+                // 2. Lọc theo Trạng thái (Cột 6 - Text ẩn)
                 var trangThai = $('#trangThaiFilter').val();
                 if (trangThai && $('#filterTrangThai').is(':visible')) {
-                    table.column(5).search(trangThai, false, false);
+                    // Lọc chính xác trên cột ẨN (Cột 6)
+                    table.column(6).search('^' + trangThai + '$', true, false);
                 }
 
-                // Lọc theo Ngày (Kích hoạt bộ lọc tùy chỉnh)
+                // Lọc theo Ngày (Kích hoạt bộ lọc tùy chỉnh đã được định nghĩa ở trên)
                 table.draw();
             }
 
@@ -217,7 +263,7 @@
             // 1. Gắn sự kiện Change cho các Filter để áp dụng lọc cộng dồn
             $('#bacSiFilter, #ngayFilter, #trangThaiFilter').on('change', applyFilters);
 
-            // 2. Hiển thị filter theo menu (Logic Menu Độc quyền chỉ để hiển thị)
+            // 2. Hiển thị filter theo menu
             $('.filter-option').on('click', function () {
                 var filter = $(this).data('filter');
                 var table = $('#tblData').DataTable();

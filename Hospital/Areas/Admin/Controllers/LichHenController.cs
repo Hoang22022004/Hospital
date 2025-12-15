@@ -4,7 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using static Hospital.Models.LichHen; // Để sử dụng enum TrangThaiLichHen
-using System.Linq; // Cần dùng cho các query LINQ
+using System.Linq;
+using System.Collections.Generic;
 
 namespace Hospital.Areas.Admin.Controllers
 {
@@ -24,8 +25,11 @@ namespace Hospital.Areas.Admin.Controllers
             // Danh sách Bác sĩ
             ViewData["BacSiId"] = new SelectList(_db.BacSi.OrderBy(b => b.HoTen), "BacSiId", "HoTen", selectedBacSi);
 
-            // Danh sách Dịch vụ
-            ViewData["DichVuId"] = new SelectList(_db.DichVu, "DichVuId", "TenDichVu", selectedDichVu);
+            // GỠ BỎ: Danh sách Dịch vụ Tĩnh, vì nó sẽ được tải ĐỘNG qua AJAX (GetDichVuByBacSi)
+            // Nếu bạn muốn giữ nó trong Edit/Create cho trường hợp không chọn BS, bạn có thể uncomment lại, 
+            // nhưng khuyến nghị để trống và chỉ tải động.
+
+            // ViewData["DichVuId"] = new SelectList(_db.DichVu, "DichVuId", "TenDichVu", selectedDichVu);
 
             // Danh sách trạng thái (dùng Enum)
             ViewData["TrangThaiList"] = Enum.GetValues(typeof(TrangThaiLichHen))
@@ -35,6 +39,43 @@ namespace Hospital.Areas.Admin.Controllers
                                                     Value = e.ToString(),
                                                     Text = e.ToString()
                                                 }).ToList();
+        }
+
+        // ***************************************************************
+        // ACTION MỚI: Trả về danh sách Dịch vụ theo Bác sĩ (Phục vụ AJAX)
+        // ***************************************************************
+        [HttpGet]
+        public IActionResult GetDichVuByBacSi(int bacSiId)
+        {
+            // 1. Tìm Bác sĩ và lấy Chuyên khoaId tương ứng
+            var bacSi = _db.BacSi
+                            .Include(b => b.ChuyenKhoa) // Cần thiết để đảm bảo thông tin
+                            .FirstOrDefault(b => b.BacSiId == bacSiId);
+
+            if (bacSi == null)
+            {
+                return Json(new List<SelectListItem>()); // Trả về danh sách rỗng nếu không tìm thấy BS
+            }
+
+            // 2. Lấy tất cả các DichVuId liên quan đến Chuyên khoa của Bác sĩ
+            var dichVuIds = _db.ChuyenKhoaDichVus
+                      .Where(ckdv => ckdv.ChuyenKhoaId == bacSi.ChuyenKhoaId)
+                      .Select(ckdv => ckdv.DichVuId)
+                      .ToList();
+
+            // 3. Lấy thông tin Dịch vụ dựa trên DichVuIds và tạo SelectList
+            var dichVuList = _db.DichVu
+                                .Where(dv => dichVuIds.Contains(dv.DichVuId) && dv.IsActive)
+                                .OrderBy(dv => dv.TenDichVu)
+                                .Select(dv => new SelectListItem
+                                {
+                                    Value = dv.DichVuId.ToString(),
+                                    Text = dv.TenDichVu
+                                })
+                                .ToList();
+
+            // Lưu ý: SelectListItems khi được serialize thành JSON sẽ dùng 'value' và 'text' (chữ thường)
+            return Json(dichVuList);
         }
 
         // Action mới: Trả về chi tiết Ca làm việc và các Khung giờ đã đặt (Phục vụ AJAX)
@@ -55,12 +96,13 @@ namespace Hospital.Areas.Admin.Controllers
             foreach (var shift in shifts)
             {
                 // Lấy các khung giờ ĐÃ ĐẶT (KhungGioBatDau) cho ca làm việc này
+                // Chỉ loại trừ các lịch hẹn KHÔNG phải là 'Đã hủy'
                 var bookedSlots = _db.LichHen
-                                      .Where(lh => lh.LichLamViecId == shift.LichLamViecId
-                                                && lh.TrangThai != TrangThaiLichHen.DaHuy)
-                                      // Chuyển TimeSpan sang chuỗi "HH:mm" để JS dễ xử lý
-                                      .Select(lh => lh.KhungGioBatDau.ToString(@"hh\:mm"))
-                                      .ToList();
+                                         .Where(lh => lh.LichLamViecId == shift.LichLamViecId
+                                                  && lh.TrangThai != TrangThaiLichHen.DaHuy)
+                                         // Chuyển TimeSpan sang chuỗi "HH:mm" để JS dễ xử lý
+                                         .Select(lh => lh.KhungGioBatDau.ToString(@"hh\:mm"))
+                                         .ToList();
 
                 // Chuẩn bị dữ liệu để JS xử lý phân chia khung giờ
                 resultList.Add(new
@@ -80,7 +122,7 @@ namespace Hospital.Areas.Admin.Controllers
         }
 
         // ***************************************************************
-        // ACTION MỚI: Cập nhật Trạng thái nhanh qua AJAX (Phục vụ trang Index)
+        // ACTION: Cập nhật Trạng thái nhanh qua AJAX (Phục vụ trang Index)
         // ***************************************************************
         [HttpPost]
         public IActionResult UpdateTrangThaiAjax(int id, string trangThaiMoi)
@@ -134,6 +176,9 @@ namespace Hospital.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Create(LichHen lichHen)
         {
+            // Thêm lại SelectList cho Dịch vụ để tránh lỗi khi ModelState.IsValid = false,
+            // nhưng nó vẫn là danh sách full, vì vậy khuyến nghị dùng AJAX
+
             // Kiểm tra ModelState trước khi xử lý
             if (ModelState.IsValid)
             {
@@ -148,15 +193,14 @@ namespace Hospital.Areas.Admin.Controllers
 
                 // 3. KIỂM TRA TRÙNG LỊCH (Khung giờ nhỏ)
                 else if (_db.LichHen.Any(lh =>
-                         lh.LichLamViecId == lichHen.LichLamViecId &&
-                         lh.KhungGioBatDau == lichHen.KhungGioBatDau && // So sánh Khung giờ Bắt đầu
-                         lh.TrangThai != TrangThaiLichHen.DaHuy))
+                             lh.LichLamViecId == lichHen.LichLamViecId &&
+                             lh.KhungGioBatDau == lichHen.KhungGioBatDau && // So sánh Khung giờ Bắt đầu
+                             lh.TrangThai != TrangThaiLichHen.DaHuy))
                 {
                     ModelState.AddModelError("KhungGioBatDau", $"Khung giờ {lichHen.KhungGioBatDau.ToString(@"hh\:mm")} đã có người đặt!");
                 }
 
                 // 4. KIỂM TRA KhungGioBatDau nằm trong phạm vi GioBatDau và GioKetThuc của LLV
-                // (Chỉ cần kiểm tra nếu không dùng JS để enforce)
                 else if (lichHen.KhungGioBatDau < llv.GioBatDau || lichHen.KhungGioBatDau >= llv.GioKetThuc)
                 {
                     ModelState.AddModelError("KhungGioBatDau", "Khung giờ được chọn nằm ngoài phạm vi của ca làm việc này.");
@@ -179,7 +223,6 @@ namespace Hospital.Areas.Admin.Controllers
 
             // Nếu lỗi, load lại SelectList và view
             PrepareViewData(lichHen.BacSiId, lichHen.DichVuId);
-            // LƯU Ý: Ở đây ta không cần tải lại LichLamViecId và KhungGioBatDau vì JS sẽ tự động xử lý.
             return View(lichHen);
         }
 
@@ -213,12 +256,18 @@ namespace Hospital.Areas.Admin.Controllers
 
                 // 2. KIỂM TRA TRÙNG LỊCH (Khung giờ nhỏ) - Loại trừ bản ghi đang chỉnh sửa
                 else if (_db.LichHen.Any(lh =>
-                         lh.LichLamViecId == lichHen.LichLamViecId &&
-                         lh.KhungGioBatDau == lichHen.KhungGioBatDau &&
-                         lh.LichHenId != lichHen.LichHenId && // Loại trừ ID hiện tại
-                         lh.TrangThai != TrangThaiLichHen.DaHuy))
+                             lh.LichLamViecId == lichHen.LichLamViecId &&
+                             lh.KhungGioBatDau == lichHen.KhungGioBatDau &&
+                             lh.LichHenId != lichHen.LichHenId && // Loại trừ ID hiện tại
+                             lh.TrangThai != TrangThaiLichHen.DaHuy))
                 {
                     ModelState.AddModelError("KhungGioBatDau", $"Khung giờ {lichHen.KhungGioBatDau.ToString(@"hh\:mm")} đã có người đặt!");
+                }
+
+                // 3. KIỂM TRA KhungGioBatDau nằm trong phạm vi GioBatDau và GioKetThuc của LLV
+                else if (lichHen.KhungGioBatDau < llv.GioBatDau || lichHen.KhungGioBatDau >= llv.GioKetThuc)
+                {
+                    ModelState.AddModelError("KhungGioBatDau", "Khung giờ được chọn nằm ngoài phạm vi của ca làm việc này.");
                 }
 
                 else
