@@ -8,10 +8,10 @@
 
   <ItemGroup>
     <Folder Include="Areas\Admin\Data\" />
-    <Folder Include="Areas\Admin\Models\" />
     <Folder Include="ViewModels\" />
     <Folder Include="wwwroot\images\dichvu\" />
     <Folder Include="wwwroot\images\bacsi\" />
+    <Folder Include="wwwroot\images\thuoc\" />
   </ItemGroup>
 
   <ItemGroup>

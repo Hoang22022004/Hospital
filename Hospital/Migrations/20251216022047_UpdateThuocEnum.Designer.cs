@@ -4,6 +4,7 @@ using Hospital.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Hospital.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251216022047_UpdateThuocEnum")]
+    partial class UpdateThuocEnum
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -373,60 +376,6 @@ namespace Hospital.Migrations
                     b.HasIndex("BenhLyId");
 
                     b.ToTable("PhacDoDieuTri");
-                });
-
-            modelBuilder.Entity("Hospital.Models.Thuoc", b =>
-                {
-                    b.Property<int>("ThuocId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ThuocId"));
-
-                    b.Property<string>("CachDung")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("CongDung")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("DonViTinh")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("GiaBan")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("GiaNhap")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime?>("HanSuDung")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("HinhAnhUrl")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("HoatChat")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("PhanLoai")
-                        .HasColumnType("int");
-
-                    b.Property<int>("SoLuongTon")
-                        .HasColumnType("int");
-
-                    b.Property<string>("TenThuoc")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ThuongHieu")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("ThuocId");
-
-                    b.ToTable("Thuoc");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>

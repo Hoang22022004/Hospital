@@ -1,0 +1,237 @@
+﻿@model Hospital.Models.Thuoc
+
+@{
+    ViewData["Title"] = "Cập nhật Thuốc";
+}
+
+@* --- CSS TÙY CHỈNH (Giống trang Create) --- *@
+<style>
+    .form-label {
+        font-weight: 600;
+        color: #343a40;
+        font-size: 0.9rem;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+    }
+
+    .image-upload-container {
+        border: 2px dashed #dee2e6;
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        transition: all 0.3s;
+        background-color: #f8f9fa;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .image-upload-container:hover {
+            border-color: #0d6efd;
+            background-color: #f1f8ff;
+        }
+
+    .upload-icon {
+        font-size: 2rem;
+        color: #adb5bd;
+        margin-bottom: 10px;
+    }
+
+    .preview-image {
+        max-width: 100%;
+        max-height: 200px;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        /* Nếu có ảnh thì hiện, chưa có thì ẩn */
+        display: @(string.IsNullOrEmpty(Model.HinhAnhUrl) ? "none" : "inline-block");
+    }
+
+    /* Ẩn placeholder nếu đã có ảnh */
+    #placeholder {
+        display: @(string.IsNullOrEmpty(Model.HinhAnhUrl) ? "block" : "none");
+    }
+
+    .input-group-text {
+        background-color: #f8f9fa;
+        color: #6c757d;
+        font-weight: 500;
+    }
+</style>
+
+<div class="container-fluid p-0">
+
+    @* --- HEADER --- *@
+    <div class="d-flex justify-content-between align-items-center pt-4 pb-3">
+        <div>
+            <h3 class="text-primary fw-bold mb-0">Cập nhật sản phẩm</h3>
+            <p class="text-muted small mb-0">Chỉnh sửa thông tin thuốc hoặc điều chỉnh giá.</p>
+        </div>
+        <div>
+            <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4">
+                <i class="bi bi-arrow-left me-2"></i>Quay lại
+            </a>
+        </div>
+    </div>
+
+    <form method="post" enctype="multipart/form-data">
+        @* --- INPUT ẨN BẮT BUỘC --- *@
+        <input type="hidden" asp-for="ThuocId" />
+        <input type="hidden" asp-for="HinhAnhUrl" />
+
+        <div class="row">
+            @* --- CỘT TRÁI: THÔNG TIN CHI TIẾT --- *@
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm rounded-4 mb-4">
+                    <div class="card-body p-4">
+                        <h6 class="fw-bold text-primary mb-3"><i class="bi bi-pencil-square me-2"></i>Thông tin cơ bản</h6>
+
+                        <div class="mb-3">
+                            <label asp-for="TenThuoc" class="form-label">Tên thuốc / Sản phẩm <span class="text-danger">*</span></label>
+                            <input asp-for="TenThuoc" class="form-control form-control-lg" />
+                            <span asp-validation-for="TenThuoc" class="text-danger small"></span>
+                        </div>
+
+                        @* --- PHẦN THƯƠNG HIỆU (MỚI THÊM) --- *@
+                        <div class="mb-4">
+                            <label asp-for="ThuongHieu" class="form-label">Thương hiệu / Hãng sản xuất</label>
+                            <input asp-for="ThuongHieu" class="form-control" list="brandList" placeholder="Nhập tên hãng hoặc chọn từ gợi ý..." />
+
+                            @* Datalist để gợi ý *@
+                            <datalist id="brandList">
+                                @if (ViewBag.SuggestBrands != null)
+                                {
+                                    foreach (var brand in ViewBag.SuggestBrands)
+                                    {
+                                        <option value="@brand"></option>
+                                    }
+                                }
+                            </datalist>
+                            <span asp-validation-for="ThuongHieu" class="text-danger small"></span>
+                        </div>
+                        @* ------------------------------------- *@
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="HoatChat" class="form-label">Hoạt chất / Thành phần</label>
+                                <input asp-for="HoatChat" class="form-control" />
+                                <span asp-validation-for="HoatChat" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="PhanLoai" class="form-label">Phân loại <span class="text-danger">*</span></label>
+                                <select asp-for="PhanLoai" class="form-select" asp-items="Html.GetEnumSelectList<Hospital.Models.PhanLoaiThuoc>()">
+                                    <option value="" disabled>-- Chọn loại sản phẩm --</option>
+                                </select>
+                                <span asp-validation-for="PhanLoai" class="text-danger small"></span>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="CongDung" class="form-label">Công dụng chính (Chỉ định)</label>
+                            <textarea asp-for="CongDung" class="form-control" rows="2" placeholder="VD: Điều trị sẹo lồi, sẹo phì đại..."></textarea>
+                            <span asp-validation-for="CongDung" class="text-danger small"></span>
+                        </div>
+                        <h6 class="fw-bold text-primary mb-3 mt-4"><i class="bi bi-tag-fill me-2"></i>Định giá & Đơn vị</h6>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                <label asp-for="DonViTinh" class="form-label">Đơn vị tính <span class="text-danger">*</span></label>
+                                @* Dùng SelectList từ Controller *@
+                                <select asp-for="DonViTinh" asp-items="ViewBag.DonViTinhList" class="form-select">
+                                    <option disabled>-- Chọn đơn vị --</option>
+                                </select>
+                                <span asp-validation-for="DonViTinh" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="GiaNhap" class="form-label">Giá nhập kho</label>
+                                <div class="input-group">
+                                    <input asp-for="GiaNhap" class="form-control" type="number" />
+                                    <span class="input-group-text">VNĐ</span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="GiaBan" class="form-label">Giá bán lẻ <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <input asp-for="GiaBan" class="form-control fw-bold text-primary" type="number" />
+                                    <span class="input-group-text">VNĐ</span>
+                                </div>
+                                <span asp-validation-for="GiaBan" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3 mt-4">
+                            <label asp-for="CachDung" class="form-label">Hướng dẫn sử dụng</label>
+                            <textarea asp-for="CachDung" class="form-control" rows="3"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @* --- CỘT PHẢI: KHO & HÌNH ẢNH --- *@
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm rounded-4 mb-4">
+                    <div class="card-body p-4">
+                        <h6 class="fw-bold text-primary mb-3"><i class="bi bi-image-fill me-2"></i>Hình ảnh sản phẩm</h6>
+
+                        <div class="image-upload-container" onclick="document.getElementById('fileInput').click();">
+                            <div id="placeholder">
+                                <i class="bi bi-cloud-arrow-up-fill upload-icon"></i>
+                                <p class="mb-0 text-muted small">Nhấn để thay đổi ảnh</p>
+                            </div>
+                            @* Hiển thị ảnh cũ nếu có *@
+                            <img id="imagePreview" class="preview-image" src="@Model.HinhAnhUrl" alt="Preview" />
+                        </div>
+                        <input type="file" name="file" id="fileInput" class="d-none" accept="image/*" onchange="previewImage(this)" />
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm rounded-4 mb-4">
+                    <div class="card-body p-4">
+                        <h6 class="fw-bold text-primary mb-3"><i class="bi bi-box-seam-fill me-2"></i>Quản lý kho</h6>
+
+                        <div class="mb-3">
+                            <label asp-for="SoLuongTon" class="form-label">Số lượng tồn kho</label>
+                            <input asp-for="SoLuongTon" class="form-control fw-bold" type="number" />
+                            <span asp-validation-for="SoLuongTon" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="HanSuDung" class="form-label">Hạn sử dụng</label>
+                            <input asp-for="HanSuDung" class="form-control" type="date" />
+                        </div>
+
+                        <div class="form-check form-switch mt-4">
+                            <input asp-for="IsActive" class="form-check-input" type="checkbox" role="switch">
+                            <label asp-for="IsActive" class="form-check-label fw-bold">Đang kinh doanh</label>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-warning text-white btn-lg w-100 rounded-pill shadow-sm fw-bold">
+                    <i class="bi bi-save me-2"></i>Lưu thay đổi
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function previewImage(input) {
+            var placeholder = document.getElementById('placeholder');
+            var preview = document.getElementById('imagePreview');
+
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'inline-block';
+                    placeholder.style.display = 'none';
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    </script>
+}

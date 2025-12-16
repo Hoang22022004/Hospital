@@ -1,0 +1,267 @@
+﻿@model IEnumerable<Hospital.Areas.Admin.Models.UserViewModel>
+
+@{
+    ViewData["Title"] = "Quản lý Tài khoản";
+}
+
+@* --- CSS TÙY CHỈNH --- *@
+<style>
+    /* Avatar style */
+    .avatar-initial {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: #f1f3f5;
+        color: #495057;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 16px;
+        border: 2px solid #fff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+    }
+
+    /* User info text */
+    .user-name {
+        font-weight: 600;
+        color: #343a40;
+        font-size: 0.95rem;
+    }
+
+    .user-email {
+        color: #868e96;
+        font-size: 0.8rem;
+    }
+
+    /* Role Badges */
+    .role-badge {
+        padding: 5px 10px;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .role-admin {
+        background-color: #ffe3e3;
+        color: #c92a2a;
+    }
+
+    .role-doctor {
+        background-color: #e7f5ff;
+        color: #1864ab;
+    }
+
+    .role-patient {
+        background-color: #ebfbee;
+        color: #2b8a3e;
+    }
+
+    .role-default {
+        background-color: #f8f9fa;
+        color: #495057;
+    }
+
+    /* Status Dots */
+    .status-dot {
+        height: 8px;
+        width: 8px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 6px;
+    }
+
+    .status-active {
+        background-color: #20c997;
+        box-shadow: 0 0 4px #20c997;
+    }
+
+    .status-locked {
+        background-color: #fa5252;
+    }
+
+    /* Table Hover Effect */
+    #tblUser tbody tr {
+        transition: background-color 0.2s;
+    }
+
+        #tblUser tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+    /* Custom Total Badge (Sẽ được nhúng vào giữa bảng) */
+    .custom-total-badge {
+        background-color: #e7f5ff;
+        color: #1971c2;
+        padding: 6px 16px;
+        border-radius: 30px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        border: 1px solid #d0ebff;
+        display: inline-flex;
+        align-items: center;
+        white-space: nowrap;
+    }
+</style>
+
+<div class="container-fluid p-0">
+    @* --- HEADER --- *@
+    <div class="d-flex justify-content-between align-items-center pt-4 pb-3">
+        <div>
+            <h3 class="text-primary fw-bold mb-0">Danh sách Tài khoản</h3>
+        </div>
+        <div>
+            <a asp-action="Create" class="btn btn-primary shadow-sm rounded-pill px-4">
+                <i class="bi bi-person-plus-fill"></i> Thêm mới
+            </a>
+        </div>
+    </div>
+
+    @* --- ELEMENT ẨN CHỨA SỐ LƯỢNG USER (Để JS lấy nhúng vào bảng) --- *@
+    <div id="totalUserHtml" class="d-none">
+        <span class="custom-total-badge shadow-sm">
+            <i class="bi bi-people-fill me-2"></i> Tổng: @Model.Count() User
+        </span>
+    </div>
+
+    @* --- BẢNG DỮ LIỆU --- *@
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card-body p-0">
+            <table id="tblUser" class="table align-middle mb-0" style="width:100%">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4 py-3 text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Người dùng</th>
+                        <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Vai trò</th>
+                        <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Trạng thái</th>
+                        <th class="text-center text-uppercase text-secondary text-xs font-weight-bolder opacity-7" style="width: 120px;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            @* CỘT 1: INFO *@
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        <div class="avatar-initial">@item.FullName?.Substring(0, 1).ToUpper()</div>
+                                    </div>
+                                    <div class="d-flex flex-column">
+                                        <span class="user-name">@item.FullName</span>
+                                        <span class="user-email">@item.Email</span>
+                                    </div>
+                                </div>
+                            </td>
+
+                            @* CỘT 2: ROLE *@
+                            <td>
+                                @{
+                                    string roleClass = item.Role switch { "Admin" => "role-admin", "Doctor" => "role-doctor", "Patient" => "role-patient", _ => "role-default" };
+                                    string roleIcon = item.Role switch { "Admin" => "bi-shield-fill", "Doctor" => "bi-heart-pulse-fill", "Patient" => "bi-person-fill", _ => "bi-question" };
+                                }
+                                <span class="role-badge @roleClass"><i class="bi @roleIcon me-1"></i>@item.Role</span>
+                            </td>
+
+                            @* CỘT 3: STATUS *@
+                            <td>
+                                @if (item.IsLocked)
+                                {
+                                    <span class="text-danger fw-bold" style="font-size: 0.85rem;"><span class="status-dot status-locked"></span>Đang khóa</span>
+                                }
+                                else
+                                {
+                                    <span class="text-success fw-bold" style="font-size: 0.85rem;"><span class="status-dot status-active"></span>Hoạt động</span>
+                                }
+                            </td>
+
+                            @* CỘT 4: ACTIONS (Đã thêm nút EDIT) *@
+                            <td class="text-center">
+                                <div class="btn-group">
+                                    @* Nút EDIT *@
+                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-light text-primary" data-bs-toggle="tooltip" title="Sửa thông tin">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+
+                                    @if (item.Role != "Admin")
+                                    {
+                                        if (item.IsLocked)
+                                        {
+                                            @* Nút MỞ KHÓA *@
+                                            <a onclick="confirmLockUnlock('@item.Id', 'unlock')" class="btn btn-sm btn-light text-success" data-bs-toggle="tooltip" title="Mở khóa">
+                                                <i class="bi bi-unlock-fill"></i>
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            @* Nút KHÓA *@
+                                            <a onclick="confirmLockUnlock('@item.Id', 'lock')" class="btn btn-sm btn-light text-danger" data-bs-toggle="tooltip" title="Khóa tài khoản">
+                                                <i class="bi bi-lock-fill"></i>
+                                            </a>
+                                        }
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<form id="lockUnlockForm" method="post" asp-action="LockUnlock">
+    <input type="hidden" name="id" id="userIdToLock" />
+</form>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        $(document).ready(function () {
+            // 1. Khởi tạo DataTable
+            var table = $('#tblUser').DataTable({
+                "language": { "url": "/js/i18n/vi.json" },
+                "pagingType": "full_numbers",
+                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "Tất cả"]],
+                "dom": '<"row p-3 align-items-center"<"col-md-4"l><"col-md-4 text-center"i><"col-md-4"f>>rtp', // Cấu trúc DOM tùy chỉnh
+                "columnDefs": [{ "orderable": false, "targets": 3 }],
+
+                // 2. KỸ THUẬT NHÚNG BADGE VÀO GIỮA
+                "initComplete": function(settings, json) {
+                    // Lấy HTML từ div ẩn
+                    var totalBadgeHtml = $('#totalUserHtml').html();
+
+                    // Tìm vị trí cột giữa (nơi thường hiện thông tin "Showing 1 to 10")
+                    // Thay thế nội dung mặc định bằng Badge của chúng ta
+                    var wrapper = $('#tblUser_wrapper');
+                    var middleCol = wrapper.find('.row:first-child .col-md-4:nth-child(2)');
+
+                    // Xóa thông tin cũ (nếu có) và chèn badge vào
+                    middleCol.html(totalBadgeHtml).addClass('d-flex justify-content-center');
+                }
+            });
+
+            // Tooltip
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) { return new bootstrap.Tooltip(tooltipTriggerEl) })
+        });
+
+        function confirmLockUnlock(id, action) {
+            var titleText = action === 'lock' ? "Khóa tài khoản?" : "Mở khóa?";
+            var confirmBtnColor = action === 'lock' ? "#dc3545" : "#198754";
+            Swal.fire({
+                title: titleText,
+                text: "Xác nhận hành động này?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: confirmBtnColor,
+                confirmButtonText: 'Đồng ý',
+                cancelButtonText: 'Hủy'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $('#userIdToLock').val(id);
+                    $('#lockUnlockForm').submit();
+                }
+            })
+        }
+    </script>
+}
