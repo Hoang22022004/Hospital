@@ -1,0 +1,156 @@
+﻿@model Hospital.Models.BenhNhan
+
+@{
+    ViewData["Title"] = "Tiếp nhận Bệnh nhân mới";
+}
+
+<div class="container-fluid px-4 py-3">
+    <form asp-action="Create">
+        @* --- TOP BAR: CHỈ CÒN TIÊU ĐỀ --- *@
+        <div class="mb-4">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1">
+                    <li class="breadcrumb-item"><a asp-action="Index" class="text-decoration-none text-muted small">Danh sách bệnh nhân</a></li>
+                    <li class="breadcrumb-item active small fw-bold text-dark" aria-current="page">Tiếp nhận mới</li>
+                </ol>
+            </nav>
+            <h2 class="fw-bold text-dark mb-0">Lập hồ sơ bệnh nhân mới</h2>
+        </div>
+
+        <div class="row g-4">
+            @* --- CỘT TRÁI: THÔNG TIN CHÍNH --- *@
+            <div class="col-xl-8">
+                <div class="card border-0 shadow-sm rounded-4">
+                    <div class="card-header bg-white py-3 border-bottom-0">
+                        <h5 class="mb-0 fw-bold text-primary">
+                            <i class="bi bi-person-lines-fill me-2"></i>Thông tin định danh
+                        </h5>
+                    </div>
+                    <div class="card-body p-4 pt-0">
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                <div class="form-floating mb-3">
+                                    <input asp-for="HoTen" class="form-control border-2" placeholder="Họ và tên" />
+                                    <label asp-for="HoTen">Họ và tên bệnh nhân <span class="text-danger">*</span></label>
+                                    <span asp-validation-for="HoTen" class="text-danger small"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="form-floating mb-3">
+                                    <input asp-for="SoDienThoai" class="form-control border-2 fw-bold text-primary" placeholder="SĐT" />
+                                    <label asp-for="SoDienThoai">Số điện thoại <span class="text-danger">*</span></label>
+                                    <span asp-validation-for="SoDienThoai" class="text-danger small"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="form-floating mb-3">
+                                    <input asp-for="NgaySinh" class="form-control border-2" type="date" />
+                                    <label asp-for="NgaySinh">Ngày tháng năm sinh</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-floating mb-3">
+                                    <select asp-for="GioiTinh" class="form-select border-2">
+                                        <option value="">-- Chọn --</option>
+                                        <option value="Nam">Nam</option>
+                                        <option value="Nữ">Nữ</option>
+                                        <option value="Khác">Khác</option>
+                                    </select>
+                                    <label asp-for="GioiTinh">Giới tính</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-floating mb-3">
+                                    <input asp-for="Email" class="form-control border-2" placeholder="Email" />
+                                    <label asp-for="Email">Địa chỉ Email</label>
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="form-floating mb-3">
+                                    <input asp-for="DiaChi" class="form-control border-2" placeholder="Địa chỉ" />
+                                    <label asp-for="DiaChi">Địa chỉ liên lạc thường trú</label>
+                                </div>
+                            </div>
+
+                            @* --- NÚT BẤM ĐÃ CHUYỂN XUỐNG ĐÂY --- *@
+                            <div class="col-12 mt-4 pt-3 border-top d-flex justify-content-end gap-2">
+                                <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4 fw-bold shadow-sm">
+                                    <i class="bi bi-x-lg me-1"></i> Hủy bỏ
+                                </a>
+                                <button type="submit" class="btn btn-primary rounded-pill px-4 shadow fw-bold">
+                                    <i class="bi bi-cloud-arrow-up-fill me-2"></i> Hoàn tất & Lưu hồ sơ
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @* --- CỘT PHẢI: THÔNG TIN Y TẾ & GHI CHÚ --- *@
+            <div class="col-xl-4">
+                <div class="card border-0 shadow-sm rounded-4 bg-light">
+                    <div class="card-header bg-transparent py-3 border-bottom-0">
+                        <h5 class="mb-0 fw-bold text-danger">
+                            <i class="bi bi-clipboard-pulse me-2"></i>Y tế & Lưu ý
+                        </h5>
+                    </div>
+                    <div class="card-body p-4 pt-0">
+                        <div class="form-floating mb-3">
+                            <textarea asp-for="TienSuBenh" class="form-control border-2" style="height: 120px" placeholder="Tiền sử"></textarea>
+                            <label asp-for="TienSuBenh">Dị ứng / Tiền sử bệnh</label>
+                            <span asp-validation-for="TienSuBenh" class="text-danger small"></span>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <textarea asp-for="GhiChu" class="form-control border-2 shadow-none" style="height: 120px" placeholder="Ghi chú"></textarea>
+                            <label asp-for="GhiChu">Ghi chú nội bộ</label>
+                        </div>
+
+                        <div class="alert alert-info border-0 rounded-3 p-3 mb-0 shadow-sm" role="alert">
+                            <div class="d-flex">
+                                <i class="bi bi-info-circle-fill me-2 fs-5 text-primary"></i>
+                                <div class="small">
+                                    <strong>Nhắc nhở:</strong> Vui lòng kiểm tra kỹ số điện thoại trước khi lưu để tránh trùng lặp thông tin.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .form-control, .form-select {
+            border-radius: 12px;
+            border-color: #dee2e6;
+        }
+
+            .form-control:focus, .form-select:focus {
+                border-color: #0d6efd;
+                box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.08);
+            }
+
+        .card {
+            transition: transform 0.2s;
+        }
+
+        .breadcrumb-item + .breadcrumb-item::before {
+            content: "›";
+            font-size: 1.2rem;
+            vertical-align: middle;
+        }
+    </style>
+}

@@ -22,10 +22,11 @@ namespace Hospital.Data
         public DbSet<LichHen> LichHen { get; set; }
         public DbSet<ChuyenKhoa> ChuyenKhoa { get; set; }
         public DbSet<ChuyenKhoaDichVu> ChuyenKhoaDichVus { get; set; }
-
-        // ********** QUAN TRỌNG: THÊM DÒNG NÀY ĐỂ TẠO BẢNG THUỐC **********
         public DbSet<Thuoc> Thuoc { get; set; }
-        // ***************************************************************
+
+        // ********** MỚI THÊM: QUẢN LÝ BỆNH NHÂN **********
+        public DbSet<BenhNhan> BenhNhan { get; set; }
+        // *************************************************
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -78,6 +79,12 @@ namespace Hospital.Data
                 .WithMany()
                 .HasForeignKey(lh => lh.DichVuId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // ********** CẤU HÌNH CHO BỆNH NHÂN (NẾU CẦN) **********
+            // Đảm bảo Số điện thoại là Duy nhất (Không được trùng)
+            builder.Entity<BenhNhan>()
+                .HasIndex(b => b.SoDienThoai)
+                .IsUnique();
         }
     }
 }
