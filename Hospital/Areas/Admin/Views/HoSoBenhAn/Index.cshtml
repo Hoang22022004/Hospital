@@ -1,0 +1,204 @@
+﻿@model IEnumerable<Hospital.Models.HoSoBenhAn>
+@using Hospital.Models
+
+@{
+    ViewData["Title"] = "Quản lý hàng đợi phòng khám";
+}
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+<style>
+    .card-stats {
+        border: none;
+        border-radius: 15px;
+        transition: transform 0.3s;
+    }
+
+        .card-stats:hover {
+            transform: translateY(-5px);
+        }
+
+    .status-badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-weight: 500;
+        font-size: 0.85rem;
+    }
+
+    .table thead th {
+        background-color: #f8f9fa;
+        border-top: none;
+        color: #495057;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+    }
+
+    .table tbody tr {
+        vertical-align: middle;
+    }
+
+    .nav-pills .nav-link {
+        border-radius: 10px;
+        color: #6c757d;
+        transition: all 0.3s;
+    }
+
+        .nav-pills .nav-link.active {
+            background-color: #0d6efd;
+            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.2);
+        }
+
+    .action-btn {
+        width: 35px;
+        height: 35px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        transition: all 0.2s;
+    }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">Điều phối phòng khám</h2>
+            <p class="text-muted small">@DateTime.Now.ToString("dddd, dd MMMM yyyy")</p>
+        </div>
+        <a asp-action="Create" class="btn btn-primary px-4 py-2 shadow-sm" style="border-radius: 10px;">
+            <i class="fas fa-plus-circle me-2"></i> Tiếp nhận bệnh nhân
+        </a>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card card-stats bg-white shadow-sm p-3">
+                <div class="d-flex align-items-center">
+                    <div class="bg-light-primary p-3 rounded-circle me-3"><i class="fas fa-users text-primary fa-lg"></i></div>
+                    <div>
+                        <h6 class="text-muted mb-0">Chờ khám</h6>
+                        <h4 class="fw-bold mb-0">@Model.Count(x => x.TrangThai == TrangThaiHoSo.ChoKham)</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card card-stats bg-white shadow-sm p-3">
+                <div class="d-flex align-items-center">
+                    <div class="bg-light-info p-3 rounded-circle me-3"><i class="fas fa-stethoscope text-info fa-lg"></i></div>
+                    <div>
+                        <h6 class="text-muted mb-0">Đang khám</h6>
+                        <h4 class="fw-bold mb-0">@Model.Count(x => x.TrangThai == TrangThaiHoSo.DangKham)</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card card-stats bg-white shadow-sm p-3">
+                <div class="d-flex align-items-center">
+                    <div class="bg-light-warning p-3 rounded-circle me-3"><i class="fas fa-wallet text-warning fa-lg"></i></div>
+                    <div>
+                        <h6 class="text-muted mb-0">Chờ thanh toán</h6>
+                        <h4 class="fw-bold mb-0">@Model.Count(x => x.TrangThai == TrangThaiHoSo.ChoThanhToan)</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card card-stats bg-white shadow-sm p-3">
+                <div class="d-flex align-items-center">
+                    <div class="bg-light-success p-3 rounded-circle me-3"><i class="fas fa-check-double text-success fa-lg"></i></div>
+                    <div>
+                        <h6 class="text-muted mb-0">Hoàn thành</h6>
+                        <h4 class="fw-bold mb-0">@Model.Count(x => x.TrangThai == TrangThaiHoSo.HoanThanh)</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0" style="border-radius: 15px;">
+        <div class="card-header bg-white pt-4 border-0">
+            <ul class="nav nav-pills" id="pills-tab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="all-tab" data-bs-toggle="pill" data-bs-target="#tab-all" type="button">Tất cả</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="waiting-tab" data-bs-toggle="pill" data-bs-target="#tab-waiting" type="button">Đang đợi</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="done-tab" data-bs-toggle="pill" data-bs-target="#tab-done" type="button">Xong & Chờ thu phí</button>
+                </li>
+            </ul>
+        </div>
+        <div class="card-body p-0">
+            <div class="tab-content" id="pills-tabContent">
+                <div class="tab-pane fade show active p-3" id="tab-all">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>STT</th>
+                                    <th>Bệnh nhân</th>
+                                    <th>Bác sĩ</th>
+                                    <th>Ngày khám</th>
+                                    <th>Trạng thái</th>
+                                    <th class="text-center">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model)
+                                {
+                                    <tr>
+                                        <td class="text-muted">#@item.Id</td>
+                                        <td>
+                                            <div class="fw-bold text-dark">@item.BenhNhan?.HoTen</div>
+                                            <div class="small text-muted">@item.BenhNhan?.SoDienThoai</div>
+                                        </td>
+                                        <td>@item.BacSi?.HoTen</td>
+                                        <td>@item.NgayKham.ToString("HH:mm | dd/MM")</td>
+                                        <td>
+                                            @switch (item.TrangThai)
+                                            {
+                                                case TrangThaiHoSo.ChoKham:
+                                                    <span class="status-badge bg-secondary bg-opacity-10 text-secondary">Chờ khám</span>
+                                                    break;
+                                                case TrangThaiHoSo.DangKham:
+                                                    <span class="status-badge bg-primary bg-opacity-10 text-primary">Đang khám</span>
+                                                    break;
+                                                case TrangThaiHoSo.ChoThanhToan:
+                                                    <span class="status-badge bg-warning bg-opacity-10 text-warning">Đợi thanh toán</span>
+                                                    break;
+                                                case TrangThaiHoSo.HoanThanh:
+                                                    <span class="status-badge bg-success bg-opacity-10 text-success">Hoàn thành</span>
+                                                    break;
+                                            }
+                                        </td>
+                                        <td class="text-center">
+                                            @if (item.TrangThai == TrangThaiHoSo.ChoKham || item.TrangThai == TrangThaiHoSo.DangKham)
+                                            {
+                                                <a asp-action="KhamBenh" asp-route-id="@item.Id" class="action-btn bg-primary text-white me-1" title="Vào khám">
+                                                    <i class="fas fa-stethoscope"></i>
+                                                </a>
+                                            }
+                                            @if (item.TrangThai == TrangThaiHoSo.ChoThanhToan)
+                                            {
+                                                <a asp-action="ThanhToan" asp-route-id="@item.Id" class="action-btn bg-success text-white me-1" title="Thanh toán" onclick="return confirm('Xác nhận thanh toán cho bệnh nhân này?')">
+                                                    <i class="fas fa-dollar-sign"></i>
+                                                </a>
+                                            }
+                                            <a asp-action="Details" asp-route-id="@item.Id" class="action-btn bg-info text-white" title="Chi tiết">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

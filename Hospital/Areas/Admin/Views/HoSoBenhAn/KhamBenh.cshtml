@@ -1,0 +1,267 @@
+﻿@model Hospital.Models.HoSoBenhAn
+
+@{
+    ViewData["Title"] = "Thực hiện khám bệnh chuyên sâu";
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<style>
+    .card {
+        border-radius: 15px;
+        border: none;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+
+    .form-label {
+        font-weight: 700;
+        color: #475569;
+        font-size: 0.85rem;
+    }
+
+    /* Upload & Preview Ảnh */
+    .preview-main-box {
+        border: 2px dashed #cbd5e1;
+        border-radius: 12px;
+        background: #f8fafc;
+        min-height: 200px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .preview-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    .img-thumb-container {
+        aspect-ratio: 1/1;
+        border-radius: 10px;
+        overflow: hidden;
+        border: 1px solid #e2e8f0;
+        position: relative;
+    }
+
+    .img-thumb {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    /* Nút xóa ảnh preview */
+    .btn-delete-img {
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        background: rgba(239, 68, 68, 0.9);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 22px;
+        height: 22px;
+        font-size: 12px;
+        z-index: 10;
+        cursor: pointer;
+    }
+</style>
+
+<div class="container-fluid py-4">
+    <form id="formKhamBenh" asp-action="HoanTatKham" method="post" enctype="multipart/form-data">
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="BenhNhanId" />
+
+        <div class="row g-4">
+            <div class="col-xl-8">
+                <div class="card mb-4">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-4"><i class="bi bi-clipboard2-pulse text-primary me-2"></i> Khám & Chẩn đoán</h5>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Loại da</label>
+                                <select asp-for="TinhTrangDa" class="form-select shadow-sm">
+                                    <option value="Da dầu">Da dầu</option>
+                                    <option value="Da khô">Da khô</option>
+                                    <option value="Da hỗn hợp">Da hỗn hợp</option>
+                                    <option value="Da nhạy cảm">Da nhạy cảm</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Mức độ bệnh lý</label>
+                                <select asp-for="MucDo" class="form-select shadow-sm">
+                                    <option value="Nhẹ">Nhẹ</option>
+                                    <option value="Trung bình">Trung bình</option>
+                                    <option value="Nặng">Nặng</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Vị trí tổn thương</label>
+                                <input asp-for="ViTriTonThuong" class="form-control shadow-sm" placeholder="VD: Trán, má..." />
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label">Triệu chứng lâm sàng</label>
+                                <textarea asp-for="TrieuChung" class="form-control shadow-sm" rows="2"></textarea>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label text-danger">Chẩn đoán xác định *</label>
+                                <textarea asp-for="ChanDoan" class="form-control border-danger-subtle shadow-sm" rows="2" required></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold mb-0 text-success">Chỉ định dịch vụ</h6>
+                            <button type="button" class="btn btn-sm btn-success rounded-pill px-3" onclick="addService()">+ Thêm dịch vụ</button>
+                        </div>
+                        <table class="table align-middle"><tbody id="service-body"></tbody></table>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold mb-0 text-danger">Đơn thuốc điều trị</h6>
+                            <button type="button" class="btn btn-sm btn-danger rounded-pill px-3" onclick="addMedicine()">+ Thêm thuốc</button>
+                        </div>
+                        <table class="table align-middle">
+                            <thead><tr class="small text-muted"><th>Tên thuốc</th><th style="width:15%">SL</th><th>Liều dùng</th><th style="width:50px"></th></tr></thead>
+                            <tbody id="prescription-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-4">
+                <div class="card shadow-sm sticky-top" style="top: 85px;">
+                    <div class="card-body p-4">
+                        <h6 class="fw-bold mb-4 text-dark"><i class="bi bi-camera-fill me-2 text-primary"></i> Hình ảnh bệnh lý</h6>
+
+                        <div class="mb-4">
+                            <label class="small fw-bold text-muted mb-2 d-block">Ảnh chính (Tổng quan)</label>
+                            <input type="file" name="anhChinh" class="form-control form-control-sm mb-2" accept="image/*" onchange="previewMainImage(this)" />
+                            <div class="preview-main-box">
+                                <img id="img-main-preview" src="/images/no-image.png" class="img-fluid rounded shadow-sm" style="max-height: 220px; object-fit: contain;" />
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="small fw-bold text-muted mb-0">Ảnh phụ (Chi tiết)</label>
+                                <button type="button" class="btn btn-sm btn-outline-primary border-0" onclick="$('#subFiles').click()">
+                                    <i class="bi bi-plus-circle-fill me-1"></i>Thêm ảnh phụ
+                                </button>
+                            </div>
+                            <input type="file" id="subFiles" name="anhPhu" class="d-none" accept="image/*" multiple />
+                            <div id="sub-grid" class="preview-grid"></div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold">Lời dặn bác sĩ</label>
+                            <textarea asp-for="LoiDan" class="form-control" rows="3"></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 py-3 fw-bold rounded-pill shadow">
+                            <i class="bi bi-check-circle-fill me-2"></i> HOÀN TẤT & LƯU HỒ SƠ
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        // Quản lý file ảnh phụ
+        let subFilesDataTransfer = new DataTransfer();
+
+        $(document).ready(function() {
+            // Khởi tạo dòng đầu tiên
+            addService(); addMedicine();
+
+            // Sửa lỗi hiện giá Dịch vụ (Dùng Event Delegation)
+            $(document).on('change', 'select[name="selectedDichVu"]', function() {
+                var price = $(this).find(':selected').data('price');
+                $(this).closest('tr').find('.price-display').val(price ? price + 'đ' : '0đ');
+            });
+
+            // Xử lý Ảnh Phụ cộng dồn
+            $('#subFiles').change(function() {
+                for (let file of this.files) { subFilesDataTransfer.items.add(file); }
+                this.files = subFilesDataTransfer.files;
+                renderSubPreviews();
+            });
+        });
+
+        // Preview Ảnh Chính
+        function previewMainImage(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function(e) { $('#img-main-preview').attr('src', e.target.result); }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // Render danh sách ảnh phụ
+        function renderSubPreviews() {
+            const container = $('#sub-grid');
+            container.empty();
+            Array.from(subFilesDataTransfer.files).forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    container.append(`
+                        <div class="img-thumb-container shadow-sm">
+                            <button type="button" class="btn-delete-img" onclick="removeSubFile(${index})">&times;</button>
+                            <img src="${e.target.result}" class="img-thumb" />
+                        </div>`);
+                }
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Xóa từng ảnh phụ
+        function removeSubFile(index) {
+            const dt = new DataTransfer();
+            const { files } = subFilesDataTransfer;
+            for (let i = 0; i < files.length; i++) { if (i !== index) dt.items.add(files[i]); }
+            subFilesDataTransfer = dt;
+            document.getElementById('subFiles').files = subFilesDataTransfer.files;
+            renderSubPreviews();
+        }
+
+        function addService() {
+            var row = `<tr>
+                <td><select name="selectedDichVu" class="form-select border-0">
+                    <option value="">-- Chọn dịch vụ --</option>
+        @foreach (var dv in ViewBag.DichVuList)
+        {
+            <option value="@dv.DichVuId" data-price="@dv.Gia.ToString("N0")">@dv.TenDichVu</option>
+        }
+                </select></td>
+                <td><input class="form-control-plaintext fw-bold price-display" readonly value="0đ" /></td>
+                <td class="text-end"><button type="button" class="btn text-danger p-0" onclick="$(this).closest('tr').remove()"><i class="bi bi-trash"></i></button></td>
+            </tr>`;
+            $('#service-body').append(row);
+        }
+
+        function addMedicine() {
+            var row = `<tr>
+                <td><select name="selectedThuoc" class="form-select border-0">
+                    <option value="">-- Chọn thuốc --</option>
+        @foreach (var t in ViewBag.ThuocList)
+        {
+            <option value="@t.ThuocId">@t.TenThuoc (@t.DonViTinh)</option>
+        }
+                </select></td>
+                <td><input type="number" name="soLuong" class="form-control" value="1" min="1" /></td>
+                <td><input name="lieuDung" class="form-control" placeholder="Cách dùng..." /></td>
+                <td class="text-end"><button type="button" class="btn text-danger p-0" onclick="$(this).closest('tr').remove()"><i class="bi bi-trash"></i></button></td>
+            </tr>`;
+            $('#prescription-body').append(row);
+        }
+    </script>
+}

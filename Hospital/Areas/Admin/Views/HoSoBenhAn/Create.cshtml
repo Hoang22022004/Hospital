@@ -1,0 +1,102 @@
+﻿@model Hospital.Models.HoSoBenhAn
+
+@{
+    ViewData["Title"] = "Tiếp nhận bệnh nhân";
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
+                <div class="card-header bg-primary py-4 text-center border-0">
+                    <i class="bi bi-hospital text-white fs-1 mb-2"></i>
+                    <h3 class="text-white fw-bold mb-0">PHIẾU TIẾP NHẬN BỆNH</h3>
+                    <p class="text-white-50 mb-0 small">Vui lòng điền thông tin để đưa bệnh nhân vào hàng đợi</p>
+                </div>
+
+                <div class="card-body p-4 p-md-5 bg-white">
+                    <form asp-area="Admin" asp-controller="HoSoBenhAn" asp-action="Create" method="post">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small"></div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bolder text-uppercase small text-muted">1. Thông tin Bệnh nhân</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 text-primary">
+                                    <i class="bi bi-person-bounding-box"></i>
+                                </span>
+                                <select asp-for="BenhNhanId" class="form-select select2 border-start-0" asp-items="ViewBag.BenhNhanId">
+                                    <option value="">-- Tìm theo Tên hoặc Số điện thoại --</option>
+                                </select>
+                            </div>
+                            <div class="d-flex justify-content-between mt-2">
+                                <span asp-validation-for="BenhNhanId" class="text-danger small"></span>
+                                <a asp-controller="BenhNhan" asp-action="Create" class="text-primary text-decoration-none small fw-bold">
+                                    <i class="bi bi-plus-circle-fill"></i> Thêm bệnh nhân mới
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bolder text-uppercase small text-muted">2. Bác sĩ đảm nhận</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 text-primary">
+                                    <i class="bi bi-person-badge-fill"></i>
+                                </span>
+                                <select asp-for="BacSiId" class="form-select border-start-0" asp-items="ViewBag.BacSiId">
+                                    <option value="">-- Chọn bác sĩ đang trực --</option>
+                                </select>
+                            </div>
+                            <span asp-validation-for="BacSiId" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bolder text-uppercase small text-muted">3. Triệu chứng / Lý do khám</label>
+                            <textarea asp-for="TrieuChung" class="form-control border-1" rows="3"
+                                      placeholder="Mô tả ngắn gọn tình trạng của bệnh nhân..."></textarea>
+                            <div class="form-text small italic">Ví dụ: Da mẩn đỏ, ngứa vùng má trái...</div>
+                        </div>
+
+                        <hr class="my-4 border-light">
+
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <a asp-action="Index" class="btn btn-light w-100 py-2 fw-bold text-muted" style="border-radius: 12px;">
+                                    <i class="bi bi-x-circle me-1"></i> Hủy bỏ
+                                </a>
+                            </div>
+                            <div class="col-6">
+                                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold shadow-sm" style="border-radius: 12px;">
+                                    <i class="bi bi-send-check-fill me-1"></i> XÁC NHẬN
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="text-center mt-4">
+                <p class="text-muted small">
+                    <i class="bi bi-info-circle-fill text-info"></i>
+                    Mẹo: Sử dụng phím <strong>Tab</strong> để di chuyển nhanh giữa các ô nhập liệu.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Khởi tạo Select2 với theme Bootstrap 5
+            $('.select2').select2({
+                theme: 'bootstrap-5',
+                width: '100%',
+                placeholder: '-- Tìm kiếm bệnh nhân --'
+            });
+        });
+    </script>
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
