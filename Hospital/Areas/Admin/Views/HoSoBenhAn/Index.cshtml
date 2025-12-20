@@ -2,203 +2,330 @@
 @using Hospital.Models
 
 @{
-    ViewData["Title"] = "Quản lý hàng đợi phòng khám";
+    ViewData["Title"] = "Quản lý Tiếp nhận & Tiến độ Khám";
+    int currentPage = ViewBag.CurrentPage ?? 1;
+    int totalPages = ViewBag.TotalPages ?? 1;
+    string searchString = ViewBag.SearchString;
+    string searchDate = ViewBag.SearchDate;
 }
 
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
 
 <style>
-    .card-stats {
-        border: none;
-        border-radius: 15px;
-        transition: transform 0.3s;
+    :root {
+        --clinic-blue: #3b82f6;
+        --clinic-dark: #1e3a8a;
+        --clinic-bg: #f8fafc;
     }
 
-        .card-stats:hover {
+    body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background-color: var(--clinic-bg);
+        color: #1e293b;
+    }
+
+    /* Thẻ thống kê Dashboard */
+    .stat-card {
+        background: white;
+        border-radius: 16px;
+        padding: 20px;
+        border: 1px solid #e2e8f0;
+        transition: transform 0.3s, box-shadow 0.3s;
+        height: 100%;
+    }
+
+        .stat-card:hover {
             transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
 
-    .status-badge {
-        padding: 6px 12px;
-        border-radius: 20px;
-        font-weight: 500;
-        font-size: 0.85rem;
+    .icon-box {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+    }
+
+    /* Filter Section */
+    .glass-card {
+        background: white;
+        border-radius: 16px;
+        border: 1px solid #e2e8f0;
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    .form-control, .form-select {
+        border-radius: 10px;
+        border: 1px solid #cbd5e1;
+        padding: 10px 14px;
+    }
+
+    /* Table Design */
+    .table-container {
+        background: white;
+        border-radius: 16px;
+        border: 1px solid #e2e8f0;
+        overflow: hidden;
     }
 
     .table thead th {
-        background-color: #f8f9fa;
-        border-top: none;
-        color: #495057;
+        background-color: #f1f5f9;
+        color: #64748b;
+        font-weight: 700;
         text-transform: uppercase;
         font-size: 0.75rem;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.05em;
+        padding: 16px;
     }
 
     .table tbody tr {
-        vertical-align: middle;
+        border-bottom: 1px solid #f1f5f9;
     }
 
-    .nav-pills .nav-link {
-        border-radius: 10px;
-        color: #6c757d;
-        transition: all 0.3s;
-    }
-
-        .nav-pills .nav-link.active {
-            background-color: #0d6efd;
-            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.2);
+        .table tbody tr:hover {
+            background-color: #f0f9ff;
         }
 
-    .action-btn {
-        width: 35px;
-        height: 35px;
+    /* Badges Trạng thái */
+    .badge-pill {
+        padding: 6px 12px;
+        border-radius: 9999px;
+        font-weight: 600;
+        font-size: 0.75rem;
+        display: inline-block;
+        border: 1px solid transparent;
+    }
+
+    .bg-blue-subtle {
+        background: #eff6ff;
+        color: #2563eb;
+        border-color: #dbeafe;
+    }
+
+    .bg-orange-subtle {
+        background: #fff7ed;
+        color: #ea580c;
+        border-color: #ffedd5;
+    }
+
+    .bg-green-subtle {
+        background: #f0fdf4;
+        color: #166534;
+        border-color: #dcfce7;
+    }
+
+    .bg-gray-subtle {
+        background: #f8fafc;
+        color: #64748b;
+        border-color: #f1f5f9;
+    }
+
+    .btn-action {
+        width: 36px;
+        height: 36px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        border-radius: 8px;
-        transition: all 0.2s;
+        border-radius: 10px;
+        margin: 0 2px;
+        transition: 0.2s;
+        border: 1px solid #e2e8f0;
+        background: white;
+        color: #64748b;
+        text-decoration: none;
     }
+
+        .btn-action:hover {
+            background: var(--clinic-blue);
+            color: white;
+            border-color: var(--clinic-blue);
+        }
 </style>
 
-<div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+<div class="container-fluid py-4 px-lg-5">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
         <div>
-            <h2 class="fw-bold text-dark mb-1">Điều phối phòng khám</h2>
-            <p class="text-muted small">@DateTime.Now.ToString("dddd, dd MMMM yyyy")</p>
+            <h2 class="fw-bold mb-1 text-dark"><i class="fas fa-chart-line text-primary me-2"></i>Quản lý Tiếp nhận & Tiến độ Khám</h2>
+            <p class="text-muted mb-0 small"><i class="far fa-calendar-check me-1"></i> Hôm nay: @DateTime.Now.ToString("dddd, dd/MM/yyyy")</p>
         </div>
-        <a asp-action="Create" class="btn btn-primary px-4 py-2 shadow-sm" style="border-radius: 10px;">
-            <i class="fas fa-plus-circle me-2"></i> Tiếp nhận bệnh nhân
+        <a asp-action="Create" class="btn btn-primary shadow-sm px-4 py-2 fw-bold" style="background-color: var(--clinic-blue); border: none; border-radius: 10px;">
+            <i class="fas fa-plus-circle me-2"></i>Tiếp nhận mới
         </a>
     </div>
 
     <div class="row g-3 mb-4">
         <div class="col-md-3">
-            <div class="card card-stats bg-white shadow-sm p-3">
+            <div class="stat-card">
                 <div class="d-flex align-items-center">
-                    <div class="bg-light-primary p-3 rounded-circle me-3"><i class="fas fa-users text-primary fa-lg"></i></div>
+                    <div class="icon-box bg-secondary bg-opacity-10 text-secondary me-3"><i class="fas fa-users"></i></div>
                     <div>
-                        <h6 class="text-muted mb-0">Chờ khám</h6>
-                        <h4 class="fw-bold mb-0">@Model.Count(x => x.TrangThai == TrangThaiHoSo.ChoKham)</h4>
+                        <p class="text-muted mb-0 small fw-bold text-uppercase">Chờ khám</p>
+                        <h4 class="fw-bold mb-0">@ViewBag.CountChoKham</h4>
                     </div>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card card-stats bg-white shadow-sm p-3">
+            <div class="stat-card">
                 <div class="d-flex align-items-center">
-                    <div class="bg-light-info p-3 rounded-circle me-3"><i class="fas fa-stethoscope text-info fa-lg"></i></div>
+                    <div class="icon-box bg-primary bg-opacity-10 text-primary me-3"><i class="fas fa-stethoscope"></i></div>
                     <div>
-                        <h6 class="text-muted mb-0">Đang khám</h6>
-                        <h4 class="fw-bold mb-0">@Model.Count(x => x.TrangThai == TrangThaiHoSo.DangKham)</h4>
+                        <p class="text-muted mb-0 small fw-bold text-uppercase">Đang khám</p>
+                        <h4 class="fw-bold mb-0 text-primary">@ViewBag.CountDangKham</h4>
                     </div>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card card-stats bg-white shadow-sm p-3">
+            <div class="stat-card">
                 <div class="d-flex align-items-center">
-                    <div class="bg-light-warning p-3 rounded-circle me-3"><i class="fas fa-wallet text-warning fa-lg"></i></div>
+                    <div class="icon-box bg-warning bg-opacity-10 text-warning me-3"><i class="fas fa-wallet"></i></div>
                     <div>
-                        <h6 class="text-muted mb-0">Chờ thanh toán</h6>
-                        <h4 class="fw-bold mb-0">@Model.Count(x => x.TrangThai == TrangThaiHoSo.ChoThanhToan)</h4>
+                        <p class="text-muted mb-0 small fw-bold text-uppercase">Đợi thu phí</p>
+                        <h4 class="fw-bold mb-0 text-warning">@ViewBag.CountChoThanhToan</h4>
                     </div>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card card-stats bg-white shadow-sm p-3">
+            <div class="stat-card">
                 <div class="d-flex align-items-center">
-                    <div class="bg-light-success p-3 rounded-circle me-3"><i class="fas fa-check-double text-success fa-lg"></i></div>
+                    <div class="icon-box bg-success bg-opacity-10 text-success me-3"><i class="fas fa-check-double"></i></div>
                     <div>
-                        <h6 class="text-muted mb-0">Hoàn thành</h6>
-                        <h4 class="fw-bold mb-0">@Model.Count(x => x.TrangThai == TrangThaiHoSo.HoanThanh)</h4>
+                        <p class="text-muted mb-0 small fw-bold text-uppercase">Hoàn thành</p>
+                        <h4 class="fw-bold mb-0 text-success">@ViewBag.CountHoanThanh</h4>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="card shadow-sm border-0" style="border-radius: 15px;">
-        <div class="card-header bg-white pt-4 border-0">
-            <ul class="nav nav-pills" id="pills-tab" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="all-tab" data-bs-toggle="pill" data-bs-target="#tab-all" type="button">Tất cả</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="waiting-tab" data-bs-toggle="pill" data-bs-target="#tab-waiting" type="button">Đang đợi</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="done-tab" data-bs-toggle="pill" data-bs-target="#tab-done" type="button">Xong & Chờ thu phí</button>
-                </li>
-            </ul>
-        </div>
-        <div class="card-body p-0">
-            <div class="tab-content" id="pills-tabContent">
-                <div class="tab-pane fade show active p-3" id="tab-all">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead>
-                                <tr>
-                                    <th>STT</th>
-                                    <th>Bệnh nhân</th>
-                                    <th>Bác sĩ</th>
-                                    <th>Ngày khám</th>
-                                    <th>Trạng thái</th>
-                                    <th class="text-center">Thao tác</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var item in Model)
-                                {
-                                    <tr>
-                                        <td class="text-muted">#@item.Id</td>
-                                        <td>
-                                            <div class="fw-bold text-dark">@item.BenhNhan?.HoTen</div>
-                                            <div class="small text-muted">@item.BenhNhan?.SoDienThoai</div>
-                                        </td>
-                                        <td>@item.BacSi?.HoTen</td>
-                                        <td>@item.NgayKham.ToString("HH:mm | dd/MM")</td>
-                                        <td>
-                                            @switch (item.TrangThai)
-                                            {
-                                                case TrangThaiHoSo.ChoKham:
-                                                    <span class="status-badge bg-secondary bg-opacity-10 text-secondary">Chờ khám</span>
-                                                    break;
-                                                case TrangThaiHoSo.DangKham:
-                                                    <span class="status-badge bg-primary bg-opacity-10 text-primary">Đang khám</span>
-                                                    break;
-                                                case TrangThaiHoSo.ChoThanhToan:
-                                                    <span class="status-badge bg-warning bg-opacity-10 text-warning">Đợi thanh toán</span>
-                                                    break;
-                                                case TrangThaiHoSo.HoanThanh:
-                                                    <span class="status-badge bg-success bg-opacity-10 text-success">Hoàn thành</span>
-                                                    break;
-                                            }
-                                        </td>
-                                        <td class="text-center">
-                                            @if (item.TrangThai == TrangThaiHoSo.ChoKham || item.TrangThai == TrangThaiHoSo.DangKham)
-                                            {
-                                                <a asp-action="KhamBenh" asp-route-id="@item.Id" class="action-btn bg-primary text-white me-1" title="Vào khám">
-                                                    <i class="fas fa-stethoscope"></i>
-                                                </a>
-                                            }
-                                            @if (item.TrangThai == TrangThaiHoSo.ChoThanhToan)
-                                            {
-                                                <a asp-action="ThanhToan" asp-route-id="@item.Id" class="action-btn bg-success text-white me-1" title="Thanh toán" onclick="return confirm('Xác nhận thanh toán cho bệnh nhân này?')">
-                                                    <i class="fas fa-dollar-sign"></i>
-                                                </a>
-                                            }
-                                            <a asp-action="Details" asp-route-id="@item.Id" class="action-btn bg-info text-white" title="Chi tiết">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
+    <div class="glass-card">
+        <form asp-action="Index" method="get" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="small fw-bold text-muted mb-2">Ngày khám</label>
+                <input type="date" name="searchDate" class="form-control" value="@searchDate" />
+            </div>
+            <div class="col-md-4">
+                <label class="small fw-bold text-muted mb-2">Tìm kiếm bệnh nhân</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0"><i class="fas fa-search"></i></span>
+                    <input type="text" name="searchString" class="form-control border-start-0" placeholder="Tên hoặc SĐT..." value="@searchString" />
                 </div>
             </div>
+            <div class="col-md-3">
+                <label class="small fw-bold text-muted mb-2">Trạng thái</label>
+                <select name="status" class="form-select" asp-items="Html.GetEnumSelectList<TrangThaiHoSo>()">
+                    <option value="">-- Tất cả trạng thái --</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-dark w-100 py-2 fw-bold" style="border-radius: 10px;">Lọc danh sách</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="table-container shadow-sm">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th class="ps-4">Mã hồ sơ</th>
+                        <th>Thông tin Bệnh nhân</th>
+                        <th>Bác sĩ đảm nhận</th>
+                        <th>Giờ vào</th>
+                        <th>Trạng thái</th>
+                        <th class="text-center">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="ps-4 fw-bold text-muted">#@item.Id</td>
+                                <td>
+                                    <div class="fw-bold text-dark">@item.BenhNhan?.HoTen</div>
+                                    <div class="small text-muted"><i class="fas fa-phone-alt fa-xs me-1"></i> @item.BenhNhan?.SoDienThoai</div>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-user-md text-primary me-2 shadow-sm"></i>
+                                        <span class="fw-bold text-dark">@item.BacSi?.HoTen</span>
+                                    </div>
+                                </td>
+                                <td><span class="badge bg-light text-dark border px-2 py-1">@item.NgayKham.ToString("HH:mm")</span></td>
+                                <td>
+                                    @switch (item.TrangThai)
+                                    {
+                                        case TrangThaiHoSo.ChoKham:
+                                            <span class="badge-pill bg-gray-subtle">Chờ khám</span>
+                                            break;
+                                        case TrangThaiHoSo.DangKham:
+                                            <span class="badge-pill bg-blue-subtle">Đang khám</span>
+                                            break;
+                                        case TrangThaiHoSo.ChoThanhToan:
+                                            <span class="badge-pill bg-orange-subtle">Chờ thu phí</span>
+                                            break;
+                                        case TrangThaiHoSo.HoanThanh:
+                                            <span class="badge-pill bg-green-subtle">Hoàn thành</span>
+                                            break;
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <div class="d-flex justify-content-center">
+                                        @if (item.TrangThai == TrangThaiHoSo.ChoKham || item.TrangThai == TrangThaiHoSo.DangKham)
+                                        {
+                                            <a asp-action="KhamBenh" asp-route-id="@item.Id" class="btn-action text-primary" title="Khám bệnh"><i class="fas fa-stethoscope"></i></a>
+                                        }
+                                        @if (item.TrangThai == TrangThaiHoSo.ChoThanhToan)
+                                        {
+                                            <a asp-action="ThanhToan" asp-route-id="@item.Id" class="btn-action text-success" title="Thanh toán"><i class="fas fa-wallet"></i></a>
+                                        }
+                                        <a asp-action="Details" asp-route-id="@item.Id" class="btn-action text-info" title="Chi tiết"><i class="fas fa-eye"></i></a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center py-5">
+                                <i class="fas fa-inbox fa-3x opacity-25 mb-3"></i>
+                                <p class="text-muted">Không tìm thấy hồ sơ nào phù hợp.</p>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
         </div>
     </div>
+
+    @if (totalPages > 1)
+    {
+        <nav class="mt-4">
+            <ul class="pagination justify-content-center">
+                <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                    <a class="page-link shadow-sm border-0" href="@Url.Action("Index", new { page = currentPage - 1, searchDate = searchDate, searchString = searchString, status = ViewBag.Status })">Trước</a>
+                </li>
+                @for (int i = 1; i <= totalPages; i++)
+                {
+                    <li class="page-item @(currentPage == i ? "active" : "")">
+                        <a class="page-link shadow-sm border-0 mx-1 rounded" href="@Url.Action("Index", new { page = i, searchDate = searchDate, searchString = searchString, status = ViewBag.Status })">@i</a>
+                    </li>
+                }
+                <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                    <a class="page-link shadow-sm border-0" href="@Url.Action("Index", new { page = currentPage + 1, searchDate = searchDate, searchString = searchString, status = ViewBag.Status })">Sau</a>
+                </li>
+            </ul>
+        </nav>
+    }
 </div>
