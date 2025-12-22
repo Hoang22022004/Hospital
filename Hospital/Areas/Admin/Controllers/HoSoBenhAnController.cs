@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Hospital.Data;
 using Hospital.Models;
 using Microsoft.AspNetCore.Hosting;
+using System.Linq;
 
 namespace Hospital.Areas.Admin.Controllers
 {
@@ -157,7 +158,7 @@ namespace Hospital.Areas.Admin.Controllers
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(HoSoBenhAn hoSo)
+        public async Task<IActionResult> Create(HoSoBenhAn hoSo, int DichVuId)
         {
             if (ModelState.IsValid)
             {
@@ -178,7 +179,7 @@ namespace Hospital.Areas.Admin.Controllers
                             BacSiId = hoSo.BacSiId,
                             LichLamViecId = hoSo.LichLamViecId ?? 0,
                             KhungGioBatDau = hoSo.KhungGioBatDau ?? TimeSpan.Zero,
-                            DichVuId = 1, // Bạn có thể sửa thành ID dịch vụ mặc định hoặc lấy từ Form
+                            DichVuId = DichVuId, // Bạn có thể sửa thành ID dịch vụ mặc định hoặc lấy từ Form
                             TrangThai = TrangThaiLichHen.DaXacNhan, // Đánh dấu Đã xác nhận để hiện màu đỏ (Bận)
                             ThoiGianDat = DateTime.Now,
                             TrieuChung = hoSo.TrieuChung
@@ -203,9 +204,12 @@ namespace Hospital.Areas.Admin.Controllers
                     }
                     catch (Exception ex)
                     {
-                        // Nếu có lỗi, hủy bỏ toàn bộ quá trình lưu
                         await transaction.RollbackAsync();
-                        ModelState.AddModelError("", "Lỗi hệ thống: " + ex.Message);
+
+                        // Dòng này sẽ lấy thông báo chi tiết nhất từ "ruột" của lỗi
+                        var message = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+
+                        ModelState.AddModelError("", "Lỗi tại đây: " + message);
                     }
                 }
             }
@@ -235,7 +239,6 @@ namespace Hospital.Areas.Admin.Controllers
             ViewBag.ThuocList = await _context.Thuoc.ToListAsync();
             return View(hoSo);
         }
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> HoanTatKham(int id, HoSoBenhAn hoSoUpdate,
@@ -243,69 +246,106 @@ namespace Hospital.Areas.Admin.Controllers
             int[] selectedDichVu, int[] selectedThuoc, int[] soLuong, string[] lieuDung)
         {
             if (id != hoSoUpdate.Id) return NotFound();
-            var record = await _context.HoSoBenhAn.FindAsync(id);
-            if (record == null) return NotFound();
 
-            // Cập nhật thông tin lâm sàng
-            record.ChanDoan = hoSoUpdate.ChanDoan;
-            record.TrieuChung = hoSoUpdate.TrieuChung;
-            record.TinhTrangDa = hoSoUpdate.TinhTrangDa;
-            record.ViTriTonThuong = hoSoUpdate.ViTriTonThuong;
-            record.MucDo = hoSoUpdate.MucDo;
-            record.LoiDan = hoSoUpdate.LoiDan;
-            record.NgayTaiKham = hoSoUpdate.NgayTaiKham;
-            record.TrangThai = TrangThaiHoSo.ChoThanhToan;
-
-            // Lưu Dịch vụ kỹ thuật
-            if (selectedDichVu != null)
+            // 1. Khởi tạo Transaction để bảo vệ dữ liệu
+            using (var transaction = await _context.Database.BeginTransactionAsync())
             {
-                foreach (var dvId in selectedDichVu)
-                    _context.ChiTietDichVu.Add(new ChiTietDichVu { HoSoBenhAnId = id, DichVuId = dvId });
-            }
-
-            // Lưu Đơn thuốc & Trừ tồn kho thực tế
-            if (selectedThuoc != null)
-            {
-                for (int i = 0; i < selectedThuoc.Length; i++)
+                try
                 {
-                    int tId = selectedThuoc[i];
-                    int qty = (soLuong != null && soLuong.Length > i) ? soLuong[i] : 1;
-                    var tStock = await _context.Thuoc.FindAsync(tId);
-                    if (tStock != null) tStock.SoLuongTon -= qty;
+                    var record = await _context.HoSoBenhAn.FindAsync(id);
+                    if (record == null) return NotFound();
 
-                    _context.ChiTietDonThuoc.Add(new ChiTietDonThuoc
+                    // 2. Cập nhật thông tin lâm sàng
+                    record.ChanDoan = hoSoUpdate.ChanDoan;
+                    record.TrieuChung = hoSoUpdate.TrieuChung;
+                    record.TinhTrangDa = hoSoUpdate.TinhTrangDa;
+                    record.ViTriTonThuong = hoSoUpdate.ViTriTonThuong;
+                    record.MucDo = hoSoUpdate.MucDo;
+                    record.LoiDan = hoSoUpdate.LoiDan;
+                    record.NgayTaiKham = hoSoUpdate.NgayTaiKham;
+                    record.TrangThai = TrangThaiHoSo.ChoThanhToan;
+
+                    // 3. Lưu Dịch vụ kỹ thuật
+                    if (selectedDichVu != null)
                     {
-                        HoSoBenhAnId = id,
-                        ThuocId = tId,
-                        SoLuong = qty,
-                        LieuDung = (lieuDung != null && lieuDung.Length > i) ? lieuDung[i] : ""
-                    });
+                        foreach (var dvId in selectedDichVu)
+                        {
+                            _context.ChiTietDichVu.Add(new ChiTietDichVu { HoSoBenhAnId = id, DichVuId = dvId });
+                        }
+                    }
+
+                    // 4. Lưu Đơn thuốc & Trừ tồn kho thực tế
+                    if (selectedThuoc != null)
+                    {
+                        for (int i = 0; i < selectedThuoc.Length; i++)
+                        {
+                            int tId = selectedThuoc[i];
+                            int qty = (soLuong != null && soLuong.Length > i) ? soLuong[i] : 1;
+                            var tStock = await _context.Thuoc.FindAsync(tId);
+
+                            if (tStock != null)
+                            {
+                                tStock.SoLuongTon -= qty; // Trừ kho
+                            }
+
+                            _context.ChiTietDonThuoc.Add(new ChiTietDonThuoc
+                            {
+                                HoSoBenhAnId = id,
+                                ThuocId = tId,
+                                SoLuong = qty,
+                                LieuDung = (lieuDung != null && lieuDung.Length > i) ? lieuDung[i] : ""
+                            });
+                        }
+                    }
+
+                    // 5. Xử lý lưu File ảnh vào thư mục và ghi DB
+                    string path = Path.Combine(_hostEnvironment.WebRootPath, @"images/da-lieu");
+                    if (!Directory.Exists(path)) Directory.CreateDirectory(path);
+
+                    if (anhChinh != null)
+                    {
+                        string fn = "Main_" + Guid.NewGuid() + Path.GetExtension(anhChinh.FileName);
+                        using (var fs = new FileStream(Path.Combine(path, fn), FileMode.Create))
+                        {
+                            await anhChinh.CopyToAsync(fs);
+                        }
+                        _context.HinhAnhBenhAn.Add(new HinhAnhBenhAn { DuongDan = "/images/da-lieu/" + fn, LaAnhChinh = true, HoSoBenhAnId = id });
+                    }
+
+                    if (anhPhu != null)
+                    {
+                        foreach (var item in anhPhu)
+                        {
+                            string fn = "Sub_" + Guid.NewGuid() + Path.GetExtension(item.FileName);
+                            using (var fs = new FileStream(Path.Combine(path, fn), FileMode.Create))
+                            {
+                                await item.CopyToAsync(fs);
+                            }
+                            _context.HinhAnhBenhAn.Add(new HinhAnhBenhAn { DuongDan = "/images/da-lieu/" + fn, LaAnhChinh = false, HoSoBenhAnId = id });
+                        }
+                    }
+
+                    // 6. Lưu tất cả thay đổi
+                    await _context.SaveChangesAsync();
+
+                    // 7. Xác nhận hoàn tất Giao dịch
+                    await transaction.CommitAsync();
+
+                    TempData["success"] = "Hoàn tất khám bệnh thành công!";
+                    return RedirectToAction(nameof(Index));
                 }
-            }
-
-            // Xử lý Hình ảnh bệnh án lâm sàng
-            string path = Path.Combine(_hostEnvironment.WebRootPath, @"images/da-lieu");
-            if (!Directory.Exists(path)) Directory.CreateDirectory(path);
-
-            if (anhChinh != null)
-            {
-                string fn = "Main_" + Guid.NewGuid() + Path.GetExtension(anhChinh.FileName);
-                using (var fs = new FileStream(Path.Combine(path, fn), FileMode.Create)) await anhChinh.CopyToAsync(fs);
-                _context.HinhAnhBenhAn.Add(new HinhAnhBenhAn { DuongDan = "/images/da-lieu/" + fn, LaAnhChinh = true, HoSoBenhAnId = id });
-            }
-
-            if (anhPhu != null)
-            {
-                foreach (var item in anhPhu)
+                catch (Exception ex)
                 {
-                    string fn = "Sub_" + Guid.NewGuid() + Path.GetExtension(item.FileName);
-                    using (var fs = new FileStream(Path.Combine(path, fn), FileMode.Create)) await item.CopyToAsync(fs);
-                    _context.HinhAnhBenhAn.Add(new HinhAnhBenhAn { DuongDan = "/images/da-lieu/" + fn, LaAnhChinh = false, HoSoBenhAnId = id });
+                    // 8. Nếu có bất kỳ lỗi nào, hủy bỏ toàn bộ quá trình (không trừ kho, không lưu DB)
+                    await transaction.RollbackAsync();
+                    ModelState.AddModelError("", "Lỗi khi lưu dữ liệu: " + ex.Message);
+
+                    // Nạp lại danh sách để hiển thị lại View nếu lỗi
+                    ViewBag.DichVuList = await _context.DichVu.ToListAsync();
+                    ViewBag.ThuocList = await _context.Thuoc.ToListAsync();
+                    return View(hoSoUpdate);
                 }
             }
-
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
         }
 
         // ==========================================
@@ -359,6 +399,45 @@ namespace Hospital.Areas.Admin.Controllers
             }
             return RedirectToAction(nameof(Index));
         }
+        // ==========================================
+        // 7. HỦY HỒ SƠ & HỦY LỊCH HẸN LIÊN KẾT
+        // ==========================================
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> HuyHoSo(int id)
+        {
+            // Tìm hồ sơ kèm theo lịch hẹn liên kết
+            var hoSo = await _context.HoSoBenhAn
+                .Include(h => h.LichHen)
+                .FirstOrDefaultAsync(h => h.Id == id);
+
+            if (hoSo == null)
+            {
+                return NotFound();
+            }
+
+            try
+            {
+                // 1. Cập nhật trạng thái Hồ sơ (Nếu trong Enum TrangThaiHoSo của bạn chưa có DaHuy, hãy dùng một trạng thái phù hợp hoặc xóa)
+                // Ở đây tôi giả định bạn dùng trạng thái để lưu vết
+                hoSo.TrangThai = (TrangThaiHoSo)99; // Giả định 99 là trạng thái Đã Hủy, hoặc bạn có thể xóa record
+
+                // 2. Cập nhật trạng thái Lịch hẹn sang Đã Hủy
+                if (hoSo.LichHen != null)
+                {
+                    hoSo.LichHen.TrangThai = TrangThaiLichHen.DaHuy;
+                }
+
+                await _context.SaveChangesAsync();
+                TempData["success"] = "Đã hủy hồ sơ và lịch hẹn thành công.";
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = "Lỗi khi hủy: " + ex.Message;
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
 
         [HttpGet]
         public async Task<IActionResult> GetAppointmentSyncData(int id)
@@ -375,6 +454,25 @@ namespace Hospital.Areas.Admin.Controllers
                 khungGioStr = lichHen.KhungGioBatDau.ToString(@"hh\:mm")
             });
         }
+        // 1. Action lấy dữ liệu lịch sử theo ID bệnh nhân
+        [HttpGet]
+        public async Task<IActionResult> GetPatientTimeline(int benhNhanId, int? currentHoSoId)
+        {
+            // Cần .Include(h => h.HinhAnhBenhAns) để EF tải dữ liệu ảnh từ bảng liên quan
+            var history = await _context.HoSoBenhAn
+                .Include(h => h.BacSi)
+                .Include(h => h.HinhAnhBenhAns)
+                .Where(h => h.BenhNhanId == benhNhanId && h.Id != currentHoSoId)
+                .OrderByDescending(h => h.NgayKham)
+                .ToListAsync();
+
+            if (history == null || !history.Any())
+            {
+                return Content(""); // JS sẽ nhận Content trống và ẩn cột Timeline
+            }
+
+            return PartialView("_PatientTimeline", history);
+        }
 
         // ===============================================================
         // CODE BỔ SUNG: LẤY DỮ LIỆU CA TRỰC VÀ KHUNG GIỜ CHI TIẾT
@@ -385,31 +483,54 @@ namespace Hospital.Areas.Admin.Controllers
             var bacSi = await _context.BacSi.FirstOrDefaultAsync(b => b.BacSiId == bacSiId);
             if (bacSi == null) return Json(new { services = new List<object>(), bookedSlots = new List<string>(), shiftInfo = (object)null });
 
-            // 1. Lấy dịch vụ theo chuyên khoa của bác sĩ
-            var services = await _context.ChuyenKhoaDichVus
+            // 1. Lấy dữ liệu dịch vụ thô từ SQL (Không ToString ở đây)
+            var rawServices = await _context.ChuyenKhoaDichVus
                 .Where(ck => ck.ChuyenKhoaId == bacSi.ChuyenKhoaId)
                 .Select(ck => new {
-                    value = ck.DichVu.DichVuId,
-                    text = ck.DichVu.TenDichVu,
-                    gia = ck.DichVu.Gia.ToString("N0")
+                    ck.DichVu.DichVuId,
+                    ck.DichVu.TenDichVu,
+                    ck.DichVu.Gia
                 }).ToListAsync();
 
-            // 2. Lấy thông tin ca làm việc hôm nay
+            // Định dạng lại tiền tệ sau khi đã lấy dữ liệu về bộ nhớ
+            var services = rawServices.Select(s => new {
+                value = s.DichVuId,
+                text = s.TenDichVu,
+                gia = s.Gia.ToString("N0") // Ở đây sẽ không bị lỗi nữa
+            }).ToList();
+
+            // 2. Lấy thông tin ca làm việc
             var shift = await _context.LichLamViec
                 .FirstOrDefaultAsync(l => l.BacSiId == bacSiId && l.NgayLamViec.Date == DateTime.Today && l.IsActive);
 
-            // 3. Lấy các khung giờ ĐÃ BẬN hôm nay (Từ các lịch hẹn đã xác nhận)
-            var bookedSlots = await _context.LichHen
+            // 3. Lấy giờ bận thô (Kiểu TimeSpan) từ cả 2 bảng
+            // 3. Lấy giờ bận từ Lịch hẹn (Đảm bảo lấy về danh sách trước)
+            var bookedHen = await _context.LichHen
+                .Include(lh => lh.LichLamViec)
                 .Where(lh => lh.BacSiId == bacSiId &&
                              lh.LichLamViec.NgayLamViec.Date == DateTime.Today &&
                              lh.TrangThai != TrangThaiLichHen.DaHuy)
-                .Select(lh => lh.KhungGioBatDau.ToString(@"hh\:mm"))
+                .Select(lh => (TimeSpan?)lh.KhungGioBatDau) // Ép kiểu về nullable tại đây
                 .ToListAsync();
+
+            // Lấy giờ bận từ Hồ sơ bệnh án
+            var bookedHoSo = await _context.HoSoBenhAn
+                .Where(h => h.BacSiId == bacSiId && h.NgayKham.Date == DateTime.Today)
+                .Select(h => (TimeSpan?)h.KhungGioBatDau) // Ép kiểu về nullable tại đây
+                .ToListAsync();
+
+            // Gộp danh sách và xử lý định dạng chuỗi
+            var allBookedSlots = bookedHen
+                .Union(bookedHoSo) // Lúc này cả 2 đã cùng kiểu TimeSpan? nên sẽ hết lỗi
+                .Where(t => t.HasValue) // Chỉ lấy các giá trị thực, bỏ qua null
+                .Select(t => t.Value.ToString(@"hh\:mm")) // Định dạng Giờ:Phút
+                .Distinct()
+                .ToList();
 
             return Json(new
             {
                 services,
-                bookedSlots,
+                bookedSlots = allBookedSlots,
                 shiftInfo = shift != null ? new
                 {
                     id = shift.LichLamViecId,

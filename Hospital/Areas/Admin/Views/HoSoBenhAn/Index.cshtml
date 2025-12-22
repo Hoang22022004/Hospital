@@ -12,6 +12,8 @@
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <style>
     :root {
         --clinic-blue: #3b82f6;
@@ -31,7 +33,7 @@
         border-radius: 16px;
         padding: 20px;
         border: 1px solid #e2e8f0;
-        transition: transform 0.3s, box-shadow 0.3s;
+        transition: transform 0.3s;
         height: 100%;
     }
 
@@ -50,23 +52,15 @@
         font-size: 22px;
     }
 
-    /* Filter Section */
+    /* Filter & Table */
     .glass-card {
         background: white;
         border-radius: 16px;
         border: 1px solid #e2e8f0;
         padding: 24px;
         margin-bottom: 24px;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
     }
 
-    .form-control, .form-select {
-        border-radius: 10px;
-        border: 1px solid #cbd5e1;
-        padding: 10px 14px;
-    }
-
-    /* Table Design */
     .table-container {
         background: white;
         border-radius: 16px;
@@ -80,26 +74,16 @@
         font-weight: 700;
         text-transform: uppercase;
         font-size: 0.75rem;
-        letter-spacing: 0.05em;
         padding: 16px;
     }
 
-    .table tbody tr {
-        border-bottom: 1px solid #f1f5f9;
-    }
-
-        .table tbody tr:hover {
-            background-color: #f0f9ff;
-        }
-
-    /* Badges Trạng thái */
+    /* Badges */
     .badge-pill {
         padding: 6px 12px;
         border-radius: 9999px;
         font-weight: 600;
         font-size: 0.75rem;
         display: inline-block;
-        border: 1px solid transparent;
     }
 
     .bg-blue-subtle {
@@ -126,6 +110,13 @@
         border-color: #f1f5f9;
     }
 
+    .bg-danger-subtle {
+        background: #fef2f2;
+        color: #dc2626;
+        border-color: #fee2e2;
+    }
+
+    /* Buttons Thao tác */
     .btn-action {
         width: 36px;
         height: 36px;
@@ -139,12 +130,44 @@
         background: white;
         color: #64748b;
         text-decoration: none;
+        border: none;
+        cursor: pointer;
     }
 
         .btn-action:hover {
             background: var(--clinic-blue);
             color: white;
             border-color: var(--clinic-blue);
+        }
+
+        .btn-action.text-danger:hover {
+            background: #dc2626;
+            color: white;
+            border-color: #dc2626;
+        }
+
+    /* Timeline Modal */
+    .timeline-wrapper {
+        padding: 10px 10px 10px 25px;
+    }
+
+    .timeline-item {
+        position: relative;
+        padding-left: 30px;
+        margin-bottom: 25px;
+        border-left: 2px solid #e2e8f0;
+    }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -9px;
+            top: 0;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: white;
+            border: 3px solid var(--clinic-blue);
         }
 </style>
 
@@ -154,7 +177,7 @@
             <h2 class="fw-bold mb-1 text-dark"><i class="fas fa-chart-line text-primary me-2"></i>Quản lý Tiếp nhận & Tiến độ Khám</h2>
             <p class="text-muted mb-0 small"><i class="far fa-calendar-check me-1"></i> Hôm nay: @DateTime.Now.ToString("dddd, dd/MM/yyyy")</p>
         </div>
-        <a asp-action="Create" class="btn btn-primary shadow-sm px-4 py-2 fw-bold" style="background-color: var(--clinic-blue); border: none; border-radius: 10px;">
+        <a asp-action="Create" class="btn btn-primary shadow-sm px-4 py-2 fw-bold" style="border-radius: 10px;">
             <i class="fas fa-plus-circle me-2"></i>Tiếp nhận mới
         </a>
     </div>
@@ -164,10 +187,7 @@
             <div class="stat-card">
                 <div class="d-flex align-items-center">
                     <div class="icon-box bg-secondary bg-opacity-10 text-secondary me-3"><i class="fas fa-users"></i></div>
-                    <div>
-                        <p class="text-muted mb-0 small fw-bold text-uppercase">Chờ khám</p>
-                        <h4 class="fw-bold mb-0">@ViewBag.CountChoKham</h4>
-                    </div>
+                    <div><p class="text-muted mb-0 small fw-bold">CHỜ KHÁM</p><h4 class="fw-bold mb-0">@ViewBag.CountChoKham</h4></div>
                 </div>
             </div>
         </div>
@@ -175,10 +195,7 @@
             <div class="stat-card">
                 <div class="d-flex align-items-center">
                     <div class="icon-box bg-primary bg-opacity-10 text-primary me-3"><i class="fas fa-stethoscope"></i></div>
-                    <div>
-                        <p class="text-muted mb-0 small fw-bold text-uppercase">Đang khám</p>
-                        <h4 class="fw-bold mb-0 text-primary">@ViewBag.CountDangKham</h4>
-                    </div>
+                    <div><p class="text-muted mb-0 small fw-bold text-primary">ĐANG KHÁM</p><h4 class="fw-bold mb-0 text-primary">@ViewBag.CountDangKham</h4></div>
                 </div>
             </div>
         </div>
@@ -186,10 +203,7 @@
             <div class="stat-card">
                 <div class="d-flex align-items-center">
                     <div class="icon-box bg-warning bg-opacity-10 text-warning me-3"><i class="fas fa-wallet"></i></div>
-                    <div>
-                        <p class="text-muted mb-0 small fw-bold text-uppercase">Đợi thu phí</p>
-                        <h4 class="fw-bold mb-0 text-warning">@ViewBag.CountChoThanhToan</h4>
-                    </div>
+                    <div><p class="text-muted mb-0 small fw-bold text-warning">ĐỢI THU PHÍ</p><h4 class="fw-bold mb-0 text-warning">@ViewBag.CountChoThanhToan</h4></div>
                 </div>
             </div>
         </div>
@@ -197,36 +211,30 @@
             <div class="stat-card">
                 <div class="d-flex align-items-center">
                     <div class="icon-box bg-success bg-opacity-10 text-success me-3"><i class="fas fa-check-double"></i></div>
-                    <div>
-                        <p class="text-muted mb-0 small fw-bold text-uppercase">Hoàn thành</p>
-                        <h4 class="fw-bold mb-0 text-success">@ViewBag.CountHoanThanh</h4>
-                    </div>
+                    <div><p class="text-muted mb-0 small fw-bold text-success">HOÀN THÀNH</p><h4 class="fw-bold mb-0 text-success">@ViewBag.CountHoanThanh</h4></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="glass-card">
+    <div class="glass-card shadow-sm">
         <form asp-action="Index" method="get" class="row g-3 align-items-end">
             <div class="col-md-3">
                 <label class="small fw-bold text-muted mb-2">Ngày khám</label>
                 <input type="date" name="searchDate" class="form-control" value="@searchDate" />
             </div>
             <div class="col-md-4">
-                <label class="small fw-bold text-muted mb-2">Tìm kiếm bệnh nhân</label>
-                <div class="input-group">
-                    <span class="input-group-text bg-light border-end-0"><i class="fas fa-search"></i></span>
-                    <input type="text" name="searchString" class="form-control border-start-0" placeholder="Tên hoặc SĐT..." value="@searchString" />
-                </div>
+                <label class="small fw-bold text-muted mb-2">Bệnh nhân</label>
+                <input type="text" name="searchString" class="form-control" placeholder="Tên hoặc SĐT..." value="@searchString" />
             </div>
             <div class="col-md-3">
                 <label class="small fw-bold text-muted mb-2">Trạng thái</label>
                 <select name="status" class="form-select" asp-items="Html.GetEnumSelectList<TrangThaiHoSo>()">
-                    <option value="">-- Tất cả trạng thái --</option>
+                    <option value="">-- Tất cả --</option>
                 </select>
             </div>
             <div class="col-md-2">
-                <button type="submit" class="btn btn-dark w-100 py-2 fw-bold" style="border-radius: 10px;">Lọc danh sách</button>
+                <button type="submit" class="btn btn-dark w-100 py-2 fw-bold">Lọc dữ liệu</button>
             </div>
         </form>
     </div>
@@ -238,8 +246,8 @@
                     <tr>
                         <th class="ps-4">Mã hồ sơ</th>
                         <th>Thông tin Bệnh nhân</th>
-                        <th>Bác sĩ đảm nhận</th>
-                        <th>Giờ đặt lịch</th>
+                        <th>Bác sĩ</th>
+                        <th>Giờ khám</th>
                         <th>Trạng thái</th>
                         <th class="text-center">Thao tác</th>
                     </tr>
@@ -252,29 +260,19 @@
                             <tr>
                                 <td class="ps-4 fw-bold text-muted">#@item.Id</td>
                                 <td>
-                                    <div class="fw-bold text-dark">@item.BenhNhan?.HoTen</div>
-                                    <div class="small text-muted"><i class="fas fa-phone-alt fa-xs me-1"></i> @item.BenhNhan?.SoDienThoai</div>
+                                    <div class="fw-bold">@item.BenhNhan?.HoTen</div>
+                                    <div class="small text-muted"><i class="fas fa-phone-alt me-1"></i> @item.BenhNhan?.SoDienThoai</div>
                                 </td>
                                 <td>
                                     <div class="d-flex align-items-center">
-                                        <i class="fas fa-user-md text-primary me-2 shadow-sm"></i>
-                                        <span class="fw-bold text-dark">@item.BacSi?.HoTen</span>
+                                        <i class="fas fa-user-md text-primary me-2"></i>
+                                        <span class="fw-bold">@item.BacSi?.HoTen</span>
                                     </div>
                                 </td>
                                 <td>
-                                    @if (item.KhungGioBatDau.HasValue)
-                                    {
-                                        <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle px-2 py-1">
-                                            <i class="far fa-clock me-1"></i>
-                                            @item.KhungGioBatDau.Value.ToString(@"hh\:mm")
-                                        </span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-light text-muted border px-2 py-1">
-                                            @item.NgayKham.ToString("HH:mm")
-                                        </span>
-                                    }
+                                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle px-2 py-1">
+                                        <i class="far fa-clock me-1"></i> @(item.KhungGioBatDau?.ToString(@"hh\:mm") ?? item.NgayKham.ToString("HH:mm"))
+                                    </span>
                                 </td>
                                 <td>
                                     @switch (item.TrangThai)
@@ -291,6 +289,9 @@
                                         case TrangThaiHoSo.HoanThanh:
                                             <span class="badge-pill bg-green-subtle">Hoàn thành</span>
                                             break;
+                                        default:
+                                            <span class="badge-pill bg-danger-subtle">Đã hủy</span>
+                                            break;
                                     }
                                 </td>
                                 <td class="text-center">
@@ -303,43 +304,95 @@
                                         {
                                             <a asp-action="ThanhToan" asp-route-id="@item.Id" class="btn-action text-success" title="Thanh toán"><i class="fas fa-wallet"></i></a>
                                         }
+
                                         <a asp-action="Details" asp-route-id="@item.Id" class="btn-action text-info" title="Chi tiết"><i class="fas fa-eye"></i></a>
+
+                                        @if (item.TrangThai == TrangThaiHoSo.ChoKham || item.TrangThai == TrangThaiHoSo.DangKham)
+                                        {
+                                            <button type="button" class="btn-action text-danger" onclick="confirmHuyHoSo('@item.Id', '@item.BenhNhan?.HoTen')" title="Hủy hồ sơ">
+                                                <i class="fas fa-times-circle"></i>
+                                            </button>
+                                        }
+
+                                        <button type="button" class="btn-action text-secondary" onclick="showQuickHistory('@item.BenhNhanId', '@item.BenhNhan?.HoTen')" title="Lịch sử khám">
+                                            <i class="fas fa-history"></i>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
                         }
                     }
-                    else
-                    {
-                        <tr>
-                            <td colspan="6" class="text-center py-5">
-                                <i class="fas fa-inbox fa-3x opacity-25 mb-3"></i>
-                                <p class="text-muted">Không tìm thấy hồ sơ nào phù hợp.</p>
-                            </td>
-                        </tr>
-                    }
                 </tbody>
             </table>
         </div>
     </div>
-
-    @if (totalPages > 1)
-    {
-        <nav class="mt-4">
-            <ul class="pagination justify-content-center">
-                <li class="page-item @(currentPage == 1 ? "disabled" : "")">
-                    <a class="page-link shadow-sm border-0" href="@Url.Action("Index", new { page = currentPage - 1, searchDate = searchDate, searchString = searchString, status = ViewBag.Status })">Trước</a>
-                </li>
-                @for (int i = 1; i <= totalPages; i++)
-                {
-                    <li class="page-item @(currentPage == i ? "active" : "")">
-                        <a class="page-link shadow-sm border-0 mx-1 rounded" href="@Url.Action("Index", new { page = i, searchDate = searchDate, searchString = searchString, status = ViewBag.Status })">@i</a>
-                    </li>
-                }
-                <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
-                    <a class="page-link shadow-sm border-0" href="@Url.Action("Index", new { page = currentPage + 1, searchDate = searchDate, searchString = searchString, status = ViewBag.Status })">Sau</a>
-                </li>
-            </ul>
-        </nav>
-    }
 </div>
+
+<div class="modal fade" id="historyModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-dark"><i class="fas fa-history me-2 text-primary"></i>Lịch sử khám: <span id="historyPatientName" class="text-primary"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div id="quickHistoryArea" style="max-height: 500px; overflow-y: auto;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<form id="formHuyHoSo" asp-action="HuyHoSo" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="id" id="inputHuyId" />
+</form>
+
+@section Scripts {
+    <script>
+        // 1. Hàm hiển thị Lịch sử với SweetAlert2 cho thông báo lỗi
+        function showQuickHistory(patientId, patientName) {
+            $('#historyPatientName').text(patientName);
+            $('#quickHistoryArea').html('<div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div><p class="mt-2 text-muted">Đang tải dữ liệu...</p></div>');
+            var modal = new bootstrap.Modal(document.getElementById('historyModal'));
+            modal.show();
+
+            $.get('@Url.Action("GetPatientTimeline", "HoSoBenhAn")', { benhNhanId: patientId }, function (data) {
+                if (data.trim() === "") {
+                    $('#quickHistoryArea').html('<div class="text-center py-5 text-muted"><i class="fas fa-folder-open fa-3x mb-3 opacity-25"></i><p>Bệnh nhân này chưa có lịch sử khám trước đó.</p></div>');
+                } else {
+                    $('#quickHistoryArea').html(data);
+                }
+            }).fail(function () {
+                Swal.fire({ icon: 'error', title: 'Lỗi', text: 'Không thể nạp dữ liệu lịch sử!' });
+            });
+        }
+
+        // 2. Hàm xác nhận Hủy với SweetAlert2 (Đẹp, không hiện localhost)
+        function confirmHuyHoSo(id, name) {
+            Swal.fire({
+                title: 'Xác nhận hủy?',
+                text: 'Bạn có chắc muốn HỦY hồ sơ của bệnh nhân "' + name + '" không? Lịch hẹn liên kết cũng sẽ bị hủy.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6e7881',
+                confirmButtonText: 'Đồng ý hủy',
+                cancelButtonText: 'Quay lại',
+                borderRadius: '15px'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $('#inputHuyId').val(id);
+                    $('#formHuyHoSo').submit();
+                }
+            });
+        }
+
+        // Hiển thị thông báo thành công nếu có TempData
+        @if (TempData["success"] != null)
+        {
+            <text>
+                Swal.fire({ icon: 'success', title: 'Thành công', text: '@TempData["success"]', timer: 2000, showConfirmButton: false });
+            </text>
+        }
+    </script>
+}

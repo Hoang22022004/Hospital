@@ -176,18 +176,23 @@
                                 </td>
                                 <td class="text-center pe-4">
                                     <div class="btn-group shadow-sm rounded-3">
+                                        @* Nút Lịch sử khám (MỚI) *@
+                                        <a asp-action="LichSuKham" asp-route-id="@item.BenhNhanId"
+                                           class="btn btn-sm btn-white text-secondary border" title="Lịch sử khám">
+                                            <i class="bi bi-clock-history"></i>
+                                        </a>
+
                                         <a asp-area="Admin" asp-controller="HoSoBenhAn" asp-action="Create" asp-route-idBN="@item.BenhNhanId"
                                            class="btn btn-sm btn-white text-success border" title="Tái khám">
                                             <i class="bi bi-file-medical-fill"></i>
                                         </a>
+
                                         <a asp-action="Edit" asp-route-id="@item.BenhNhanId"
                                            class="btn btn-sm btn-white text-primary border" title="Chỉnh sửa">
                                             <i class="bi bi-pencil-square"></i>
                                         </a>
-                                        <a asp-action="Details" asp-route-id="@item.BenhNhanId"
-                                           class="btn btn-sm btn-white text-info border" title="Chi tiết">
-                                            <i class="bi bi-eye-fill"></i>
-                                        </a>
+
+                                        @* Có thể bỏ nút Details bệnh nhân nếu đã có nút Lịch sử khám để tránh loãng *@
                                         <a asp-action="Delete" asp-route-id="@item.BenhNhanId"
                                            class="btn btn-sm btn-white text-danger border" title="Xóa">
                                             <i class="bi bi-trash-fill"></i>

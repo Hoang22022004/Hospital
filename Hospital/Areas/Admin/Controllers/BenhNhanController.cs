@@ -156,6 +156,27 @@ namespace Hospital.Areas.Admin.Controllers
             }
             return RedirectToAction(nameof(Index));
         }
+        // --- 5. LỊCH SỬ KHÁM BỆNH ---
+        public async Task<IActionResult> LichSuKham(int? id)
+        {
+            if (id == null) return NotFound();
+
+            // Tìm bệnh nhân
+            var benhNhan = await _context.BenhNhan.FirstOrDefaultAsync(m => m.BenhNhanId == id);
+            if (benhNhan == null) return NotFound();
+
+            // Lấy danh sách hồ sơ bệnh án của bệnh nhân này, kèm thông tin Bác sĩ
+            var lichSu = await _context.HoSoBenhAn
+                .Include(h => h.BacSi)
+                .Where(h => h.BenhNhanId == id)
+                .OrderByDescending(h => h.NgayKham) // Lần khám mới nhất lên đầu
+                .ToListAsync();
+
+            ViewBag.TenBenhNhan = benhNhan.HoTen;
+            ViewBag.IdBenhNhan = id;
+
+            return View(lichSu);
+        }
 
         private bool BenhNhanExists(int id) => _context.BenhNhan.Any(e => e.BenhNhanId == id);
     }

@@ -1,0 +1,36 @@
+﻿@model IEnumerable<Hospital.Models.HoSoBenhAn>
+
+<div class="timeline-wrapper">
+    @foreach (var item in Model)
+    {
+        <div class="timeline-item">
+            <div class="timeline-content shadow-sm">
+                <div class="d-flex justify-content-between mb-1">
+                    <span class="small fw-bold text-primary">@item.NgayKham.ToString("dd/MM/yyyy")</span>
+                </div>
+                <p class="small text-muted mb-2 border-bottom pb-1">@item.ChanDoan</p>
+
+                <div class="d-flex gap-1 overflow-auto pb-1">
+                    @if (item.HinhAnhBenhAns != null && item.HinhAnhBenhAns.Any())
+                    {
+                        @foreach (var img in item.HinhAnhBenhAns)
+                        {
+                            <div class="position-relative">
+                                <img src="@img.DuongDan" class="rounded border shadow-sm"
+                                     style="width: 55px; height: 55px; object-fit: cover; cursor: pointer;"
+                                     onclick="setBeforeImage('@img.DuongDan', '@item.NgayKham.ToString("dd/MM/yyyy") @(img.LaAnhChinh ? "(Chính)" : "")')"
+                                     title="@(img.LaAnhChinh ? "Ảnh chính" : "Ảnh chi tiết")" />
+
+                                @if (img.LaAnhChinh)
+                                {
+                                    <span class="position-absolute top-0 start-0 badge bg-primary"
+                                          style="font-size: 8px; padding: 2px 4px;">Chính</span>
+                                }
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>

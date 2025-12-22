@@ -1,15 +1,20 @@
 ﻿@model Hospital.Models.HoSoBenhAn
 
 @{
-    ViewData["Title"] = "Thực hiện khám bệnh chuyên sâu";
+    ViewData["Title"] = "Khám bệnh & So sánh lịch sử";
     Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
 }
 
 <style>
+    :root {
+        --clinic-primary: #3b82f6;
+        --clinic-success: #10b981;
+    }
+
     .card {
         border-radius: 15px;
         border: none;
-        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
     }
 
     .form-label {
@@ -18,7 +23,80 @@
         font-size: 0.85rem;
     }
 
-    /* Upload & Preview Ảnh */
+    /* Timeline Styles */
+    .timeline-wrapper {
+        max-height: 800px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        /* Tăng padding-left từ 0 lên 20px để không bị cắt dấu chấm */
+        padding: 10px 10px 10px 20px;
+    }
+
+    .timeline-item {
+        position: relative;
+        padding-left: 30px;
+        margin-bottom: 25px;
+        border-left: 2px solid #e2e8f0; /* Đường kẻ dọc */
+    }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            /* Dấu chấm nằm đè lên đường kẻ */
+            left: -9px;
+            top: 0;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: white;
+            border: 3px solid var(--clinic-primary);
+            z-index: 5; /* Đảm bảo luôn nằm trên cùng */
+        }
+
+    .timeline-content {
+        background: #f8fafc;
+        border-radius: 12px;
+        padding: 15px;
+        transition: 0.3s;
+        cursor: pointer;
+    }
+
+        .timeline-content:hover {
+            background: #eff6ff;
+            transform: translateX(5px);
+        }
+
+    /* Comparison Tools */
+    .compare-container {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .compare-box {
+        flex: 1;
+        border: 2px dashed #cbd5e1;
+        border-radius: 15px;
+        overflow: hidden;
+        position: relative;
+        aspect-ratio: 4/3;
+        background: #f1f5f9;
+    }
+
+    .compare-label {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background: rgba(0,0,0,0.6);
+        color: white;
+        padding: 2px 10px;
+        border-radius: 20px;
+        font-size: 10px;
+        z-index: 5;
+    }
+
+    /* Image Preview */
     .preview-main-box {
         border: 2px dashed #cbd5e1;
         border-radius: 12px;
@@ -27,7 +105,18 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        overflow: hidden;
     }
+
+    #img-main-preview {
+        transition: 0.3s;
+        cursor: pointer;
+    }
+
+        #img-main-preview:hover {
+            transform: scale(1.03);
+            border: 2px solid var(--clinic-primary);
+        }
 
     .preview-grid {
         display: grid;
@@ -48,9 +137,15 @@
         width: 100%;
         height: 100%;
         object-fit: cover;
+        cursor: pointer;
+        transition: 0.3s;
     }
 
-    /* Nút xóa ảnh preview */
+        .img-thumb:hover {
+            transform: scale(1.1);
+            border: 2px solid var(--clinic-primary);
+        }
+
     .btn-delete-img {
         position: absolute;
         top: 2px;
@@ -62,21 +157,25 @@
         width: 22px;
         height: 22px;
         font-size: 12px;
-        z-index: 10;
         cursor: pointer;
+        z-index: 10;
     }
 </style>
 
 <div class="container-fluid py-4">
-    <form id="formKhamBenh" asp-action="HoanTatKham" method="post" enctype="multipart/form-data">
-        <input type="hidden" asp-for="Id" />
-        <input type="hidden" asp-for="BenhNhanId" />
+    <div class="row g-4">
+        <div class="col-xl-12" id="mainExamColumn">
+            <form id="formKhamBenh" asp-action="HoanTatKham" method="post" enctype="multipart/form-data">
+                <input type="hidden" asp-for="Id" />
+                <input type="hidden" asp-for="BenhNhanId" />
 
-        <div class="row g-4">
-            <div class="col-xl-8">
-                <div class="card mb-4">
+                <div class="card mb-4 border-start border-primary border-4">
                     <div class="card-body p-4">
-                        <h5 class="fw-bold mb-4"><i class="bi bi-clipboard2-pulse text-primary me-2"></i> Khám & Chẩn đoán</h5>
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h5 class="fw-bold mb-0 text-primary"><i class="bi bi-person-badge me-2"></i>PHIÊN KHÁM HIỆN TẠI</h5>
+                            <span class="badge bg-primary-subtle text-primary px-3 rounded-pill">Bệnh nhân: @Model.BenhNhan?.HoTen</span>
+                        </div>
+
                         <div class="row g-3">
                             <div class="col-md-4">
                                 <label class="form-label">Loại da</label>
@@ -111,85 +210,122 @@
                     </div>
                 </div>
 
-                <div class="card mb-4">
-                    <div class="card-body p-4">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h6 class="fw-bold mb-0 text-success">Chỉ định dịch vụ</h6>
-                            <button type="button" class="btn btn-sm btn-success rounded-pill px-3" onclick="addService()">+ Thêm dịch vụ</button>
+                <div class="row g-4 mb-4">
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-body p-4">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h6 class="fw-bold mb-0 text-success">Chỉ định dịch vụ</h6>
+                                    <button type="button" class="btn btn-sm btn-success rounded-pill px-3" onclick="addService()">+ Thêm</button>
+                                </div>
+                                <table class="table align-middle"><tbody id="service-body"></tbody></table>
+                            </div>
                         </div>
-                        <table class="table align-middle"><tbody id="service-body"></tbody></table>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-body p-4">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h6 class="fw-bold mb-0 text-danger">Đơn thuốc điều trị</h6>
+                                    <button type="button" class="btn btn-sm btn-danger rounded-pill px-3" onclick="addMedicine()">+ Thêm</button>
+                                </div>
+                                <table class="table table-sm align-middle"><tbody id="prescription-body"></tbody></table>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <div class="card mb-4">
                     <div class="card-body p-4">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h6 class="fw-bold mb-0 text-danger">Đơn thuốc điều trị</h6>
-                            <button type="button" class="btn btn-sm btn-danger rounded-pill px-3" onclick="addMedicine()">+ Thêm thuốc</button>
-                        </div>
-                        <table class="table align-middle">
-                            <thead><tr class="small text-muted"><th>Tên thuốc</th><th style="width:15%">SL</th><th>Liều dùng</th><th style="width:50px"></th></tr></thead>
-                            <tbody id="prescription-body"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-xl-4">
-                <div class="card shadow-sm sticky-top" style="top: 85px;">
-                    <div class="card-body p-4">
-                        <h6 class="fw-bold mb-4 text-dark"><i class="bi bi-camera-fill me-2 text-primary"></i> Hình ảnh bệnh lý</h6>
-
-                        <div class="mb-4">
-                            <label class="small fw-bold text-muted mb-2 d-block">Ảnh chính (Tổng quan)</label>
-                            <input type="file" name="anhChinh" class="form-control form-control-sm mb-2" accept="image/*" onchange="previewMainImage(this)" />
-                            <div class="preview-main-box">
-                                <img id="img-main-preview" src="/images/no-image.png" class="img-fluid rounded shadow-sm" style="max-height: 220px; object-fit: contain;" />
+                        <h6 class="fw-bold mb-4 text-dark"><i class="bi bi-camera-fill me-2 text-primary"></i> Hình ảnh buổi khám hôm nay</h6>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label class="small fw-bold text-muted d-block mb-2">Ảnh tổng quan (Click ảnh để so sánh)</label>
+                                <input type="file" name="anhChinh" class="form-control form-control-sm mb-2" accept="image/*" onchange="previewMainImage(this)" />
+                                <div class="preview-main-box">
+                                    <img id="img-main-preview" src="/images/no-image.png" class="img-fluid rounded"
+                                         style="max-height: 200px;" onclick="setCompareImage(this.src, 'Hôm nay (Tổng quan)', 'after')" />
+                                </div>
+                            </div>
+                            <div class="col-md-8">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <label class="small fw-bold text-muted">Ảnh chi tiết (Click ảnh để so sánh)</label>
+                                    <button type="button" class="btn btn-xs btn-primary py-0" onclick="$('#subFiles').click()">+ Thêm ảnh</button>
+                                </div>
+                                <input type="file" id="subFiles" name="anhPhu" class="d-none" accept="image/*" multiple />
+                                <div id="sub-grid" class="preview-grid"></div>
                             </div>
                         </div>
-
-                        <div class="mb-4">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <label class="small fw-bold text-muted mb-0">Ảnh phụ (Chi tiết)</label>
-                                <button type="button" class="btn btn-sm btn-outline-primary border-0" onclick="$('#subFiles').click()">
-                                    <i class="bi bi-plus-circle-fill me-1"></i>Thêm ảnh phụ
-                                </button>
-                            </div>
-                            <input type="file" id="subFiles" name="anhPhu" class="d-none" accept="image/*" multiple />
-                            <div id="sub-grid" class="preview-grid"></div>
-                        </div>
-
-                        <div class="mb-4">
+                        <div class="mt-4">
                             <label class="form-label small fw-bold">Lời dặn bác sĩ</label>
-                            <textarea asp-for="LoiDan" class="form-control" rows="3"></textarea>
+                            <textarea asp-for="LoiDan" class="form-control" rows="2"></textarea>
                         </div>
-
-                        <button type="submit" class="btn btn-primary w-100 py-3 fw-bold rounded-pill shadow">
-                            <i class="bi bi-check-circle-fill me-2"></i> HOÀN TẤT & LƯU HỒ SƠ
+                        <button type="submit" class="btn btn-primary w-100 py-3 fw-bold rounded-pill shadow mt-4">
+                            <i class="bi bi-check-circle-fill me-2"></i> HOÀN TẤT & LƯU HỒ SƠ KHÁM
                         </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="col-xl-4" id="timelineColumn" style="display:none">
+            <div class="card shadow-sm sticky-top" style="top: 85px; height: calc(100vh - 110px);">
+                <div class="card-header bg-white py-3 border-0">
+                    <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-clock-history me-2 text-primary"></i> Lịch sử & So sánh Ảnh</h6>
+                </div>
+                <div class="card-body timeline-wrapper" id="timelineArea">
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <p class="mt-2 text-muted small">Đang nạp lịch sử bệnh án...</p>
                     </div>
                 </div>
             </div>
         </div>
-    </form>
+    </div>
+</div>
+
+<div class="modal fade" id="compareModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-dark">PHÂN TÍCH TIẾN TRIỂN DA LIỄU</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="compare-container">
+                    <div class="compare-box shadow-sm">
+                        <span class="compare-label">TRƯỚC (BEFORE)</span>
+                        <img id="before-img" src="" class="w-100 h-100" style="object-fit: cover;" />
+                    </div>
+                    <div class="text-primary fw-bold fs-3"> <i class="bi bi-chevron-right"></i> </div>
+                    <div class="compare-box shadow-sm border-primary">
+                        <span class="compare-label bg-primary">SAU (AFTER)</span>
+                        <img id="after-img" src="" class="w-100 h-100" style="object-fit: cover;" />
+                    </div>
+                </div>
+                <div class="row mt-4 text-center">
+                    <div class="col-6"><p id="before-date" class="small fw-bold text-muted mb-0"></p></div>
+                    <div class="col-6"><p id="after-date" class="small fw-bold text-primary mb-0"></p></div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 @section Scripts {
     <script>
-        // Quản lý file ảnh phụ
         let subFilesDataTransfer = new DataTransfer();
 
         $(document).ready(function() {
-            // Khởi tạo dòng đầu tiên
-            addService(); addMedicine();
+            addService();
+            addMedicine();
+            loadTimeline();
 
-            // Sửa lỗi hiện giá Dịch vụ (Dùng Event Delegation)
             $(document).on('change', 'select[name="selectedDichVu"]', function() {
                 var price = $(this).find(':selected').data('price');
                 $(this).closest('tr').find('.price-display').val(price ? price + 'đ' : '0đ');
             });
 
-            // Xử lý Ảnh Phụ cộng dồn
             $('#subFiles').change(function() {
                 for (let file of this.files) { subFilesDataTransfer.items.add(file); }
                 this.files = subFilesDataTransfer.files;
@@ -197,7 +333,54 @@
             });
         });
 
-        // Preview Ảnh Chính
+        // 1. AJAX Nạp Timeline
+        function loadTimeline() {
+            var patientId = '@Model.BenhNhanId';
+            var currentId = '@Model.Id';
+
+            $.get('@Url.Action("GetPatientTimeline", "HoSoBenhAn")',
+                { benhNhanId: patientId, currentHoSoId: currentId },
+                function(data) {
+                    if (data && data.trim() !== "") {
+                        $('#timelineArea').html(data);
+                        $('#timelineColumn').show();
+                        $('#mainExamColumn').removeClass('col-xl-12').addClass('col-xl-8');
+                    } else {
+                        $('#timelineColumn').hide();
+                        $('#mainExamColumn').removeClass('col-xl-8').addClass('col-xl-12');
+                    }
+                });
+        }
+
+        // 2. Logic So sánh: Chọn ảnh cũ (Before)
+        function setBeforeImage(url, date) {
+            $('#before-img').attr('src', url);
+            $('#before-date').text('Trước: ' + date);
+
+            if ($('#after-img').attr('src')) {
+                new bootstrap.Modal(document.getElementById('compareModal')).show();
+            } else {
+                alert("Đã chọn ảnh cũ. Hãy click vào 'Ảnh tổng quan' hoặc 'Ảnh chi tiết' bên trái để so sánh.");
+            }
+        }
+
+        // 3. Logic So sánh: Chọn ảnh mới (After)
+        function setCompareImage(url, date, type) {
+            if (url.includes("no-image.png")) {
+                alert("Vui lòng chọn file ảnh trước!");
+                return;
+            }
+
+            if (type === 'after') {
+                $('#after-img').attr('src', url);
+                $('#after-date').text('Sau: ' + date);
+            }
+
+            if ($('#before-img').attr('src') && $('#after-img').attr('src')) {
+                new bootstrap.Modal(document.getElementById('compareModal')).show();
+            }
+        }
+
         function previewMainImage(input) {
             if (input.files && input.files[0]) {
                 var reader = new FileReader();
@@ -206,7 +389,6 @@
             }
         }
 
-        // Render danh sách ảnh phụ
         function renderSubPreviews() {
             const container = $('#sub-grid');
             container.empty();
@@ -216,14 +398,14 @@
                     container.append(`
                         <div class="img-thumb-container shadow-sm">
                             <button type="button" class="btn-delete-img" onclick="removeSubFile(${index})">&times;</button>
-                            <img src="${e.target.result}" class="img-thumb" />
+                            <img src="${e.target.result}" class="img-thumb"
+                                 onclick="setCompareImage('${e.target.result}', 'Hôm nay', 'after')" />
                         </div>`);
                 }
                 reader.readAsDataURL(file);
             });
         }
 
-        // Xóa từng ảnh phụ
         function removeSubFile(index) {
             const dt = new DataTransfer();
             const { files } = subFilesDataTransfer;
@@ -235,14 +417,14 @@
 
         function addService() {
             var row = `<tr>
-                <td><select name="selectedDichVu" class="form-select border-0">
-                    <option value="">-- Chọn dịch vụ --</option>
+                <td><select name="selectedDichVu" class="form-select border-0 bg-light rounded-3">
+                    <option value="">-- Dịch vụ --</option>
         @foreach (var dv in ViewBag.DichVuList)
         {
             <option value="@dv.DichVuId" data-price="@dv.Gia.ToString("N0")">@dv.TenDichVu</option>
         }
                 </select></td>
-                <td><input class="form-control-plaintext fw-bold price-display" readonly value="0đ" /></td>
+                <td style="width:100px"><input class="form-control-plaintext small fw-bold price-display" readonly value="0đ" /></td>
                 <td class="text-end"><button type="button" class="btn text-danger p-0" onclick="$(this).closest('tr').remove()"><i class="bi bi-trash"></i></button></td>
             </tr>`;
             $('#service-body').append(row);
@@ -250,15 +432,15 @@
 
         function addMedicine() {
             var row = `<tr>
-                <td><select name="selectedThuoc" class="form-select border-0">
-                    <option value="">-- Chọn thuốc --</option>
+                <td><select name="selectedThuoc" class="form-select border-0 bg-light rounded-3">
+                    <option value="">-- Thuốc --</option>
         @foreach (var t in ViewBag.ThuocList)
         {
-            <option value="@t.ThuocId">@t.TenThuoc (@t.DonViTinh)</option>
+            <option value="@t.ThuocId">@t.TenThuoc</option>
         }
                 </select></td>
-                <td><input type="number" name="soLuong" class="form-control" value="1" min="1" /></td>
-                <td><input name="lieuDung" class="form-control" placeholder="Cách dùng..." /></td>
+                <td style="width:70px"><input type="number" name="soLuong" class="form-control border-0 bg-light" value="1" /></td>
+                <td><input name="lieuDung" class="form-control border-0 bg-light" placeholder="Liều dùng..." /></td>
                 <td class="text-end"><button type="button" class="btn text-danger p-0" onclick="$(this).closest('tr').remove()"><i class="bi bi-trash"></i></button></td>
             </tr>`;
             $('#prescription-body').append(row);
