@@ -84,5 +84,7 @@ namespace Hospital.Models
         // Trạng thái của lịch hẹn
         [Display(Name = "Trạng thái")]
         public TrangThaiLichHen TrangThai { get; set; } = TrangThaiLichHen.ChoDuyet;
+        // Thêm vào trong class LichHen
+        public virtual ICollection<HoSoBenhAn>? HoSoBenhAns { get; set; }
     }
 }

@@ -35,6 +35,7 @@ namespace Hospital.Areas.Admin.Controllers
             var query = _context.HoSoBenhAn
                 .Include(h => h.BenhNhan)
                 .Include(h => h.BacSi)
+                .Include(h => h.LichHen)
                 .AsQueryable();
 
             // Lọc theo ngày trước để lấy số liệu thống kê của ngày đang chọn
@@ -107,28 +108,111 @@ namespace Hospital.Areas.Admin.Controllers
         }
 
         // ==========================================
-        // 3. TIẾP NHẬN BỆNH NHÂN (CREATE)
+        // 3. TIẾP NHẬN BỆNH NHÂN (CREATE - NÂNG CẤP)
         // ==========================================
         public IActionResult Create(int? benhNhanId)
         {
+            // === CHÈN CODE MỚI VÀO ĐÂY ===
+            var todayAppointments = _context.LichHen
+                .Include(l => l.BacSi)
+                .Include(l => l.LichLamViec)
+                .Where(l => l.LichLamViec.NgayLamViec.Date == DateTime.Today && l.TrangThai == TrangThaiLichHen.DaXacNhan)
+                .Select(l => new { Id = l.LichHenId, Text = $"[{l.KhungGioBatDau:hh\\:mm}] {l.TenKhachHang} - BS.{l.BacSi.HoTen}" })
+                .ToList();
+            ViewBag.TodayAppointments = new SelectList(todayAppointments, "Id", "Text");
+            // ============================
+
             ViewData["BenhNhanId"] = new SelectList(_context.BenhNhan, "BenhNhanId", "HoTen", benhNhanId);
             ViewData["BacSiId"] = new SelectList(_context.BacSi, "BacSiId", "HoTen");
             return View();
         }
 
+        // Endpoint AJAX: Lấy dịch vụ và các khung giờ đã bị chiếm của bác sĩ
+        [HttpGet]
+        public async Task<IActionResult> GetDoctorAdmissionData(int bacSiId)
+        {
+            // 1. Lấy thông tin bác sĩ để biết chuyên khoa
+            var bacSi = await _context.BacSi.FirstOrDefaultAsync(b => b.BacSiId == bacSiId);
+            if (bacSi == null) return Json(new { services = new List<object>(), bookedSlots = new List<string>() });
+
+            // 2. Lấy danh sách dịch vụ thuộc chuyên khoa của bác sĩ này
+            var services = await _context.ChuyenKhoaDichVus
+                .Where(ck => ck.ChuyenKhoaId == bacSi.ChuyenKhoaId)
+                .Select(ck => new {
+                    value = ck.DichVu.DichVuId,
+                    text = ck.DichVu.TenDichVu,
+                    gia = ck.DichVu.Gia.ToString("N0")
+                })
+                .ToListAsync();
+
+            // 3. Lấy các khung giờ ĐÃ ĐƯỢC ĐẶT HẸN hôm nay của bác sĩ (để lễ tân tránh xếp trùng)
+            var bookedSlots = await _context.LichHen
+                .Where(lh => lh.BacSiId == bacSiId &&
+                             lh.LichLamViec.NgayLamViec.Date == DateTime.Today &&
+                             lh.TrangThai != TrangThaiLichHen.DaHuy)
+                .Select(lh => lh.KhungGioBatDau.ToString(@"hh\:mm"))
+                .ToListAsync();
+
+            return Json(new { services, bookedSlots });
+        }
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(HoSoBenhAn hoSo)
         {
             if (ModelState.IsValid)
             {
-                hoSo.TrangThai = TrangThaiHoSo.ChoKham;
-                hoSo.NgayKham = DateTime.Now;
-                _context.Add(hoSo);
-                await _context.SaveChangesAsync();
-                TempData["success"] = "Tiếp nhận thành công.";
-                return RedirectToAction(nameof(Index));
+                // Sử dụng Transaction để đảm bảo: Hoặc lưu cả 2, hoặc không lưu gì cả (tránh lỗi dữ liệu)
+                using (var transaction = await _context.Database.BeginTransactionAsync())
+                {
+                    try
+                    {
+                        // 1. Lấy thông tin Bệnh nhân để có Tên/SĐT lưu sang Lịch hẹn
+                        var benhNhan = await _context.BenhNhan.FindAsync(hoSo.BenhNhanId);
+
+                        // 2. TỰ ĐỘNG TẠO LỊCH HẸN (Để đánh dấu giờ này ĐÃ BẬN)
+                        var lichHenTuDong = new LichHen
+                        {
+                            TenKhachHang = benhNhan.HoTen,
+                            SoDienThoai = benhNhan.SoDienThoai,
+                            Email = benhNhan.Email,
+                            BacSiId = hoSo.BacSiId,
+                            LichLamViecId = hoSo.LichLamViecId ?? 0,
+                            KhungGioBatDau = hoSo.KhungGioBatDau ?? TimeSpan.Zero,
+                            DichVuId = 1, // Bạn có thể sửa thành ID dịch vụ mặc định hoặc lấy từ Form
+                            TrangThai = TrangThaiLichHen.DaXacNhan, // Đánh dấu Đã xác nhận để hiện màu đỏ (Bận)
+                            ThoiGianDat = DateTime.Now,
+                            TrieuChung = hoSo.TrieuChung
+                        };
+
+                        _context.LichHen.Add(lichHenTuDong);
+                        await _context.SaveChangesAsync(); // Lưu để lấy ID lịch hẹn
+
+                        // 3. CẬP NHẬT HỒ SƠ BỆNH ÁN
+                        hoSo.LichHenId = lichHenTuDong.LichHenId; // Liên kết hồ sơ với lịch hẹn vừa tạo
+                        hoSo.TrangThai = TrangThaiHoSo.ChoKham;
+                        hoSo.NgayKham = DateTime.Now;
+
+                        _context.Add(hoSo);
+                        await _context.SaveChangesAsync();
+
+                        // Hoàn tất giao dịch
+                        await transaction.CommitAsync();
+
+                        TempData["success"] = "Tiếp nhận thành công. Giờ khám đã được cập nhật bận trên hệ thống.";
+                        return RedirectToAction(nameof(Index));
+                    }
+                    catch (Exception ex)
+                    {
+                        // Nếu có lỗi, hủy bỏ toàn bộ quá trình lưu
+                        await transaction.RollbackAsync();
+                        ModelState.AddModelError("", "Lỗi hệ thống: " + ex.Message);
+                    }
+                }
             }
+
+            // Nếu lỗi Form, nạp lại dữ liệu cho các Dropdown
+            ViewData["BenhNhanId"] = new SelectList(_context.BenhNhan, "BenhNhanId", "HoTen", hoSo.BenhNhanId);
+            ViewData["BacSiId"] = new SelectList(_context.BacSi, "BacSiId", "HoTen", hoSo.BacSiId);
             return View(hoSo);
         }
 
@@ -236,13 +320,26 @@ namespace Hospital.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> XacNhanThanhToan(int id)
         {
-            var hoSo = await _context.HoSoBenhAn.FindAsync(id);
+            // 1. Tìm hồ sơ bệnh án kèm theo thông tin Lịch hẹn liên kết
+            var hoSo = await _context.HoSoBenhAn
+                .Include(h => h.LichHen)
+                .FirstOrDefaultAsync(h => h.Id == id);
+
             if (hoSo != null)
             {
+                // 2. Cập nhật trạng thái Hồ sơ bệnh án thành Hoàn thành
                 hoSo.TrangThai = TrangThaiHoSo.HoanThanh;
+
+                // 3. ĐỒNG BỘ: Nếu hồ sơ này có lịch hẹn đi kèm, cập nhật lịch hẹn đó luôn
+                if (hoSo.LichHen != null)
+                {
+                    hoSo.LichHen.TrangThai = TrangThaiLichHen.HoanThanh;
+                }
+
                 await _context.SaveChangesAsync();
-                TempData["success"] = "Thanh toán thành công. Hồ sơ đã hoàn tất và đóng.";
+                TempData["success"] = "Thanh toán thành công. Hồ sơ và Lịch hẹn đã được đóng.";
             }
+
             return RedirectToAction(nameof(Index));
         }
 
@@ -261,6 +358,66 @@ namespace Hospital.Areas.Admin.Controllers
                 TempData["success"] = "Đã xóa hồ sơ bệnh án thành công.";
             }
             return RedirectToAction(nameof(Index));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAppointmentSyncData(int id)
+        {
+            var lichHen = await _context.LichHen.Include(l => l.BacSi).FirstOrDefaultAsync(l => l.LichHenId == id);
+            if (lichHen == null) return NotFound();
+            var benhNhan = await _context.BenhNhan.FirstOrDefaultAsync(b => b.SoDienThoai == lichHen.SoDienThoai);
+            return Json(new
+            {
+                benhNhanId = benhNhan?.BenhNhanId,
+                bacSiId = lichHen.BacSiId,
+                trieuChung = lichHen.TrieuChung,
+                lichLamViecId = lichHen.LichLamViecId,
+                khungGioStr = lichHen.KhungGioBatDau.ToString(@"hh\:mm")
+            });
+        }
+
+        // ===============================================================
+        // CODE BỔ SUNG: LẤY DỮ LIỆU CA TRỰC VÀ KHUNG GIỜ CHI TIẾT
+        // ===============================================================
+        [HttpGet]
+        public async Task<IActionResult> GetDoctorShiftData(int bacSiId)
+        {
+            var bacSi = await _context.BacSi.FirstOrDefaultAsync(b => b.BacSiId == bacSiId);
+            if (bacSi == null) return Json(new { services = new List<object>(), bookedSlots = new List<string>(), shiftInfo = (object)null });
+
+            // 1. Lấy dịch vụ theo chuyên khoa của bác sĩ
+            var services = await _context.ChuyenKhoaDichVus
+                .Where(ck => ck.ChuyenKhoaId == bacSi.ChuyenKhoaId)
+                .Select(ck => new {
+                    value = ck.DichVu.DichVuId,
+                    text = ck.DichVu.TenDichVu,
+                    gia = ck.DichVu.Gia.ToString("N0")
+                }).ToListAsync();
+
+            // 2. Lấy thông tin ca làm việc hôm nay
+            var shift = await _context.LichLamViec
+                .FirstOrDefaultAsync(l => l.BacSiId == bacSiId && l.NgayLamViec.Date == DateTime.Today && l.IsActive);
+
+            // 3. Lấy các khung giờ ĐÃ BẬN hôm nay (Từ các lịch hẹn đã xác nhận)
+            var bookedSlots = await _context.LichHen
+                .Where(lh => lh.BacSiId == bacSiId &&
+                             lh.LichLamViec.NgayLamViec.Date == DateTime.Today &&
+                             lh.TrangThai != TrangThaiLichHen.DaHuy)
+                .Select(lh => lh.KhungGioBatDau.ToString(@"hh\:mm"))
+                .ToListAsync();
+
+            return Json(new
+            {
+                services,
+                bookedSlots,
+                shiftInfo = shift != null ? new
+                {
+                    id = shift.LichLamViecId,
+                    start = shift.GioBatDau.ToString(@"hh\:mm"),
+                    end = shift.GioKetThuc.ToString(@"hh\:mm"),
+                    duration = shift.ThoiLuongKhungGioPhut
+                } : null
+            });
         }
     }
 }

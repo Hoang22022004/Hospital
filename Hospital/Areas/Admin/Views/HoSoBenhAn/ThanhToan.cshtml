@@ -1,0 +1,116 @@
+﻿@model Hospital.Models.HoSoBenhAn
+
+@{
+    ViewData["Title"] = "Xác nhận Thanh toán";
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+    // Lấy dữ liệu tiền tệ từ ViewBag đã tính ở Controller
+    decimal tongDichVu = ViewBag.TongDichVu;
+    decimal tongThuoc = ViewBag.TongThuoc;
+    decimal tongTien = ViewBag.TongTien;
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0" style="border-radius: 15px;">
+                <div class="card-header bg-success text-white py-3" style="border-radius: 15px 15px 0 0;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0 fw-bold"><i class="fas fa-file-invoice-dollar me-2"></i>HÓA ĐƠN CHI PHÍ</h4>
+                        <span class="badge bg-white text-success fw-bold">Mã HS: #@Model.Id</span>
+                    </div>
+                </div>
+
+                <div class="card-body p-4">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <p class="text-muted small mb-1 text-uppercase fw-bold">Bệnh nhân</p>
+                            <h5 class="text-dark fw-bold">@Model.BenhNhan?.HoTen</h5>
+                            <p class="mb-0 text-muted">SĐT: @Model.BenhNhan?.SoDienThoai</p>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <p class="text-muted small mb-1 text-uppercase fw-bold">Ngày khám</p>
+                            <h5 class="text-dark">@Model.NgayKham.ToString("dd/MM/yyyy HH:mm")</h5>
+                            <p class="mb-0 text-muted">Bác sĩ: @Model.BacSi?.HoTen</p>
+                        </div>
+                    </div>
+
+                    <h6 class="fw-bold border-bottom pb-2 mb-3"><i class="fas fa-list-ul me-2"></i>Chi phí Dịch vụ kỹ thuật</h6>
+                    <table class="table table-sm table-borderless mb-4">
+                        <thead class="text-muted small text-uppercase">
+                            <tr>
+                                <th>Tên dịch vụ</th>
+                                <th class="text-end">Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var dv in Model.ChiTietDichVus)
+                            {
+                                <tr>
+                                    <td>@dv.DichVu.TenDichVu</td>
+                                    <td class="text-end">@dv.DichVu.Gia.ToString("N0") đ</td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot class="border-top">
+                            <tr>
+                                <td class="fw-bold">Tổng tiền dịch vụ:</td>
+                                <td class="text-end fw-bold text-primary">@tongDichVu.ToString("N0") đ</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+
+                    @if (Model.ChiTietDonThuocs != null && Model.ChiTietDonThuocs.Any())
+                    {
+                        <h6 class="fw-bold border-bottom pb-2 mb-3"><i class="fas fa-pills me-2"></i>Chi phí Thuốc & Mỹ phẩm</h6>
+                        <table class="table table-sm table-borderless mb-4">
+                            <thead class="text-muted small text-uppercase">
+                                <tr>
+                                    <th>Tên thuốc</th>
+                                    <th class="text-center">SL</th>
+                                    <th class="text-end">Thành tiền</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var t in Model.ChiTietDonThuocs)
+                                {
+                                    <tr>
+                                        <td>@t.Thuoc.TenThuoc</td>
+                                        <td class="text-center">@t.SoLuong</td>
+                                        <td class="text-end">@((t.SoLuong * t.Thuoc.GiaBan).ToString("N0")) đ</td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot class="border-top">
+                                <tr>
+                                    <td colspan="2" class="fw-bold">Tổng tiền thuốc:</td>
+                                    <td class="text-end fw-bold text-primary">@tongThuoc.ToString("N0") đ</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    }
+
+                    <div class="bg-light p-3 rounded-3 mb-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0 fw-bold text-dark">TỔNG CỘNG THANH TOÁN:</h5>
+                            <h3 class="mb-0 fw-bold text-danger">@tongTien.ToString("N0") đ</h3>
+                        </div>
+                    </div>
+
+                    <form asp-action="XacNhanThanhToan" method="post">
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <a asp-action="Index" class="btn btn-light w-100 py-2 fw-bold">QUAY LẠI</a>
+                            </div>
+                            <div class="col-md-6">
+                                <button type="submit" class="btn btn-success w-100 py-2 fw-bold shadow">
+                                    <i class="fas fa-check-circle me-1"></i> XÁC NHẬN ĐÃ THU TIỀN
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -48,7 +48,13 @@ namespace Hospital.Models
         // Trạng thái ca làm việc
         [Display(Name = "Trạng thái")]
         public bool IsActive { get; set; } = true;
+        // Thêm vào trong class LichLamViec
+        public virtual ICollection<HoSoBenhAn>? HoSoBenhAns { get; set; }
 
+        public LichLamViec()
+        {
+            HoSoBenhAns = new HashSet<HoSoBenhAn>();
+        }
         // Navigation Property: Lịch hẹn được đặt trong ca này
         [ValidateNever]
         public ICollection<LichHen> LichHens { get; set; }

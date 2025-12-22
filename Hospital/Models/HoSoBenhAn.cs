@@ -73,10 +73,24 @@ namespace Hospital.Models // Thay đổi theo namespace của bạn
         public string? LoiDan { get; set; }
 
         // --- CÁC DANH SÁCH LIÊN KẾT CHI TIẾT ---
+        // Thêm vào trong class HoSoBenhAn
+        [Display(Name = "Mã lịch hẹn")]
+        public int? LichHenId { get; set; } // Nullable vì khách vãng lai không có lịch hẹn
+        [ForeignKey("LichHenId")]
+        public virtual LichHen? LichHen { get; set; }
+
+        [Display(Name = "Ca làm việc")]
+        public int? LichLamViecId { get; set; } // Để biết hồ sơ này thuộc ca trực nào
+        [ForeignKey("LichLamViecId")]
+        public virtual LichLamViec? LichLamViec { get; set; }
 
         // Liên kết 1-N tới Hình ảnh (Ảnh chính để so sánh & các ảnh phụ chi tiết)
         [Display(Name = "Hình ảnh bệnh án")]
         public virtual ICollection<HinhAnhBenhAn>? HinhAnhBenhAns { get; set; }
+        // Trong file Models/HoSoBenhAn.cs
+
+        [Display(Name = "Khung giờ bắt đầu")]
+        public TimeSpan? KhungGioBatDau { get; set; } // Thêm dòng này
 
         // Liên kết 1-N tới bảng Chi tiết dịch vụ (Peel da, Laser, Lấy nhân mụn...)
         [Display(Name = "Dịch vụ thực hiện")]

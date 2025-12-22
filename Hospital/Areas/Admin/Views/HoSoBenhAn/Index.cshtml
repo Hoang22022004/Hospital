@@ -239,7 +239,7 @@
                         <th class="ps-4">Mã hồ sơ</th>
                         <th>Thông tin Bệnh nhân</th>
                         <th>Bác sĩ đảm nhận</th>
-                        <th>Giờ vào</th>
+                        <th>Giờ đặt lịch</th>
                         <th>Trạng thái</th>
                         <th class="text-center">Thao tác</th>
                     </tr>
@@ -261,7 +261,21 @@
                                         <span class="fw-bold text-dark">@item.BacSi?.HoTen</span>
                                     </div>
                                 </td>
-                                <td><span class="badge bg-light text-dark border px-2 py-1">@item.NgayKham.ToString("HH:mm")</span></td>
+                                <td>
+                                    @if (item.KhungGioBatDau.HasValue)
+                                    {
+                                        <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle px-2 py-1">
+                                            <i class="far fa-clock me-1"></i>
+                                            @item.KhungGioBatDau.Value.ToString(@"hh\:mm")
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-light text-muted border px-2 py-1">
+                                            @item.NgayKham.ToString("HH:mm")
+                                        </span>
+                                    }
+                                </td>
                                 <td>
                                     @switch (item.TrangThai)
                                     {
