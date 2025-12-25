@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Hospital.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize(Roles = "Admin")] // Chỉ Admin mới được nhập kho/sửa thuốc
+    [Authorize(Roles = "Admin,Receptionist,Doctor")] // Cả 3 quyền đều được vào Xem danh sách
     public class ThuocController : Controller
     {
         private readonly ApplicationDbContext _db;
@@ -20,33 +20,12 @@ namespace Hospital.Areas.Admin.Controllers
             _webHostEnvironment = webHostEnvironment;
         }
 
-        // --- HÀM PHỤ TRỢ: TẠO DANH SÁCH ĐƠN VỊ TÍNH (HARDCODE) ---
-        private void PrepareDonViTinhList(string selectedValue = null)
-        {
-            List<string> donViTinhs = new List<string>()
-            {
-                "Hộp", "Viên", "Vỉ", "Chai", "Tuýp", "Lọ", "Gói", "Cái", "Bộ", "Liều"
-            };
-            ViewBag.DonViTinhList = new SelectList(donViTinhs, selectedValue);
-        }
-
-        // --- HÀM PHỤ TRỢ: LẤY DANH SÁCH GỢI Ý THƯƠNG HIỆU ---
-        private void PrepareSuggestBrands()
-        {
-            ViewBag.SuggestBrands = _db.Thuoc
-                .Select(x => x.ThuongHieu)
-                .Where(x => !string.IsNullOrEmpty(x))
-                .Distinct()
-                .OrderBy(x => x)
-                .ToList();
-        }
-
-        // 1. DANH SÁCH (INDEX)
+        // --- 1. DANH SÁCH THUỐC (Tất cả vào được) ---
         public async Task<IActionResult> Index()
         {
             var objList = await _db.Thuoc.ToListAsync();
 
-            // Lấy danh sách thương hiệu ĐỘC NHẤT (Distinct) để làm bộ lọc
+            // Lấy danh sách thương hiệu để làm bộ lọc ở View
             ViewBag.ThuongHieuList = objList
                 .Where(x => !string.IsNullOrEmpty(x.ThuongHieu))
                 .Select(x => x.ThuongHieu)
@@ -57,17 +36,18 @@ namespace Hospital.Areas.Admin.Controllers
             return View(objList);
         }
 
-        // 2. TẠO MỚI (GET)
+        // --- 2. TẠO MỚI THUỐC (Chỉ Admin và Receptionist) ---
+        [Authorize(Roles = "Admin,Receptionist")]
         public IActionResult Create()
         {
-            PrepareDonViTinhList(); // Nạp danh sách đơn vị
-            PrepareSuggestBrands(); // Nạp danh sách gợi ý thương hiệu
+            PrepareDonViTinhList();
+            PrepareSuggestBrands();
             return View();
         }
 
-        // 3. TẠO MỚI (POST)
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin,Receptionist")]
         public async Task<IActionResult> Create(Thuoc obj, IFormFile? file)
         {
             if (ModelState.IsValid)
@@ -90,32 +70,31 @@ namespace Hospital.Areas.Admin.Controllers
 
                 _db.Thuoc.Add(obj);
                 await _db.SaveChangesAsync();
-                TempData["success"] = "Thêm thuốc mới thành công!";
+                TempData["success"] = "Thêm thuốc vào kho thành công!";
                 return RedirectToAction(nameof(Index));
             }
 
-            // Nếu lỗi, nạp lại các danh sách
             PrepareDonViTinhList(obj.DonViTinh);
             PrepareSuggestBrands();
             return View(obj);
         }
 
-        // 4. CHỈNH SỬA (GET)
+        // --- 3. CHỈNH SỬA THUỐC (Chỉ Admin và Receptionist) ---
+        [Authorize(Roles = "Admin,Receptionist")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null || id == 0) return NotFound();
             var obj = await _db.Thuoc.FindAsync(id);
             if (obj == null) return NotFound();
 
-            PrepareDonViTinhList(obj.DonViTinh); // Nạp danh sách đơn vị
-            PrepareSuggestBrands(); // Nạp danh sách gợi ý thương hiệu
-
+            PrepareDonViTinhList(obj.DonViTinh);
+            PrepareSuggestBrands();
             return View(obj);
         }
 
-        // 5. CHỈNH SỬA (POST)
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin,Receptionist")]
         public async Task<IActionResult> Edit(Thuoc obj, IFormFile? file)
         {
             if (ModelState.IsValid)
@@ -123,6 +102,7 @@ namespace Hospital.Areas.Admin.Controllers
                 string wwwRootPath = _webHostEnvironment.WebRootPath;
                 if (file != null)
                 {
+                    // Xóa ảnh cũ nếu có
                     if (!string.IsNullOrEmpty(obj.HinhAnhUrl))
                     {
                         var oldImagePath = Path.Combine(wwwRootPath, obj.HinhAnhUrl.TrimStart('\\'));
@@ -142,7 +122,7 @@ namespace Hospital.Areas.Admin.Controllers
 
                 _db.Thuoc.Update(obj);
                 await _db.SaveChangesAsync();
-                TempData["success"] = "Cập nhật thuốc thành công!";
+                TempData["success"] = "Cập nhật thông tin thuốc thành công!";
                 return RedirectToAction(nameof(Index));
             }
 
@@ -151,7 +131,8 @@ namespace Hospital.Areas.Admin.Controllers
             return View(obj);
         }
 
-        // 6. XÓA (DELETE - GET)
+        // --- 4. XÓA THUỐC (Chỉ Admin và Receptionist) ---
+        [Authorize(Roles = "Admin,Receptionist")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null || id == 0) return NotFound();
@@ -160,24 +141,42 @@ namespace Hospital.Areas.Admin.Controllers
             return View(obj);
         }
 
-        // 7. XÓA (DELETE - POST)
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin,Receptionist")]
         public async Task<IActionResult> DeletePOST(int? id)
         {
             var obj = await _db.Thuoc.FindAsync(id);
             if (obj == null) return NotFound();
 
+            // Xóa file ảnh trên host trước khi xóa record trong DB
             if (!string.IsNullOrEmpty(obj.HinhAnhUrl))
             {
-                var oldImagePath = Path.Combine(_webHostEnvironment.WebRootPath, obj.HinhAnhUrl.TrimStart('\\'));
-                if (System.IO.File.Exists(oldImagePath)) System.IO.File.Delete(oldImagePath);
+                var imagePath = Path.Combine(_webHostEnvironment.WebRootPath, obj.HinhAnhUrl.TrimStart('\\'));
+                if (System.IO.File.Exists(imagePath)) System.IO.File.Delete(imagePath);
             }
 
             _db.Thuoc.Remove(obj);
             await _db.SaveChangesAsync();
-            TempData["success"] = "Đã xóa thuốc khỏi kho.";
+            TempData["success"] = "Đã xóa thuốc khỏi hệ thống.";
             return RedirectToAction(nameof(Index));
+        }
+
+        // --- HÀM TRỢ GIÚP (HELPERS) ---
+        private void PrepareDonViTinhList(string selectedValue = null)
+        {
+            List<string> donViTinhs = new List<string>() { "Hộp", "Viên", "Vỉ", "Chai", "Tuýp", "Lọ", "Gói", "Cái", "Bộ", "Liều" };
+            ViewBag.DonViTinhList = new SelectList(donViTinhs, selectedValue);
+        }
+
+        private void PrepareSuggestBrands()
+        {
+            ViewBag.SuggestBrands = _db.Thuoc
+                .Select(x => x.ThuongHieu)
+                .Where(x => !string.IsNullOrEmpty(x))
+                .Distinct()
+                .OrderBy(x => x)
+                .ToList();
         }
     }
 }

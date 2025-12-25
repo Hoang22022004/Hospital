@@ -149,7 +149,7 @@ namespace Hospital.Areas.Admin.Controllers
 
                 user.FullName = model.FullName;
 
-                // Cập nhật Vai trò (Role)
+                // 1. CẬP NHẬT VAI TRÒ (ROLE)
                 var userRoles = await _userManager.GetRolesAsync(user);
                 var currentRole = userRoles.FirstOrDefault();
 
@@ -165,16 +165,35 @@ namespace Hospital.Areas.Admin.Controllers
                     }
                 }
 
-                // Xử lý Reset Mật khẩu nếu Admin nhập vào ô Mật khẩu mới
+                // 2. XỬ LÝ ĐỔI MẬT KHẨU (RESET PASSWORD)
                 if (!string.IsNullOrEmpty(model.NewPassword))
                 {
+                    // Bước A: Xóa mật khẩu cũ
                     var removePassResult = await _userManager.RemovePasswordAsync(user);
                     if (removePassResult.Succeeded)
                     {
-                        await _userManager.AddPasswordAsync(user, model.NewPassword);
+                        // Bước B: Thêm mật khẩu mới
+                        var addPassResult = await _userManager.AddPasswordAsync(user, model.NewPassword);
+
+                        // QUAN TRỌNG: Nếu mật khẩu mới không thỏa mãn (ví dụ quá ngắn, thiếu ký tự...), phải báo lỗi
+                        if (!addPassResult.Succeeded)
+                        {
+                            foreach (var error in addPassResult.Errors)
+                            {
+                                ModelState.AddModelError(string.Empty, "Lỗi mật khẩu: " + error.Description);
+                            }
+                            // Load lại danh sách Role để trả về View nếu có lỗi
+                            model.RoleList = await _roleManager.Roles.Select(x => new SelectListItem
+                            {
+                                Text = x.Name,
+                                Value = x.Name
+                            }).ToListAsync();
+                            return View(model);
+                        }
                     }
                 }
 
+                // 3. LƯU THAY ĐỔI TỔNG THỂ
                 var result = await _userManager.UpdateAsync(user);
                 if (result.Succeeded)
                 {
@@ -188,6 +207,7 @@ namespace Hospital.Areas.Admin.Controllers
                 }
             }
 
+            // Nếu có lỗi ModelState, phải load lại danh sách Role trước khi return View
             model.RoleList = await _roleManager.Roles.Select(x => new SelectListItem
             {
                 Text = x.Name,

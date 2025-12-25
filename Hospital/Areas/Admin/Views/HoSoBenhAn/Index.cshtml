@@ -11,7 +11,6 @@
 
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
-
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <style>
@@ -27,7 +26,6 @@
         color: #1e293b;
     }
 
-    /* Thẻ thống kê Dashboard */
     .stat-card {
         background: white;
         border-radius: 16px;
@@ -52,7 +50,6 @@
         font-size: 22px;
     }
 
-    /* Filter & Table */
     .glass-card {
         background: white;
         border-radius: 16px;
@@ -77,7 +74,6 @@
         padding: 16px;
     }
 
-    /* Badges */
     .badge-pill {
         padding: 6px 12px;
         border-radius: 9999px;
@@ -116,7 +112,6 @@
         border-color: #fee2e2;
     }
 
-    /* Buttons Thao tác */
     .btn-action {
         width: 36px;
         height: 36px;
@@ -130,7 +125,6 @@
         background: white;
         color: #64748b;
         text-decoration: none;
-        border: none;
         cursor: pointer;
     }
 
@@ -145,30 +139,6 @@
             color: white;
             border-color: #dc2626;
         }
-
-    /* Timeline Modal */
-    .timeline-wrapper {
-        padding: 10px 10px 10px 25px;
-    }
-
-    .timeline-item {
-        position: relative;
-        padding-left: 30px;
-        margin-bottom: 25px;
-        border-left: 2px solid #e2e8f0;
-    }
-
-        .timeline-item::before {
-            content: '';
-            position: absolute;
-            left: -9px;
-            top: 0;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background: white;
-            border: 3px solid var(--clinic-blue);
-        }
 </style>
 
 <div class="container-fluid py-4 px-lg-5">
@@ -177,11 +147,17 @@
             <h2 class="fw-bold mb-1 text-dark"><i class="fas fa-chart-line text-primary me-2"></i>Quản lý Tiếp nhận & Tiến độ Khám</h2>
             <p class="text-muted mb-0 small"><i class="far fa-calendar-check me-1"></i> Hôm nay: @DateTime.Now.ToString("dddd, dd/MM/yyyy")</p>
         </div>
-        <a asp-action="Create" class="btn btn-primary shadow-sm px-4 py-2 fw-bold" style="border-radius: 10px;">
-            <i class="fas fa-plus-circle me-2"></i>Tiếp nhận mới
-        </a>
+
+        @* PHÂN QUYỀN: CHỈ ADMIN VÀ LỄ TÂN THẤY NÚT TIẾP NHẬN *@
+        @if (User.IsInRole("Admin") || User.IsInRole("Receptionist"))
+        {
+            <a asp-action="Create" class="btn btn-primary shadow-sm px-4 py-2 fw-bold" style="border-radius: 10px;">
+                <i class="fas fa-plus-circle me-2"></i>Tiếp nhận mới
+            </a>
+        }
     </div>
 
+    @* DASHBOARD STATS *@
     <div class="row g-3 mb-4">
         <div class="col-md-3">
             <div class="stat-card">
@@ -217,6 +193,7 @@
         </div>
     </div>
 
+    @* FILTER FORM *@
     <div class="glass-card shadow-sm">
         <form asp-action="Index" method="get" class="row g-3 align-items-end">
             <div class="col-md-3">
@@ -239,6 +216,7 @@
         </form>
     </div>
 
+    @* DATA TABLE *@
     <div class="table-container shadow-sm">
         <div class="table-responsive">
             <table class="table align-middle mb-0">
@@ -296,23 +274,34 @@
                                 </td>
                                 <td class="text-center">
                                     <div class="d-flex justify-content-center">
-                                        @if (item.TrangThai == TrangThaiHoSo.ChoKham || item.TrangThai == TrangThaiHoSo.DangKham)
+
+                                        @* PHÂN QUYỀN: CHỈ BÁC SĨ THẤY NÚT KHÁM BỆNH *@
+                                        @if (User.IsInRole("Doctor"))
                                         {
-                                            <a asp-action="KhamBenh" asp-route-id="@item.Id" class="btn-action text-primary" title="Khám bệnh"><i class="fas fa-stethoscope"></i></a>
-                                        }
-                                        @if (item.TrangThai == TrangThaiHoSo.ChoThanhToan)
-                                        {
-                                            <a asp-action="ThanhToan" asp-route-id="@item.Id" class="btn-action text-success" title="Thanh toán"><i class="fas fa-wallet"></i></a>
+                                            @if (item.TrangThai == TrangThaiHoSo.ChoKham || item.TrangThai == TrangThaiHoSo.DangKham)
+                                            {
+                                                <a asp-action="KhamBenh" asp-route-id="@item.Id" class="btn-action text-primary" title="Khám bệnh"><i class="fas fa-stethoscope"></i></a>
+                                            }
                                         }
 
+                                        @* PHÂN QUYỀN: CHỈ ADMIN VÀ LỄ TÂN THẤY THANH TOÁN & HỦY *@
+                                        @if (User.IsInRole("Admin") || User.IsInRole("Receptionist"))
+                                        {
+                                            @if (item.TrangThai == TrangThaiHoSo.ChoThanhToan)
+                                            {
+                                                <a asp-action="ThanhToan" asp-route-id="@item.Id" class="btn-action text-success" title="Thanh toán"><i class="fas fa-wallet"></i></a>
+                                            }
+
+                                            @if (item.TrangThai == TrangThaiHoSo.ChoKham || item.TrangThai == TrangThaiHoSo.DangKham)
+                                            {
+                                                <button type="button" class="btn-action text-danger" onclick="confirmHuyHoSo('@item.Id', '@item.BenhNhan?.HoTen')" title="Hủy hồ sơ">
+                                                    <i class="fas fa-times-circle"></i>
+                                                </button>
+                                            }
+                                        }
+
+                                        @* CHI TIẾT VÀ LỊCH SỬ THÌ AI CŨNG CẦN XEM *@
                                         <a asp-action="Details" asp-route-id="@item.Id" class="btn-action text-info" title="Chi tiết"><i class="fas fa-eye"></i></a>
-
-                                        @if (item.TrangThai == TrangThaiHoSo.ChoKham || item.TrangThai == TrangThaiHoSo.DangKham)
-                                        {
-                                            <button type="button" class="btn-action text-danger" onclick="confirmHuyHoSo('@item.Id', '@item.BenhNhan?.HoTen')" title="Hủy hồ sơ">
-                                                <i class="fas fa-times-circle"></i>
-                                            </button>
-                                        }
 
                                         <button type="button" class="btn-action text-secondary" onclick="showQuickHistory('@item.BenhNhanId', '@item.BenhNhan?.HoTen')" title="Lịch sử khám">
                                             <i class="fas fa-history"></i>
@@ -328,6 +317,7 @@
     </div>
 </div>
 
+@* MODAL & SCRIPTS GIỮ NGUYÊN CODE CỦA HUY *@
 <div class="modal fade" id="historyModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
@@ -349,36 +339,25 @@
 
 @section Scripts {
     <script>
-        // 1. Hàm hiển thị Lịch sử với SweetAlert2 cho thông báo lỗi
         function showQuickHistory(patientId, patientName) {
             $('#historyPatientName').text(patientName);
-            $('#quickHistoryArea').html('<div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div><p class="mt-2 text-muted">Đang tải dữ liệu...</p></div>');
+            $('#quickHistoryArea').html('<div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div></div>');
             var modal = new bootstrap.Modal(document.getElementById('historyModal'));
             modal.show();
-
             $.get('@Url.Action("GetPatientTimeline", "HoSoBenhAn")', { benhNhanId: patientId }, function (data) {
-                if (data.trim() === "") {
-                    $('#quickHistoryArea').html('<div class="text-center py-5 text-muted"><i class="fas fa-folder-open fa-3x mb-3 opacity-25"></i><p>Bệnh nhân này chưa có lịch sử khám trước đó.</p></div>');
-                } else {
-                    $('#quickHistoryArea').html(data);
-                }
-            }).fail(function () {
-                Swal.fire({ icon: 'error', title: 'Lỗi', text: 'Không thể nạp dữ liệu lịch sử!' });
+                $('#quickHistoryArea').html(data.trim() === "" ? '<p class="text-center py-5">Chưa có lịch sử khám.</p>' : data);
             });
         }
 
-        // 2. Hàm xác nhận Hủy với SweetAlert2 (Đẹp, không hiện localhost)
         function confirmHuyHoSo(id, name) {
             Swal.fire({
                 title: 'Xác nhận hủy?',
-                text: 'Bạn có chắc muốn HỦY hồ sơ của bệnh nhân "' + name + '" không? Lịch hẹn liên kết cũng sẽ bị hủy.',
+                text: 'Bạn có chắc muốn HỦY hồ sơ của bệnh nhân "' + name + '" không?',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#d33',
-                cancelButtonColor: '#6e7881',
                 confirmButtonText: 'Đồng ý hủy',
-                cancelButtonText: 'Quay lại',
-                borderRadius: '15px'
+                cancelButtonText: 'Quay lại'
             }).then((result) => {
                 if (result.isConfirmed) {
                     $('#inputHuyId').val(id);
@@ -387,12 +366,9 @@
             });
         }
 
-        // Hiển thị thông báo thành công nếu có TempData
         @if (TempData["success"] != null)
         {
-            <text>
-                Swal.fire({ icon: 'success', title: 'Thành công', text: '@TempData["success"]', timer: 2000, showConfirmButton: false });
-            </text>
+            <text>Swal.fire({ icon: 'success', title: 'Thành công', text: '@TempData["success"]', timer: 2000, showConfirmButton: false });</text>
         }
     </script>
 }

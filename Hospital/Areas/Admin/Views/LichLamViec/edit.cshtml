@@ -42,7 +42,7 @@
                 @* TRƯỜNG 2: Ngày làm việc (JQUERY UI DATEPICKER) *@
                 <div class="mb-3">
                     <label asp-for="NgayLamViec" class="form-label">Ngày làm việc</label>
-                    {{-- Gán giá trị dd/MM/yyyy cho input text --}}
+
                     <input type="text" id="datepickerNgayLamViec" class="form-control" value="@ngayLamViecFormatted" />
                     <span class="text-muted small">Định dạng hiển thị: Ngày/Tháng/Năm (dd/MM/yyyy)</span>
                     <span asp-validation-for="NgayLamViec" class="text-danger"></span>

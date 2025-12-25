@@ -8,350 +8,273 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Quản trị Hệ thống</title>
+    <title>@ViewData["Title"] - Quản trị Phòng khám</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.1/toastr.min.css" />
-    <link rel="stylesheet" href="https://cdn.datatables.net/2.0.8/css/dataTables.bootstrap5.min.css" />
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.2/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="//code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <link rel="stylesheet" href="https://npmcdn.com/flatpickr/dist/themes/material_blue.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/admin_sidebar.css" />
-
     <style>
+        :root {
+            --sidebar-bg: #1e293b; /* Màu Slate hiện đại */
+            --sidebar-hover: #334155;
+            --accent-color: #6366f1; /* Tím Indigo */
+            --text-muted: #94a3b8;
+            --bg-body: #f8fafc;
+        }
+
         body {
-            font-family: 'Nunito', sans-serif;
-            background-color: #f3f4f6;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-body);
+            color: #1e293b;
         }
 
         /* SIDEBAR STYLE */
         #sidebar-wrapper {
-            background: linear-gradient(180deg, #1e3a8a 0%, #1e40af 100%);
+            background-color: var(--sidebar-bg);
             min-height: 100vh;
-            box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+            width: 280px;
+            transition: all 0.3s;
+            z-index: 1000;
         }
 
-        .sidebar-heading {
-            font-size: 1.2rem;
+        /* BRANDING AREA */
+        .sidebar-brand {
+            padding: 2rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .brand-logo {
+            width: 45px;
+            height: 45px;
+            background: var(--accent-color);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .brand-name {
+            color: #fff;
             font-weight: 800;
+            font-size: 1.1rem;
+            letter-spacing: -0.5px;
+            line-height: 1.2;
+        }
+
+        /* MENU STYLE */
+        .menu-label {
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            font-weight: 700;
             text-transform: uppercase;
+            padding: 1.5rem 1.5rem 0.5rem;
             letter-spacing: 1px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            background-color: rgba(0,0,0,0.1);
         }
 
         .list-group-item {
             background-color: transparent !important;
-            color: rgba(255,255,255,0.8) !important;
+            color: #cbd5e1 !important;
             border: none;
-            padding: 12px 20px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            border-left: 4px solid transparent;
+            padding: 10px 1.5rem;
+            font-weight: 500;
+            font-size: 0.92rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s ease;
         }
 
-            .list-group-item:hover {
-                background-color: rgba(255,255,255,0.1) !important;
+            .list-group-item:hover, .list-group-item.active {
                 color: #fff !important;
-                padding-left: 25px;
-                border-left: 4px solid #60a5fa;
+                background-color: var(--sidebar-hover) !important;
             }
 
-            .list-group-item i {
-                margin-right: 10px;
-                font-size: 1.1rem;
-                width: 20px;
-                text-align: center;
-            }
-
-        .menu-label {
-            color: rgba(255,255,255,0.4);
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            padding: 15px 20px 5px 20px;
-            letter-spacing: 0.5px;
+        .sub-menu {
+            background-color: rgba(15, 23, 42, 0.5);
         }
 
-        /* NAVBAR HEADER STYLE */
+            .sub-menu .list-group-item {
+                padding-left: 3.5rem;
+                font-size: 0.88rem;
+            }
+
+        .menu-arrow {
+            margin-left: auto;
+            font-size: 0.8rem;
+            transition: transform 0.3s;
+        }
+
+        .collapsed .menu-arrow {
+            transform: rotate(-90deg);
+        }
+
+        /* NAVBAR & UTILS */
         .navbar {
-            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
-            background-color: #fff !important;
-            padding: 0.8rem 1rem;
+            background: #fff !important;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 0.75rem 1.5rem;
         }
 
-        .avatar {
-            width: 38px;
-            height: 38px;
-            object-fit: cover;
-            border-radius: 50%;
-            font-size: 1.1rem;
-        }
-
-        .nav-link {
-            color: #64748b !important;
-            font-weight: 600;
-            transition: color 0.2s;
-        }
-
-            .nav-link:hover {
-                color: #1e3a8a !important;
-            }
-
-        /* DROPDOWN MENU */
-        .dropdown-menu {
+        .btn-view-site {
+            background-color: #f1f5f9;
+            color: #475569;
             border: none;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            border-radius: 10px;
-            padding: 0.5rem;
+            font-weight: 600;
+            font-size: 0.85rem;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: 0.3s;
         }
 
-        .dropdown-item {
-            border-radius: 6px;
-            padding: 8px 15px;
-            font-size: 0.95rem;
-        }
-
-            .dropdown-item:hover {
-                background-color: #f1f5f9;
-                color: #1e3a8a;
+            .btn-view-site:hover {
+                background-color: var(--accent-color);
+                color: #fff;
             }
 
-            .dropdown-item.text-danger:hover {
-                background-color: #fef2f2;
-                color: #dc2626;
-            }
-
-        #page-content-wrapper {
-            background-color: #f3f4f6;
-        }
-
-        /* DATATABLES */
-        .dataTables_wrapper .dataTables_length select {
-            padding-right: 30px;
-        }
-
-        .page-item.active .page-link {
-            background-color: #1e3a8a;
-            border-color: #1e3a8a;
-        }
-
-        .no-wrap-header {
-            white-space: nowrap;
-        }
-
-        div.dataTables_wrapper div.row {
-            margin-bottom: 0.5rem !important;
-        }
-
-        .dataTables_wrapper .row:last-child .col-sm-12 {
-            text-align: center;
+        #wrapper.toggled #sidebar-wrapper {
+            margin-left: -280px;
         }
     </style>
 </head>
 <body>
     <div class="d-flex" id="wrapper">
-
-        <div class="border-end" id="sidebar-wrapper">
-            <div class="sidebar-heading text-white p-3 d-flex align-items-center">
-                <i class="bi bi-hospital-fill me-2 fs-4"></i>
-                <span>MEDIC ADMIN</span>
+        <div id="sidebar-wrapper">
+            <div class="sidebar-brand">
+                <div class="brand-logo">
+                    <i class="bi bi-heart-pulse-fill text-white fs-4"></i>
+                </div>
+                <div class="brand-name">
+                    MEDICINE<br><span style="color: var(--accent-color); font-size: 0.8rem;">CLINIC MIS</span>
+                </div>
             </div>
 
-            <div class="list-group list-group-flush">
+            <div class="list-group list-group-flush mt-2">
                 <a asp-area="Admin" asp-controller="Dashboard" asp-action="AdminDashboard" class="list-group-item list-group-item-action">
-                    <i class="bi bi-grid-1x2-fill"></i> Dashboard Admin
+                    <i class="bi bi-grid-fill"></i> Tổng quan hệ thống
                 </a>
 
-                <div class="menu-label">Lâm sàng & Điều trị</div>
-                <a asp-area="Admin" asp-controller="BenhNhan" asp-action="Index" class="list-group-item list-group-item-action">
-                    <i class="bi bi-people-fill"></i> Quản lý Bệnh nhân <span class="badge bg-danger ms-auto rounded-pill" style="font-size: 0.6rem;">Mới</span>
-                </a>
-                <a asp-area="Admin" asp-controller="LichHen" asp-action="Index" class="list-group-item list-group-item-action">
-                    <i class="bi bi-calendar-check-fill"></i> Lịch hẹn Khám
-                </a>
+                @if (User.IsInRole("Admin") || User.IsInRole("Receptionist"))
+                {
+                    <div class="menu-label">Nghiệp vụ Vận hành</div>
+                    <a class="list-group-item list-group-item-action" data-bs-toggle="collapse" href="#receptionMenu">
+                        <i class="bi bi-person-badge"></i> Quầy Lễ tân
+                        <i class="bi bi-chevron-down menu-arrow"></i>
+                    </a>
+                    <div class="collapse show sub-menu" id="receptionMenu">
+                        <a asp-area="Admin" asp-controller="BenhNhan" asp-action="Index" class="list-group-item">Quản lý Bệnh nhân</a>
+                        <a asp-area="Admin" asp-controller="LichHen" asp-action="Index" class="list-group-item">Lịch hẹn khám</a>
+                        <a asp-area="Admin" asp-controller="HoSoBenhAn" asp-action="Index" class="list-group-item">Tiếp nhận & Thu phí</a>
+                    </div>
+                }
 
-                <a asp-area="Admin" asp-controller="HoSoBenhAn" asp-action="Index" class="list-group-item list-group-item-action">
-                    <i class="bi bi-clipboard2-pulse-fill"></i> Tiếp nhận và tiến độ
-                </a>
+                @if (User.IsInRole("Admin") || User.IsInRole("Doctor"))
+                {
+                    <div class="menu-label">Khu vực Chuyên môn</div>
+                    <a class="list-group-item list-group-item-action" data-bs-toggle="collapse" href="#doctorMenu">
+                        <i class="bi bi-capsule-pill"></i> Khám & Điều trị
+                        <i class="bi bi-chevron-down menu-arrow"></i>
+                    </a>
+                    <div class="collapse show sub-menu" id="doctorMenu">
+                        <a asp-area="Admin" asp-controller="HoSoBenhAn" asp-action="Index" class="list-group-item">Danh sách khám hôm nay</a>
 
-                <div class="menu-label">Tài nguyên & Kho</div>
-                <a asp-area="Admin" asp-controller="Thuoc" asp-action="Index" class="list-group-item list-group-item-action">
-                    <i class="bi bi-capsule"></i> Kho Dược phẩm
-                </a>
-                <a asp-area="Admin" asp-controller="DichVu" asp-action="Index" class="list-group-item list-group-item-action">
-                    <i class="bi bi-clipboard2-pulse-fill"></i> Dịch vụ
-                </a>
+                        @* MODUL MỚI: Bác sĩ xem danh sách bệnh nhân *@
+                        <a asp-area="Admin" asp-controller="BenhNhan" asp-action="Index" class="list-group-item">Tra cứu Bệnh nhân</a>
 
-                <div class="menu-label">Hệ thống & Nhân sự</div>
-                <a asp-area="Admin" asp-controller="BacSi" asp-action="Index" class="list-group-item list-group-item-action">
-                    <i class="bi bi-person-badge-fill"></i> Đội ngũ Bác sĩ
+                        <a asp-area="Admin" asp-controller="LichLamViec" asp-action="Index" class="list-group-item">Lịch trực cá nhân</a>
+                    </div>
+                }
+
+                <div class="menu-label">Dữ liệu chung</div>
+                <a class="list-group-item list-group-item-action" data-bs-toggle="collapse" href="#dataMenu">
+                    <i class="bi bi-collection-fill"></i> Kho & Dịch vụ
+                    <i class="bi bi-chevron-down menu-arrow"></i>
                 </a>
-                <a asp-area="Admin" asp-controller="LichLamViec" asp-action="Index" class="list-group-item list-group-item-action">
-                    <i class="bi bi-calendar-week-fill"></i> Ca làm việc
-                </a>
-                <a asp-area="Admin" asp-controller="ChuyenKhoa" asp-action="Index" class="list-group-item list-group-item-action">
-                    <i class="bi bi-tags-fill"></i> Chuyên khoa
-                </a>
-                <a asp-area="Admin" asp-controller="User" asp-action="Index" class="list-group-item list-group-item-action">
-                    <i class="bi bi-shield-lock-fill"></i> Tài khoản & Quyền
-                </a>
+                <div class="collapse sub-menu" id="dataMenu">
+                    <a asp-area="Admin" asp-controller="Thuoc" asp-action="Index" class="list-group-item">Danh mục Thuốc</a>
+                    <a asp-area="Admin" asp-controller="DichVu" asp-action="Index" class="list-group-item">Gói Dịch vụ kỹ thuật</a>
+                </div>
+
+                @if (User.IsInRole("Admin"))
+                {
+                    <div class="menu-label">Cấu hình hệ thống</div>
+                    <a class="list-group-item list-group-item-action" data-bs-toggle="collapse" href="#adminMenu">
+                        <i class="bi bi-shield-lock-fill"></i> Quản trị tối cao
+                        <i class="bi bi-chevron-down menu-arrow"></i>
+                    </a>
+                    <div class="collapse sub-menu" id="adminMenu">
+                        <a asp-area="Admin" asp-controller="BacSi" asp-action="Index" class="list-group-item">Đội ngũ Bác sĩ</a>
+                        <a asp-area="Admin" asp-controller="ChuyenKhoa" asp-action="Index" class="list-group-item">Quản lý Chuyên khoa</a>
+                        <a asp-area="Admin" asp-controller="User" asp-action="Index" class="list-group-item">Tài khoản & Quyền hạn</a>
+                    </div>
+                }
             </div>
         </div>
 
-        <div id="page-content-wrapper">
-
-            <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom sticky-top">
+        <div id="page-content-wrapper" class="w-100">
+            <nav class="navbar navbar-expand-lg navbar-light sticky-top">
                 <div class="container-fluid">
+                    <button class="btn border-0 shadow-none" id="menu-toggle"><i class="bi bi-list fs-4"></i></button>
 
-                    <div class="d-flex align-items-center">
-                        <button class="btn btn-light text-primary border-0 shadow-sm me-3" id="menu-toggle">
-                            <i class="bi bi-list fs-5"></i>
-                        </button>
-                        <a class="navbar-brand d-none d-md-flex align-items-center text-primary" href="#">
-                            <span class="fw-bold" style="letter-spacing: 1px;">HOSPITAL ADMIN</span>
+                    <div class="ms-auto d-flex align-items-center">
+                        <a href="/" class="btn-view-site me-3 d-none d-md-block">
+                            <i class="bi bi-globe me-1"></i> Xem Website
                         </a>
-                    </div>
 
-                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
-                        <span class="navbar-toggler-icon"></span>
-                    </button>
-
-                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                        <ul class="navbar-nav ms-auto mt-2 mt-lg-0 align-items-center">
-
-                            <li class="nav-item me-3 d-none d-md-block">
-                                <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index" target="_blank" title="Xem trang chủ">
-                                    <i class="bi bi-globe2 me-1"></i> Website
+                        @if (SignInManager.IsSignedIn(User))
+                        {
+                            <div class="dropdown">
+                                <a class="nav-link dropdown-toggle fw-bold" href="#" role="button" data-bs-toggle="dropdown">
+                                    <span class="d-none d-sm-inline">Chào, </span> @UserManager.GetUserName(User)
                                 </a>
-                            </li>
-
-                            <li class="nav-item me-3">
-                                <a class="nav-link position-relative" href="#">
-                                    <i class="bi bi-bell fs-5"></i>
-                                    <span class="position-absolute top-1 start-100 translate-middle p-1 bg-danger border border-light rounded-circle">
-                                        <span class="visually-hidden">New alerts</span>
-                                    </span>
-                                </a>
-                            </li>
-
-                            @if (SignInManager.IsSignedIn(User))
-                            {
-                                var user = await UserManager.GetUserAsync(User);
-                                var displayName = user?.FullName ?? user?.UserName ?? "Admin";
-                                var initial = displayName.Length > 0 ? displayName.Substring(0, 1).ToUpper() : "A";
-
-                                <li class="nav-item dropdown">
-                                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        <div class="avatar bg-primary bg-opacity-10 text-primary fw-bold d-flex justify-content-center align-items-center me-2">
-                                            @initial
-                                        </div>
-                                        <div class="d-none d-lg-block text-dark">
-                                            <div class="fw-bold" style="font-size: 0.9rem; line-height: 1.2;">@displayName</div>
-                                            <div class="text-muted" style="font-size: 0.75rem;">Quản trị viên</div>
-                                        </div>
-                                    </a>
-
-                                    <ul class="dropdown-menu dropdown-menu-end mt-2" aria-labelledby="navbarDropdown">
-                                        <li><h6 class="dropdown-header text-uppercase text-muted small">Tài khoản</h6></li>
-                                        <li><a class="dropdown-item" href="#"><i class="bi bi-person me-2"></i>Hồ sơ cá nhân</a></li>
-                                        <li><a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i>Cài đặt</a></li>
-                                        <li><hr class="dropdown-divider"></li>
-                                        <li>
-                                            <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
-                                                <button type="submit" class="dropdown-item text-danger">
-                                                    <i class="bi bi-box-arrow-right me-2"></i>Đăng xuất
-                                                </button>
-                                            </form>
-                                        </li>
-                                    </ul>
-                                </li>
-                            }
-                        </ul>
+                                <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-3 p-2">
+                                    <li><a class="dropdown-item rounded" href="#"><i class="bi bi-person me-2"></i>Hồ sơ</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+                                            <button type="submit" class="dropdown-item text-danger rounded">
+                                                <i class="bi bi-power me-2"></i>Đăng xuất
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                        }
                     </div>
                 </div>
             </nav>
 
-            <div class="container-fluid px-4 py-2">
+            <div class="container-fluid p-4">
                 @RenderBody()
             </div>
         </div>
-
     </div>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/vn.js"></script>
-    <script src="https://cdn.datatables.net/2.0.8/js/dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/2.0.8/js/dataTables.bootstrap5.min.js"></script>
-    <script src="https://cdn.tiny.cloud/1/vy399c75h6gyw1xkemhoj245q01aqnsusy14yaiket9jmz1h/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
     <script>
-        // Toggle Sidebar
-        document.getElementById("menu-toggle").addEventListener("click", function(e) {
+        $("#menu-toggle").click(function(e) {
             e.preventDefault();
-            document.getElementById("wrapper").classList.toggle("toggled");
+            $("#wrapper").toggleClass("toggled");
         });
 
-        // Hàm khởi tạo DataTables chung
-        function initializeDataTable(tableId, customOptions = {}) {
-            var defaultOptions = {
-                "language": { "url": "/js/i18n/vi.json" },
-                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "Tất cả"]],
-                "pagingType": "full_numbers",
-                "info": false,
-                "dom": '<"row"<"col-sm-6"l><"col-sm-6"f>>rt<"row"<"col-sm-12"p>>',
-                "order": [[0, 'asc']]
-            };
-            var options = $.extend(true, {}, defaultOptions, customOptions);
-            $('#' + tableId).DataTable(options);
-        }
+        $(document).ready(function() {
+            var currentPath = window.location.pathname;
+            $(".list-group-item").each(function() {
+                var href = $(this).attr("href");
+                if (href && currentPath.includes(href) && href !== "/Admin/Dashboard/AdminDashboard") {
+                    $(this).addClass("active");
+                    $(this).closest(".collapse").addClass("show");
+                }
+            });
+        });
     </script>
-
     @await RenderSectionAsync("Scripts", required: false)
-
-    @* --- ĐOẠN SỬA THÔNG BÁO TỐI ƯU --- *@
-    <script>
-        $(document).ready(function () {
-            // Chuyển dữ liệu C# sang JS an toàn tuyệt đối
-            var successMsg = @Html.Raw(Json.Serialize(TempData["success"]));
-            var errorMsg = @Html.Raw(Json.Serialize(TempData["error"]));
-
-            if (successMsg) {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Thành công',
-                    text: successMsg,
-                    timer: 3000,
-                    showConfirmButton: false,
-                    position: 'top-end',
-                    toast: true
-                });
-            }
-
-            if (errorMsg) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Lỗi hệ thống',
-                    text: errorMsg,
-                    confirmButtonColor: '#1e3a8a'
-                });
-            }
-        });
-    </script>
 </body>
 </html>

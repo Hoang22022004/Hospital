@@ -1,23 +1,168 @@
 ﻿@page
 @model ErrorModel
 @{
-    ViewData["Title"] = "Error";
+    ViewData["Title"] = "Hệ thống gặp sự cố";
+    Layout = null; // Để trang lỗi độc lập, không bị vỡ giao diện nếu Layout lỗi
 }
 
-<h1 class="text-danger">Error.</h1>
-<h2 class="text-danger">An error occurred while processing your request.</h2>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - MEDICINE CLINIC MIS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
 
-@if (Model.ShowRequestId)
-{
-    <p>
-        <strong>Request ID:</strong> <code>@Model.RequestId</code>
-    </p>
-}
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --primary-color: #6366f1; /* Indigo đồng bộ với Layout mới */
+            --slate-dark: #1e293b;
+            --text-muted: #64748b;
+        }
 
-<h3>Development Mode</h3>
-<p>
-    Swapping to <strong>Development</strong> environment will display more detailed information about the error that occurred.
-</p>
-<p>
-    <strong>Development environment should not be enabled in deployed applications</strong>, as it can result in sensitive information from exceptions being displayed to end users. For local debugging, development environment can be enabled by setting the <strong>ASPNETCORE_ENVIRONMENT</strong> environment variable to <strong>Development</strong>, and restarting the application.
-</p>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+        }
+
+        .error-container {
+            text-align: center;
+            max-width: 600px;
+            padding: 40px;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+        }
+
+        .error-icon {
+            font-size: 80px;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            display: inline-block;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @@keyframes float {
+            0%, 100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        h1 {
+            font-weight: 800;
+            color: var(--slate-dark);
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+
+        p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .btn-home {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 32px;
+            border-radius: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border: none;
+        }
+
+            .btn-home:hover {
+                background-color: #4f46e5;
+                transform: translateY(-2px);
+                box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.3);
+                color: white;
+            }
+
+        .technical-box {
+            margin-top: 40px;
+            padding: 20px;
+            background-color: #f1f5f9;
+            border-radius: 12px;
+            text-align: left;
+            font-size: 0.85rem;
+        }
+
+        .request-id {
+            font-family: monospace;
+            color: #ef4444;
+            font-weight: bold;
+        }
+
+        .dev-mode-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: #fee2e2;
+            color: #dc2626;
+            border-radius: 6px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="error-container">
+        <div class="error-icon">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+        </div>
+
+        <h1>Ối! Có lỗi xảy ra</h1>
+        <p>Hệ thống y tế đang gặp một sự cố nhỏ trong lúc xử lý yêu cầu của bạn. Đừng lo lắng, dữ liệu của bệnh nhân vẫn an toàn.</p>
+
+        <div class="d-flex justify-content-center gap-3">
+            <a href="/" class="btn-home">
+                <i class="bi bi-house-door"></i> Về Trang chủ
+            </a>
+            <button onclick="location.reload()" class="btn btn-outline-secondary px-4 py-2" style="border-radius: 12px; font-weight: 600;">
+                <i class="bi bi-arrow-clockwise"></i> Thử lại
+            </button>
+        </div>
+
+        @if (Model.ShowRequestId)
+        {
+            <div class="technical-box">
+                <div class="text-uppercase fw-bold text-muted small mb-2">Thông tin kỹ thuật cho Quản trị viên:</div>
+                <div>Mã yêu cầu (Request ID): <span class="request-id">@Model.RequestId</span></div>
+                <div class="mt-3 small text-muted">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Hãy gửi mã này cho bộ phận kỹ thuật để được hỗ trợ nhanh nhất.
+                </div>
+            </div>
+        }
+
+        @* Chỉ hiển thị hướng dẫn Development Mode nếu thực sự đang ở môi trường Dev *@
+        @if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
+        {
+            <div class="mt-4 text-start p-3 border border-warning rounded bg-warning bg-opacity-10">
+                <span class="dev-mode-badge">DEVELOPMENT MODE</span>
+                <p class="small mb-0 text-dark">
+                    Bạn đang chạy ở môi trường phát triển. Lỗi chi tiết sẽ được ghi vào <strong>Console</strong> của Visual Studio.
+                </p>
+            </div>
+        }
+    </div>
+
+</body>
+</html>
