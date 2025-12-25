@@ -6,12 +6,11 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using static Hospital.Areas.Admin.Models.CreateUserViewModel;
 
 namespace Hospital.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    // [Authorize(Roles = "Admin")] // Bỏ comment sau khi có tài khoản Admin
+    // [Authorize(Roles = "Admin")] // Mở khóa dòng này khi Huy đã có tài khoản Admin để bảo mật
     public class UserController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
@@ -25,7 +24,7 @@ namespace Hospital.Areas.Admin.Controllers
             _db = db;
         }
 
-        // 1. Danh sách Tài khoản
+        // 1. DANH SÁCH TÀI KHOẢN
         public async Task<IActionResult> Index()
         {
             var userList = await _userManager.Users.ToListAsync();
@@ -41,22 +40,22 @@ namespace Hospital.Areas.Admin.Controllers
                     Email = user.Email,
                     FullName = user.FullName,
                     Role = roles.FirstOrDefault() ?? "None",
-                    IsLocked = user.LockoutEnd != null && user.LockoutEnd > DateTime.Now,
-                    LockoutEnd = user.LockoutEnd // Hiển thị ngày mở khóa
+                    IsLocked = user.LockoutEnd != null && user.LockoutEnd > DateTime.Now
                 });
             }
 
             return View(userViewModels);
         }
 
-        // 2. Tạo Tài khoản mới (GET)
-        public IActionResult Create()
+        // 2. TẠO TÀI KHOẢN MỚI (GET)
+        public async Task<IActionResult> Create()
         {
-            var roles = _roleManager.Roles.Select(x => x.Name).Select(i => new SelectListItem
+            // Lấy danh sách Role động từ SQL (Bao gồm Admin, Doctor, Receptionist...)
+            var roles = await _roleManager.Roles.Select(x => new SelectListItem
             {
-                Text = i,
-                Value = i
-            });
+                Text = x.Name,
+                Value = x.Name
+            }).ToListAsync();
 
             var model = new CreateUserViewModel
             {
@@ -66,7 +65,7 @@ namespace Hospital.Areas.Admin.Controllers
             return View(model);
         }
 
-        // 3. Tạo Tài khoản mới (POST)
+        // 3. TẠO TÀI KHOẢN MỚI (POST)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CreateUserViewModel model)
@@ -85,34 +84,34 @@ namespace Hospital.Areas.Admin.Controllers
 
                 if (result.Succeeded)
                 {
+                    // Gán vai trò đã chọn cho tài khoản mới
                     if (!string.IsNullOrEmpty(model.Role))
                     {
                         await _userManager.AddToRoleAsync(user, model.Role);
                     }
-                    TempData["success"] = "Tạo tài khoản thành công!";
+
+                    TempData["success"] = "Đã cấp quyền truy cập cho " + model.FullName;
                     return RedirectToAction(nameof(Index));
                 }
 
+                // Xử lý lỗi từ Identity (Ví dụ: Password yếu, Email đã tồn tại)
                 foreach (var error in result.Errors)
                 {
                     ModelState.AddModelError(string.Empty, error.Description);
                 }
             }
 
-            model.RoleList = _roleManager.Roles.Select(x => x.Name).Select(i => new SelectListItem
+            // Load lại RoleList nếu có lỗi để Dropdown không bị trống
+            model.RoleList = await _roleManager.Roles.Select(x => new SelectListItem
             {
-                Text = i,
-                Value = i
-            });
+                Text = x.Name,
+                Value = x.Name
+            }).ToListAsync();
 
             return View(model);
         }
 
-        // ---------------------------------------------------------
-        // 4. SỬA TÀI KHOẢN (EDIT) - ĐÃ BỔ SUNG
-        // ---------------------------------------------------------
-
-        // GET: Hiển thị form sửa
+        // 4. SỬA TÀI KHOẢN (GET)
         public async Task<IActionResult> Edit(string id)
         {
             if (string.IsNullOrEmpty(id)) return NotFound();
@@ -120,30 +119,25 @@ namespace Hospital.Areas.Admin.Controllers
             var user = await _userManager.FindByIdAsync(id);
             if (user == null) return NotFound();
 
-            // Lấy Role hiện tại
             var userRoles = await _userManager.GetRolesAsync(user);
-            var currentRole = userRoles.FirstOrDefault();
-
-            // Lấy danh sách Role cho Dropdown
-            var roles = _roleManager.Roles.Select(x => x.Name).Select(i => new SelectListItem
-            {
-                Text = i,
-                Value = i
-            });
 
             var model = new EditUserViewModel
             {
                 Id = user.Id,
                 Email = user.Email,
                 FullName = user.FullName,
-                Role = currentRole,
-                RoleList = roles
+                Role = userRoles.FirstOrDefault(),
+                RoleList = await _roleManager.Roles.Select(x => new SelectListItem
+                {
+                    Text = x.Name,
+                    Value = x.Name
+                }).ToListAsync()
             };
 
             return View(model);
         }
 
-        // POST: Xử lý cập nhật
+        // 5. SỬA TÀI KHOẢN (POST)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(EditUserViewModel model)
@@ -153,28 +147,25 @@ namespace Hospital.Areas.Admin.Controllers
                 var user = await _userManager.FindByIdAsync(model.Id);
                 if (user == null) return NotFound();
 
-                // 1. Cập nhật Họ tên
                 user.FullName = model.FullName;
 
-                // 2. Cập nhật Role
+                // Cập nhật Vai trò (Role)
                 var userRoles = await _userManager.GetRolesAsync(user);
                 var currentRole = userRoles.FirstOrDefault();
 
                 if (currentRole != model.Role)
                 {
-                    // Xóa Role cũ nếu có
                     if (!string.IsNullOrEmpty(currentRole))
                     {
                         await _userManager.RemoveFromRoleAsync(user, currentRole);
                     }
-                    // Thêm Role mới
                     if (!string.IsNullOrEmpty(model.Role))
                     {
                         await _userManager.AddToRoleAsync(user, model.Role);
                     }
                 }
 
-                // 3. Xử lý Reset Mật khẩu (Chỉ khi Admin nhập mật khẩu mới)
+                // Xử lý Reset Mật khẩu nếu Admin nhập vào ô Mật khẩu mới
                 if (!string.IsNullOrEmpty(model.NewPassword))
                 {
                     var removePassResult = await _userManager.RemovePasswordAsync(user);
@@ -184,7 +175,6 @@ namespace Hospital.Areas.Admin.Controllers
                     }
                 }
 
-                // Lưu thay đổi vào DB
                 var result = await _userManager.UpdateAsync(user);
                 if (result.Succeeded)
                 {
@@ -198,19 +188,17 @@ namespace Hospital.Areas.Admin.Controllers
                 }
             }
 
-            // Load lại RoleList nếu lỗi
-            model.RoleList = _roleManager.Roles.Select(x => x.Name).Select(i => new SelectListItem
+            model.RoleList = await _roleManager.Roles.Select(x => new SelectListItem
             {
-                Text = i,
-                Value = i
-            });
+                Text = x.Name,
+                Value = x.Name
+            }).ToListAsync();
 
             return View(model);
         }
 
-        // ---------------------------------------------------------
-
-        // 5. Khóa / Mở khóa tài khoản
+        // 6. KHÓA / MỞ KHÓA TÀI KHOẢN
+        [HttpPost]
         public async Task<IActionResult> LockUnlock(string id)
         {
             var user = await _userManager.FindByIdAsync(id);
@@ -218,13 +206,15 @@ namespace Hospital.Areas.Admin.Controllers
 
             if (user.LockoutEnd != null && user.LockoutEnd > DateTime.Now)
             {
+                // Đang khóa -> Mở khóa
                 user.LockoutEnd = DateTime.Now;
                 TempData["success"] = "Đã mở khóa tài khoản.";
             }
             else
             {
+                // Đang hoạt động -> Khóa 100 năm
                 user.LockoutEnd = DateTime.Now.AddYears(100);
-                TempData["success"] = "Đã khóa tài khoản.";
+                TempData["success"] = "Đã khóa quyền truy cập của tài khoản này.";
             }
 
             await _userManager.UpdateAsync(user);

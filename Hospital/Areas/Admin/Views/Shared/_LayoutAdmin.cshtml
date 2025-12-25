@@ -1,5 +1,4 @@
-﻿@* File: Areas/Admin/Views/Shared/_LayoutAdmin.cshtml *@
-@using Microsoft.AspNetCore.Identity
+﻿@using Microsoft.AspNetCore.Identity
 @using Hospital.Models
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
@@ -24,6 +23,7 @@
     <link rel="stylesheet" href="//code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="https://npmcdn.com/flatpickr/dist/themes/material_blue.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/admin_sidebar.css" />
@@ -184,7 +184,7 @@
                 <a asp-area="Admin" asp-controller="HoSoBenhAn" asp-action="Index" class="list-group-item list-group-item-action">
                     <i class="bi bi-clipboard2-pulse-fill"></i> Tiếp nhận và tiến độ
                 </a>
-             
+
                 <div class="menu-label">Tài nguyên & Kho</div>
                 <a asp-area="Admin" asp-controller="Thuoc" asp-action="Index" class="list-group-item list-group-item-action">
                     <i class="bi bi-capsule"></i> Kho Dược phẩm
@@ -249,7 +249,7 @@
                             {
                                 var user = await UserManager.GetUserAsync(User);
                                 var displayName = user?.FullName ?? user?.UserName ?? "Admin";
-                                var initial = displayName.Substring(0, 1).ToUpper();
+                                var initial = displayName.Length > 0 ? displayName.Substring(0, 1).ToUpper() : "A";
 
                                 <li class="nav-item dropdown">
                                     <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -283,7 +283,6 @@
             </nav>
 
             <div class="container-fluid px-4 py-2">
-                <partial name="_Notification" />
                 @RenderBody()
             </div>
         </div>
@@ -295,11 +294,11 @@
     <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/vn.js"></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.1/toastr.min.js"></script>
     <script src="https://cdn.datatables.net/2.0.8/js/dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/2.0.8/js/dataTables.bootstrap5.min.js"></script>
     <script src="https://cdn.tiny.cloud/1/vy399c75h6gyw1xkemhoj245q01aqnsusy14yaiket9jmz1h/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
         // Toggle Sidebar
@@ -324,5 +323,35 @@
     </script>
 
     @await RenderSectionAsync("Scripts", required: false)
+
+    @* --- ĐOẠN SỬA THÔNG BÁO TỐI ƯU --- *@
+    <script>
+        $(document).ready(function () {
+            // Chuyển dữ liệu C# sang JS an toàn tuyệt đối
+            var successMsg = @Html.Raw(Json.Serialize(TempData["success"]));
+            var errorMsg = @Html.Raw(Json.Serialize(TempData["error"]));
+
+            if (successMsg) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Thành công',
+                    text: successMsg,
+                    timer: 3000,
+                    showConfirmButton: false,
+                    position: 'top-end',
+                    toast: true
+                });
+            }
+
+            if (errorMsg) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi hệ thống',
+                    text: errorMsg,
+                    confirmButtonColor: '#1e3a8a'
+                });
+            }
+        });
+    </script>
 </body>
 </html>

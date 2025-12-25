@@ -242,12 +242,11 @@ namespace Hospital.Areas.Admin.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> HoanTatKham(int id, HoSoBenhAn hoSoUpdate,
-            IFormFile? anhChinh, List<IFormFile>? anhPhu,
-            int[] selectedDichVu, int[] selectedThuoc, int[] soLuong, string[] lieuDung)
+      IFormFile? anhChinh, List<IFormFile>? anhPhu,
+      int[] selectedDichVu, int[] selectedThuoc, int[] soLuong, string[] lieuDung)
         {
             if (id != hoSoUpdate.Id) return NotFound();
 
-            // 1. Khởi tạo Transaction để bảo vệ dữ liệu
             using (var transaction = await _context.Database.BeginTransactionAsync())
             {
                 try
@@ -255,7 +254,7 @@ namespace Hospital.Areas.Admin.Controllers
                     var record = await _context.HoSoBenhAn.FindAsync(id);
                     if (record == null) return NotFound();
 
-                    // 2. Cập nhật thông tin lâm sàng
+                    // Cập nhật thông tin lâm sàng
                     record.ChanDoan = hoSoUpdate.ChanDoan;
                     record.TrieuChung = hoSoUpdate.TrieuChung;
                     record.TinhTrangDa = hoSoUpdate.TinhTrangDa;
@@ -265,7 +264,7 @@ namespace Hospital.Areas.Admin.Controllers
                     record.NgayTaiKham = hoSoUpdate.NgayTaiKham;
                     record.TrangThai = TrangThaiHoSo.ChoThanhToan;
 
-                    // 3. Lưu Dịch vụ kỹ thuật
+                    // Lưu Dịch vụ kỹ thuật
                     if (selectedDichVu != null)
                     {
                         foreach (var dvId in selectedDichVu)
@@ -274,7 +273,7 @@ namespace Hospital.Areas.Admin.Controllers
                         }
                     }
 
-                    // 4. Lưu Đơn thuốc & Trừ tồn kho thực tế
+                    // Lưu Đơn thuốc & Trừ tồn kho
                     if (selectedThuoc != null)
                     {
                         for (int i = 0; i < selectedThuoc.Length; i++)
@@ -282,11 +281,7 @@ namespace Hospital.Areas.Admin.Controllers
                             int tId = selectedThuoc[i];
                             int qty = (soLuong != null && soLuong.Length > i) ? soLuong[i] : 1;
                             var tStock = await _context.Thuoc.FindAsync(tId);
-
-                            if (tStock != null)
-                            {
-                                tStock.SoLuongTon -= qty; // Trừ kho
-                            }
+                            if (tStock != null) tStock.SoLuongTon -= qty;
 
                             _context.ChiTietDonThuoc.Add(new ChiTietDonThuoc
                             {
@@ -298,17 +293,14 @@ namespace Hospital.Areas.Admin.Controllers
                         }
                     }
 
-                    // 5. Xử lý lưu File ảnh vào thư mục và ghi DB
+                    // Xử lý lưu File ảnh
                     string path = Path.Combine(_hostEnvironment.WebRootPath, @"images/da-lieu");
                     if (!Directory.Exists(path)) Directory.CreateDirectory(path);
 
                     if (anhChinh != null)
                     {
                         string fn = "Main_" + Guid.NewGuid() + Path.GetExtension(anhChinh.FileName);
-                        using (var fs = new FileStream(Path.Combine(path, fn), FileMode.Create))
-                        {
-                            await anhChinh.CopyToAsync(fs);
-                        }
+                        using (var fs = new FileStream(Path.Combine(path, fn), FileMode.Create)) await anhChinh.CopyToAsync(fs);
                         _context.HinhAnhBenhAn.Add(new HinhAnhBenhAn { DuongDan = "/images/da-lieu/" + fn, LaAnhChinh = true, HoSoBenhAnId = id });
                     }
 
@@ -317,33 +309,23 @@ namespace Hospital.Areas.Admin.Controllers
                         foreach (var item in anhPhu)
                         {
                             string fn = "Sub_" + Guid.NewGuid() + Path.GetExtension(item.FileName);
-                            using (var fs = new FileStream(Path.Combine(path, fn), FileMode.Create))
-                            {
-                                await item.CopyToAsync(fs);
-                            }
+                            using (var fs = new FileStream(Path.Combine(path, fn), FileMode.Create)) await item.CopyToAsync(fs);
                             _context.HinhAnhBenhAn.Add(new HinhAnhBenhAn { DuongDan = "/images/da-lieu/" + fn, LaAnhChinh = false, HoSoBenhAnId = id });
                         }
                     }
 
-                    // 6. Lưu tất cả thay đổi
                     await _context.SaveChangesAsync();
-
-                    // 7. Xác nhận hoàn tất Giao dịch
                     await transaction.CommitAsync();
 
-                    TempData["success"] = "Hoàn tất khám bệnh thành công!";
+                    // THÔNG BÁO ĐƠN GIẢN NHẤT
+                    TempData["success"] = "Lưu thành công!";
                     return RedirectToAction(nameof(Index));
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    // 8. Nếu có bất kỳ lỗi nào, hủy bỏ toàn bộ quá trình (không trừ kho, không lưu DB)
                     await transaction.RollbackAsync();
-                    ModelState.AddModelError("", "Lỗi khi lưu dữ liệu: " + ex.Message);
-
-                    // Nạp lại danh sách để hiển thị lại View nếu lỗi
-                    ViewBag.DichVuList = await _context.DichVu.ToListAsync();
-                    ViewBag.ThuocList = await _context.Thuoc.ToListAsync();
-                    return View(hoSoUpdate);
+                    TempData["error"] = "Lưu thất bại, vui lòng kiểm tra lại!";
+                    return RedirectToAction("KhamBenh", new { id = id });
                 }
             }
         }
