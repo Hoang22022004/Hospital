@@ -1,0 +1,191 @@
+﻿@using System.Linq
+@{
+    ViewData["Title"] = "Quản trị";
+}
+
+<style>
+    :root {
+        --glass: rgba(255, 255, 255, 0.95);
+        --shd: 0 10px 30px rgba(0,0,0,0.05);
+    }
+
+    body {
+        background: #f8f9fe;
+    }
+
+    .stat-card {
+        border: none;
+        border-radius: 25px;
+        color: white;
+        padding: 25px;
+        transition: 0.3s;
+        box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+    }
+
+        .stat-card:hover {
+            transform: translateY(-8px);
+        }
+
+    .card-modern {
+        background: var(--glass);
+        border-radius: 30px;
+        border: none;
+        box-shadow: var(--shd);
+        backdrop-filter: blur(10px);
+    }
+
+    .filter-btn {
+        cursor: pointer;
+        border: 1px solid rgba(255,255,255,0.3);
+        background: rgba(255,255,255,0.1);
+        color: white;
+        border-radius: 12px;
+        padding: 6px 16px;
+        font-size: 0.85rem;
+        transition: 0.3s;
+        text-decoration: none;
+    }
+
+        .filter-btn.active {
+            background: white;
+            color: #1e3c72;
+            font-weight: bold;
+        }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="row g-4 mb-4 text-center">
+        <div class="col-md-3">
+            <div class="card stat-card shadow-lg" style="background: linear-gradient(135deg, #7367f0 0%, #9e95f5 100%);">
+                <h6 class="text-uppercase fw-bold opacity-75 small">Bệnh nhân</h6>
+                <h1 class="fw-bold my-2 count-up" data-value="@ViewBag.TotalPatients">0</h1>
+                <i class="bi bi-people-fill fs-1 opacity-25"></i>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card shadow-lg" style="background: linear-gradient(135deg, #ff9f43 0%, #ffc085 100%);">
+                <h6 class="text-uppercase fw-bold opacity-75 small">Lịch hẹn</h6>
+                <h1 class="fw-bold my-2 count-up" data-value="@ViewBag.AppointmentsToday">0</h1>
+                <i class="bi bi-calendar-check fs-1 opacity-25"></i>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card shadow-lg" style="background: linear-gradient(135deg, #28c76f 0%, #48da89 100%);">
+                <h6 class="text-uppercase fw-bold opacity-75 small">Hoàn tất</h6>
+                <h1 class="fw-bold my-2 count-up" data-value="@ViewBag.CompletedToday">0</h1>
+                <i class="bi bi-check-circle fs-1 opacity-25"></i>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card shadow-lg" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);">
+                <h6 class="text-uppercase fw-bold opacity-75 small">Doanh thu hôm nay</h6>
+                <h2 class="fw-bold my-2"><span class="count-up" data-value="@ViewBag.RevDay">0</span> đ</h2>
+                <i class="bi bi-currency-dollar fs-1 opacity-25"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card p-4 shadow-lg" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); border-radius: 35px; border: none; color: white;">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h5 class="fw-bold mb-0 text-uppercase small"><i class="bi bi-graph-up-arrow me-2"></i>Biến động tài chính</h5>
+                        <p class="small opacity-75 mb-0" id="revNote">Dữ liệu hiện tại: Năm @DateTime.Now.Year</p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a href="javascript:void(0)" class="filter-btn" onclick="updateChart('week', this, @ViewBag.RevWeekTotal, 7)">Tuần</a>
+                        <a href="javascript:void(0)" class="filter-btn" onclick="updateChart('month', this, @ViewBag.RevMonthTotal, @DateTime.DaysInMonth(DateTime.Now.Year, DateTime.Now.Month))">Tháng</a>
+                        <a href="javascript:void(0)" class="filter-btn active" onclick="updateChart('year', this, @ViewBag.RevYearTotal, 365)">Năm</a>
+                    </div>
+                </div>
+                <div class="row align-items-center">
+                    <div class="col-md-3 border-end border-white border-opacity-10 py-3">
+                        <p class="opacity-75 small mb-1">Tổng doanh thu kỳ này:</p>
+                        <h2 class="fw-bold" id="dynTotal">@ViewBag.RevYearTotal.ToString("N0") đ</h2>
+                        <hr class="border-white opacity-25 my-3">
+                        @* PHẦN THAY ĐỔI: TRUNG BÌNH DOANH THU HẰNG NGÀY *@
+                        <p class="opacity-75 small mb-1">Trung bình hằng ngày:</p>
+                        <h3 class="fw-bold" id="dynAvg">@((ViewBag.RevYearTotal / 365).ToString("N0")) đ</h3>
+                    </div>
+                    <div class="col-md-9" style="height: 320px; position: relative;">
+                        <canvas id="revChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="card card-modern p-4">
+                <h5 class="fw-bold mb-4 text-primary"><i class="bi bi-award me-2"></i>Top 5 Bác sĩ Xuất sắc</h5>
+                <div style="height: 300px; position: relative;"><canvas id="drChart"></canvas></div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card card-modern p-4">
+                <h5 class="fw-bold mb-4 text-danger"><i class="bi bi-shield-plus me-2"></i>Top Bệnh lý thường gặp</h5>
+                <div style="height: 300px; position: relative;"><canvas id="pathChart"></canvas></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const ds = {
+            week: { l: @Html.Raw(ViewBag.WeekLabels), d: @Html.Raw(ViewBag.WeekData), n: "Tuần hiện tại" },
+            month: { l: @Html.Raw(ViewBag.MonthLabels), d: @Html.Raw(ViewBag.MonthData), n: "Tháng @DateTime.Now.Month" },
+            year: { l: @Html.Raw(ViewBag.YearLabels), d: @Html.Raw(ViewBag.YearData), n: "Năm @DateTime.Now.Year" }
+        };
+
+        let revChart;
+
+        function init() {
+            const ctx = document.getElementById('revChart').getContext('2d');
+            revChart = new Chart(ctx, {
+                type: 'line',
+                data: { labels: ds.year.l, datasets: [{ data: ds.year.d, borderColor: '#fff', backgroundColor: 'rgba(255,255,255,0.1)', fill: true, tension: 0.4 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { ticks: { color: 'rgba(255,255,255,0.6)' }, grid: { display: false } }, x: { ticks: { color: '#fff' } } } }
+            });
+
+            new Chart(document.getElementById('drChart'), {
+                type: 'bar',
+                data: { labels: @Html.Raw(ViewBag.DrLabels), datasets: [{ data: @Html.Raw(ViewBag.DrCounts), backgroundColor: '#7367f0', borderRadius: 10 }] },
+                options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+
+            new Chart(document.getElementById('pathChart'), {
+                type: 'doughnut',
+                data: { labels: @Html.Raw(ViewBag.PathLabels), datasets: [{ data: @Html.Raw(ViewBag.PathCounts), backgroundColor: ['#7367f0', '#ff9f43', '#28c76f', '#00cfe8', '#ea5455'] }] },
+                options: { cutout: '75%', responsive: true, maintainAspectRatio: false }
+            });
+
+            $('.count-up').each(function() {
+                var $t = $(this);
+                $({ n: 0 }).animate({ n: $t.attr('data-value') }, { duration: 1500, step: function() { $t.text(Math.floor(this.n).toLocaleString()); }, complete: function() { $t.text(parseInt(this.n).toLocaleString()); } });
+            });
+        }
+
+        // CẬP NHẬT BIỂU ĐỒ VÀ TRUNG BÌNH DOANH THU ĐỘNG
+        function updateChart(type, btn, total, divisor) {
+            $('.filter-btn').removeClass('active');
+            $(btn).addClass('active');
+            revChart.data.labels = ds[type].l;
+            revChart.data.datasets[0].data = ds[type].d;
+            revChart.update();
+            $('#revNote').text("Dữ liệu hiện tại: " + ds[type].n);
+
+            // Cập nhật tổng tiền kỳ này
+            $({ n: 0 }).animate({ n: total }, { duration: 800, step: function() { $('#dynTotal').text(Math.floor(this.n).toLocaleString() + " đ"); } });
+
+            // Cập nhật TRUNG BÌNH HẰNG NGÀY
+            let avg = total / divisor;
+            $({ n: 0 }).animate({ n: avg }, { duration: 800, step: function() { $('#dynAvg').text(Math.floor(this.n).toLocaleString() + " đ"); } });
+        }
+
+        $(document).ready(init);
+    </script>
+}
