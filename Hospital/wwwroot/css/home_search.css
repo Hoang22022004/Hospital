@@ -1,39 +1,50 @@
 ﻿/* ==========================================================================
-   PHẦN 2: QUICK SEARCH SECTION (THANH TÌM KIẾM)
+   PHẦN 2: QUICK SEARCH SECTION (SỬA LỖI 50/50 & ĐỒNG BỘ MÀU TUYỆT ĐỐI)
    ========================================================================== */
 
 .quick-search-section {
     position: relative;
-    z-index: 10;
-    margin-top: -60px; /* Hiệu ứng đè lên Banner */
+    z-index: 1100;
+    /* HIỆU ỨNG 50/50: Kéo thanh search lên để đè lên banner */
+    margin-top: -45px;
+    /* KỸ THUẬT QUAN TRỌNG: 
+       Tạo nền 50% trên trong suốt (để hiện Banner) và 50% dưới màu #f8fafc (để khớp với Bác sĩ).
+       Điều này xóa bỏ hoàn toàn hiện tượng lệch màu ở ranh giới */
+    background: linear-gradient(to bottom, transparent 50%, #f8fafc 50%);
 }
 
+/* Khung trắng chứa ô nhập liệu */
 .search-wrapper {
-    background: var(--hp-white);
+    background: #ffffff;
     border-radius: 15px;
     padding: 5px;
     border: 1px solid rgba(69, 195, 210, 0.2);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    /* TỐI ƯU: Sử dụng bóng đổ cực nhạt để thanh search trông tự nhiên, không bị bẩn nền */
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    position: relative;
+    z-index: 1110;
 }
 
+    /* Định dạng các ô nhập liệu */
     .search-wrapper .form-control,
     .search-wrapper .form-select {
         font-size: 0.95rem;
         font-weight: 500;
         color: var(--hp-navy);
+        background-color: transparent;
     }
 
         .search-wrapper .form-control::placeholder {
             color: #94a3b8;
         }
 
-/* Nút tìm kiếm */
+/* Nút tìm kiếm chuẩn Clinic */
 .btn-search-submit {
     background: linear-gradient(135deg, var(--hp-primary) 0%, var(--hp-primary-dark) 100%);
     color: white !important;
     border: none;
     border-radius: 12px;
-    transition: var(--transition);
+    transition: 0.3s ease;
 }
 
     .btn-search-submit:hover {
@@ -42,20 +53,26 @@
         box-shadow: 0 8px 20px rgba(69, 195, 210, 0.3);
     }
 
-/* Hộp gợi ý thông minh (Autocomplete) */
+/* --------------------------------------------------------------------------
+   HỘP GỢI Ý (CHỈ GIỮ LẠI KẾT QUẢ DATABASE)
+   -------------------------------------------------------------------------- */
+
 .live-results-box {
     position: absolute;
-    top: 105%;
+    top: 100%;
     left: 0;
-    width: 58.33%; /* Khớp với tỷ lệ col-lg-7 của ô tìm kiếm */
-    background: white;
-    border-radius: 12px;
-    z-index: 999;
+    width: 58.33%; /* col-lg-7 */
+    background: #ffffff;
+    border-radius: 0 0 15px 15px;
+    z-index: 1120;
     display: none;
     overflow: hidden;
     border: 1px solid rgba(69, 195, 210, 0.2);
+    border-top: none;
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
 }
 
+    /* Định dạng nội dung trong list kết quả */
     .live-results-box ul li a {
         display: flex;
         align-items: center;
@@ -67,31 +84,40 @@
     }
 
         .live-results-box ul li a:hover {
-            background-color: var(--hp-nav-bg);
+            background-color: #f1f8f9;
             color: var(--hp-primary);
         }
 
-/* Hiệu ứng focus */
+/* Icons trong kết quả search */
+.search-result-img,
+.search-result-icon-placeholder {
+    width: 45px;
+    height: 45px;
+    border-radius: 10px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.search-result-icon-placeholder {
+    background-color: #f1f8f9;
+    color: var(--hp-primary);
+    font-size: 1.3rem;
+    border: 1px solid rgba(69, 195, 210, 0.1);
+}
+
+/* Hiệu ứng focus đồng bộ màu nền xám của Bác sĩ */
 .search-wrapper .col-lg-7:focus-within,
 .search-wrapper .col-lg-2:focus-within {
     background-color: #f8fafc;
     border-radius: 10px;
 }
 
-/* Gợi ý Hashtags */
-.search-suggestions a {
-    transition: var(--transition);
-}
-
-    .search-suggestions a:hover {
-        background-color: var(--hp-primary) !important;
-        color: white !important;
-        border-color: var(--hp-primary);
-    }
-
+/* Responsive cho thiết bị di động */
 @media (max-width: 991px) {
     .quick-search-section {
         margin-top: -30px;
+        /* Trên mobile có thể để nền xám hoàn toàn */
+        background: #f8fafc;
     }
 
     .search-wrapper {
@@ -99,42 +125,7 @@
         padding: 15px;
     }
 
-        .search-wrapper .border-end {
-            border-end: none !important;
-            border-bottom: 1px solid #eee;
-        }
-
-    .btn-search-submit {
-        margin-top: 10px;
-    }
-
     .live-results-box {
         width: 100%;
     }
-}
-/* Container cho ảnh và icon placeholder */
-.search-result-img,
-.search-result-icon-placeholder {
-    width: 45px;
-    height: 45px;
-    border-radius: 10px; /* Bo góc hiện đại đồng bộ Clinic */
-    object-fit: cover;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* Style riêng cho Icon khi không có ảnh */
-.search-result-icon-placeholder {
-    background-color: #f1f8f9; /* Màu xanh nhạt của Navbar */
-    color: var(--hp-primary); /* Màu xanh Teal thương hiệu */
-    font-size: 1.4rem;
-    border: 1px solid rgba(69, 195, 210, 0.2);
-}
-
-/* Hiệu ứng khi hover vào dòng kết quả */
-.live-results-box ul li a:hover .search-result-icon-placeholder {
-    background-color: var(--hp-primary);
-    color: white;
-    transition: 0.3s;
 }

@@ -1,0 +1,71 @@
+﻿@using System.Linq
+@model IEnumerable<Hospital.Models.BacSi>
+
+<section class="doctors-section">
+    <div class="container">
+        <div class="mb-2">
+            <h2 class="section-title">Đội Ngũ Chuyên Gia</h2>
+            <div class="title-line"></div>
+        </div>
+
+        <div id="doctorCarousel" class="carousel slide" data-bs-ride="carousel">
+            <div class="carousel-inner">
+                @if (Model != null && Model.Any())
+                {
+                    var isFirst = true;
+                    foreach (var dr in Model)
+                    {
+                        <div class="carousel-item @(isFirst ? "active" : "")">
+                            @{
+                                isFirst = false;
+                            }
+                            <div class="doctor-profile-card">
+                                <div class="row align-items-start">
+
+                                    <div class="col-lg-5 px-4 text-center">
+                                        <div class="dr-image-container">
+                                            <img src="@(string.IsNullOrEmpty(dr.HinhAnhUrl) ? "/images/default-doctor.jpg" : dr.HinhAnhUrl)"
+                                                 alt="@dr.HoTen">
+                                        </div>
+                                        <span class="dr-title-italic">@dr.BangCap</span>
+                                    </div>
+
+                                    <div class="col-lg-7 px-4">
+                                        <h2 class="dr-name-right">Bác sĩ @dr.HoTen</h2>
+
+                                        <div class="mb-3">
+                                            <span class="badge" style="background-color: #e0f2fe; color: #0369a1; padding: 10px 18px; border-radius: 50px; font-weight: 700;">
+                                                CHUYÊN NGÀNH: @(dr.ChuyenKhoa?.TenChuyenKhoa?.ToUpper() ?? "DA LIỄU TỔNG QUÁT")
+                                            </span>
+                                        </div>
+
+                                        <div class="dr-description-content">
+                                            @Html.Raw(dr.MoTaChiTiet)
+                                        </div>
+
+                                        <div class="d-flex gap-3 mt-4">
+                                            <a href="/DatLich?bacSiId=@dr.BacSiId" class="btn btn-appointment">
+                                                <i class="bi bi-calendar-check me-2"></i>ĐẶT LỊCH KHÁM
+                                            </a>
+                                            <a href="https://zalo.me/0905280482" target="_blank" class="btn btn-detail">
+                                                <i class="bi bi-chat-dots me-2"></i>TƯ VẤN TRỰC TUYẾN
+                                            </a>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+
+            <button class="carousel-control-prev dr-control" type="button" data-bs-target="#doctorCarousel" data-bs-slide="prev" style="left: -30px;">
+                <i class="bi bi-chevron-left text-dark"></i>
+            </button>
+            <button class="carousel-control-next dr-control" type="button" data-bs-target="#doctorCarousel" data-bs-slide="next" style="right: -30px;">
+                <i class="bi bi-chevron-right text-dark"></i>
+            </button>
+        </div>
+    </div>
+</section>

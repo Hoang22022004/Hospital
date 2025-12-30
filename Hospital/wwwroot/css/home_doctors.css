@@ -1,0 +1,132 @@
+﻿/* ==========================================================================
+   PHẦN 3: ĐỘI NGŨ BÁC SĨ (ĐÃ SỬA LỖI DẤU TÍCH & FONT CHỮ)
+   ========================================================================== */
+
+.doctors-section {
+    padding-top: 20px;
+    padding-bottom: 60px;
+    background-color: #f8fafc;
+    margin-top: 0;
+    position: relative;
+    z-index: 1;
+}
+
+/* Tiêu đề căn trái */
+.section-title {
+    font-family: 'Playfair Display', serif;
+    color: #0056b3;
+    font-weight: 700;
+    font-size: 1.6rem;
+    margin-bottom: 5px;
+    text-align: left;
+}
+
+.title-line {
+    width: 50px;
+    height: 3px;
+    background: #45c3d2;
+    margin-bottom: 30px;
+}
+
+#doctorCarousel {
+    width: 100%;
+    margin: 0;
+}
+
+.doctor-profile-card {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 45px 50px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 86, 179, 0.05);
+}
+
+/* Thêm dòng này vào file HTML (trong thẻ <head>) hoặc dùng @import trong CSS */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&display=swap');
+
+.dr-name-right {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.2rem; /* Serif thường nhỏ hơn nên có thể tăng nhẹ size */
+    font-weight: 300; /* Độ đậm vừa phải, không bị thô */
+    color: #1e293b;
+    margin-top: 0;
+    margin-bottom: 10px;
+    text-align: left;
+    text-transform: none; /* Bỏ viết hoa toàn bộ để trông mềm mại hơn */
+    letter-spacing: 0.5px;
+}
+
+/* --- Chức vụ (Dưới ảnh): Tăng cỡ chữ, in nghiêng --- */
+.dr-title-italic {
+    display: block;
+    font-size: 1.2rem;
+    font-style: italic;
+    color: #64748b;
+    margin-top: 20px;
+    text-align: center;
+    line-height: 1.5;
+}
+
+/* --- Ảnh bác sĩ: To hơn --- */
+.dr-image-container {
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+}
+
+    .dr-image-container img {
+        width: 100%;
+        height: 440px;
+        object-fit: cover;
+    }
+
+/* --- SỬA LỖI DẤU TÍCH: Xóa dấu chấm đen mặc định --- */
+.dr-description-content ul {
+    list-style: none !important; /* QUAN TRỌNG: Xóa bỏ dấu chấm tròn đen */
+    padding-left: 0 !important; /* Xóa khoảng cách lề trái mặc định */
+}
+
+    .dr-description-content ul li {
+        position: relative;
+        padding-left: 35px; /* Tăng khoảng cách để nhường chỗ cho dấu tích */
+        margin-bottom: 15px;
+        font-size: 1.1rem;
+        line-height: 1.7;
+        color: #475569;
+    }
+
+        /* Chèn dấu tích xanh Teal */
+        .dr-description-content ul li::before {
+            content: "\F272"; /* Icon check-circle của Bootstrap Icons */
+            font-family: "bootstrap-icons" !important;
+            position: absolute;
+            left: 0;
+            top: 2px;
+            color: #45c3d2;
+            font-size: 1.2rem;
+        }
+
+/* Nút bấm hành động */
+.btn-appointment {
+    background: #45c3d2;
+    color: white !important;
+    border-radius: 50px;
+    padding: 12px 35px;
+    font-weight: 700;
+    transition: 0.3s;
+}
+
+.btn-detail {
+    background: transparent;
+    border: 2px solid #1e293b;
+    border-radius: 50px;
+    padding: 10px 35px;
+    color: #1e293b !important;
+    font-weight: 700;
+    transition: 0.3s;
+}
+
+    .btn-appointment:hover, .btn-detail:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }

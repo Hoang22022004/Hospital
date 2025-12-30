@@ -41,28 +41,24 @@ namespace Hospital.Areas.Admin.Controllers
         // Action phụ trợ: Lấy danh sách User (Role = Doctor)
         private async Task PrepareUserData(string selectedUserId = null)
         {
-            // 1. Lấy tất cả User thuộc Role "Doctor"
             var doctorUsers = await _userManager.GetUsersInRoleAsync("Doctor");
 
-            // 2. Lấy danh sách ID của các User ĐÃ được gán cho Bác sĩ khác (trừ User hiện tại đang sửa)
             var assignedUserIds = await _db.BacSi
-                .Where(b => b.IdentityUserId != selectedUserId) // Nếu đang sửa, không loại trừ chính nó
+                .Where(b => b.IdentityUserId != selectedUserId)
                 .Select(b => b.IdentityUserId)
                 .ToListAsync();
 
-            // 3. Lọc ra danh sách User khả dụng (Doctor role + Chưa được gán)
             var availableUsers = doctorUsers
                 .Where(u => !assignedUserIds.Contains(u.Id))
                 .Select(u => new
                 {
                     Id = u.Id,
-                    DisplayText = $"{u.FullName ?? u.UserName} ({u.Email})" // Hiển thị Tên kèm Email
+                    DisplayText = $"{u.FullName ?? u.UserName} ({u.Email})"
                 })
                 .ToList();
 
             ViewData["IdentityUserId"] = new SelectList(availableUsers, "Id", "DisplayText", selectedUserId);
         }
-
 
         // Action: HIỂN THỊ DANH SÁCH (READ)
         public async Task<IActionResult> Index()
@@ -77,8 +73,8 @@ namespace Hospital.Areas.Admin.Controllers
         // Action: TẠO MỚI - GET
         public async Task<IActionResult> Create()
         {
-            await PrepareUserData(); // Load danh sách User khả dụng
-            PrepareChuyenKhoaData(); // Load danh sách Chuyên khoa
+            await PrepareUserData();
+            PrepareChuyenKhoaData();
             return View();
         }
 
@@ -116,7 +112,6 @@ namespace Hospital.Areas.Admin.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            // Nếu lỗi, load lại dữ liệu
             await PrepareUserData(bacSi.IdentityUserId);
             PrepareChuyenKhoaData(bacSi.ChuyenKhoaId);
             return View(bacSi);
@@ -130,7 +125,6 @@ namespace Hospital.Areas.Admin.Controllers
             var bacSiFromDb = await _db.BacSi.FindAsync(id);
             if (bacSiFromDb == null) return NotFound();
 
-            // Load danh sách User, truyền vào ID hiện tại để không bị lọc mất
             await PrepareUserData(bacSiFromDb.IdentityUserId);
             PrepareChuyenKhoaData(bacSiFromDb.ChuyenKhoaId);
 
@@ -175,7 +169,6 @@ namespace Hospital.Areas.Admin.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            // Nếu lỗi
             await PrepareUserData(bacSi.IdentityUserId);
             PrepareChuyenKhoaData(bacSi.ChuyenKhoaId);
             return View(bacSi);
@@ -217,6 +210,28 @@ namespace Hospital.Areas.Admin.Controllers
             await _db.SaveChangesAsync();
             TempData["success"] = "Xóa bác sĩ thành công.";
             return RedirectToAction(nameof(Index));
+        }
+
+        // --- ACTION MỚI: HỖ TRỢ UPLOAD ẢNH TỪ TRÌNH SOẠN THẢO TINYMCE ---
+        [HttpPost]
+        public async Task<IActionResult> UploadImageTiny(IFormFile file)
+        {
+            if (file == null || file.Length == 0) return BadRequest();
+
+            string wwwRootPath = _webHostEnvironment.WebRootPath;
+            string fileName = Guid.NewGuid().ToString();
+            var uploads = Path.Combine(wwwRootPath, @"images\bacsi");
+            var extension = Path.GetExtension(file.FileName);
+
+            if (!Directory.Exists(uploads)) Directory.CreateDirectory(uploads);
+
+            using (var fileStreams = new FileStream(Path.Combine(uploads, fileName + extension), FileMode.Create))
+            {
+                await file.CopyToAsync(fileStreams);
+            }
+
+            // Trả về URL để TinyMCE hiển thị ảnh trong trình soạn thảo
+            return Json(new { location = "/images/bacsi/" + fileName + extension });
         }
     }
 }

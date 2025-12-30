@@ -1,88 +1,24 @@
-﻿@{
+﻿@model IEnumerable<Hospital.Models.BacSi>
+
+@{
     ViewData["Title"] = "Trang chủ";
 }
 
 @section Styles {
+    @* Gọi các tệp CSS đã được tối ưu đồng bộ màu sắc và bố cục *@
     <link rel="stylesheet" href="~/css/home_hero.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/home_search.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/home_doctors.css" asp-append-version="true" />
 }
 
-<section class="hero-section">
-    <div id="heroCarousel" class="carousel slide carousel-fade hero-carousel" data-bs-ride="carousel" data-bs-interval="5000">
-        <div class="carousel-indicators mb-5">
-            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="0" class="active" aria-current="true"></button>
-            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="1"></button>
-            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="2"></button>
-        </div>
+@* 1. Phần Banner chính *@
+<partial name="_HeroPartial" />
 
-        <div class="carousel-inner">
-            <div class="carousel-item active" style="background-image: url('https://images.unsplash.com/photo-1629909613654-28e377c37b09?q=80&w=2070&auto=format&fit=crop');">
-                <div class="hero-overlay"></div>
-                <div class="carousel-caption text-start">
-                    <div class="container">
-                        <div class="row">
-                            <div class="col-lg-8">
-                                <span class="hero-subtitle animate__animated animate__fadeInDown">HELLO PARIS CLINIC</span>
-                                <h1 class="hero-title animate__animated animate__fadeInDown delay-1">Đánh thức vẻ đẹp <br> <span class="text-primary">chuẩn Y khoa</span></h1>
-                                <p class="hero-text animate__animated animate__fadeInUp delay-2">Hệ thống phòng khám Da liễu thẩm mỹ công nghệ cao tại Huế.</p>
-                                <div class="d-flex gap-3 animate__animated animate__fadeInUp delay-3">
-                                    <a href="/DatLich" class="btn btn-hero-primary shadow">ĐẶT LỊCH NGAY</a>
-                                    <a href="/DichVu" class="btn btn-hero-outline">XEM DỊCH VỤ</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
+@* 2. Thanh tìm kiếm (Vị trí 50% Banner - 50% Bác sĩ) *@
+<partial name="_SearchPartial" />
 
-<section class="quick-search-section">
-    <div class="container">
-        <div class="search-wrapper shadow-lg">
-            <form action="/Search" method="GET" class="row g-0 align-items-center position-relative">
-                <div class="col-lg-7 border-end">
-                    <div class="input-group">
-                        <span class="input-group-text bg-transparent border-0 ps-4">
-                            <i class="bi bi-search text-primary"></i>
-                        </span>
-                        <input type="text" id="mainSearchInput" name="query" class="form-control border-0 py-4 shadow-none"
-                               placeholder="Tìm bác sĩ, chuyên khoa, bệnh lý, thuốc..." autocomplete="off">
-                    </div>
-                </div>
-
-                <div class="col-lg-2 border-end d-none d-lg-block">
-                    <div class="input-group">
-                        <select class="form-select border-0 py-4 shadow-none cursor-pointer text-muted" style="font-size: 0.85rem;">
-                            <option value="" selected>Tất cả dịch vụ</option>
-                            <option value="1">Trị mụn y khoa</option>
-                            <option value="2">Trị nám & Tàn nhang</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="col-lg-3 p-2">
-                    <button type="submit" class="btn btn-search-submit w-100 py-3 text-uppercase fw-bold">
-                        <i class="bi bi-search me-2"></i>Tìm kiếm
-                    </button>
-                </div>
-
-                <div id="liveResults" class="live-results-box shadow-lg">
-                    <div class="p-3 border-bottom fw-bold small text-primary bg-light">KẾT QUẢ GỢI Ý</div>
-                    <ul class="list-unstyled mb-0" id="resultsList"></ul>
-                </div>
-            </form>
-        </div>
-
-        <div id="quickSuggestions" class="search-suggestions mt-3 text-center" style="display: none;">
-            <span class="small text-muted me-2">Gợi ý:</span>
-            <a href="#" class="badge rounded-pill bg-light text-dark text-decoration-none px-3 py-2 border me-2">#Trị_mụn</a>
-            <a href="#" class="badge rounded-pill bg-light text-dark text-decoration-none px-3 py-2 border me-2">#Bác_sĩ_Yên</a>
-            <a href="#" class="badge rounded-pill bg-light text-dark text-decoration-none px-3 py-2 border me-2">#Thuốc_đặc_trị</a>
-        </div>
-    </div>
-</section>
+@* 3. Phần Đội ngũ chuyên gia (Nền màu #f8fafc đồng bộ) *@
+<partial name="_DoctorsPartial" model="Model" />
 
 @section Scripts {
     <script>
@@ -90,48 +26,39 @@
             const $searchInput = $('#mainSearchInput');
             const $liveResults = $('#liveResults');
             const $resultsList = $('#resultsList');
-            const $quickSuggestions = $('#quickSuggestions');
 
-            $searchInput.on('focus', function () {
-                if ($(this).val().length === 0) $quickSuggestions.fadeIn(300);
-            });
-
+            // Logic xử lý tìm kiếm thời gian thực khi người dùng gõ chữ
             $searchInput.on('input', function () {
                 const term = $(this).val();
+
                 if (term.length > 0) {
-                    $quickSuggestions.hide();
+                    // Gọi API lấy gợi ý từ Database
                     $.ajax({
                         url: '/Home/GetSearchSuggestions',
                         type: 'GET',
                         data: { term: term },
                         success: function (data) {
                             $resultsList.empty();
+
                             if (data.length > 0) {
                                 $liveResults.show();
                                 data.forEach(item => {
                                     let mediaHtml = '';
 
-                                    // LOGIC HIỂN THỊ ẢNH HOẶC ICON THEO LOẠI DỮ LIỆU
+                                    // Xử lý hiển thị Ảnh hoặc Icon tùy loại dữ liệu
                                     if (item.img && item.img.trim() !== '') {
-                                        mediaHtml = `<img src="${item.img}" class="search-result-img" onerror="this.src='/images/default.png'">`;
+                                        mediaHtml = `<img src="${item.img}" class="search-result-img">`;
                                     } else {
-                                        // Gán icon đặc trưng cho từng Model
                                         let iconClass = 'bi-search';
-                                        switch(item.type) {
-                                            case 'doctor': iconClass = 'bi-person-circle'; break; // Bác sĩ
-                                            case 'service': iconClass = 'bi-activity'; break;    // Dịch vụ
-                                            case 'disease': iconClass = 'bi-capsule-pill'; break; // Bệnh lý
-                                            case 'news': iconClass = 'bi-journal-text'; break;   // Tin tức
-                                            case 'medicine': iconClass = 'bi-capsule'; break;    // Thuốc
-                                            case 'specialty': iconClass = 'bi-hospital'; break;  // Chuyên khoa
-                                        }
+                                        if (item.type === 'doctor') iconClass = 'bi-person-circle';
+                                        if (item.type === 'disease') iconClass = 'bi-capsule-pill';
+                                        if (item.type === 'service') iconClass = 'bi-activity';
+                                        if (item.type === 'news') iconClass = 'bi-journal-text';
 
-                                        mediaHtml = `
-                                            <div class="search-result-icon-placeholder">
-                                                <i class="bi ${iconClass}"></i>
-                                            </div>`;
+                                        mediaHtml = `<div class="search-result-icon-placeholder"><i class="bi ${iconClass}"></i></div>`;
                                     }
 
+                                    // Đổ dữ liệu vào danh sách hiển thị
                                     $resultsList.append(`
                                         <li>
                                             <a href="${item.url}" class="d-flex align-items-center p-3 text-decoration-none border-bottom">
@@ -145,20 +72,22 @@
                                     `);
                                 });
                             } else {
-                                $resultsList.html('<li class="p-4 text-center text-muted small">Không tìm thấy dữ liệu phù hợp...</li>');
+                                // Hiển thị thông báo nếu không có kết quả
+                                $resultsList.html('<li class="p-4 text-center text-muted small">Không tìm thấy kết quả phù hợp...</li>');
+                                $liveResults.show();
                             }
                         }
                     });
                 } else {
+                    // Ẩn hộp kết quả nếu ô tìm kiếm trống
                     $liveResults.hide();
-                    $quickSuggestions.show();
                 }
             });
 
+            // Tự động ẩn hộp kết quả khi người dùng click ra ngoài vùng tìm kiếm
             $(document).on('click', function (e) {
                 if (!$(e.target).closest('.search-wrapper').length) {
                     $liveResults.hide();
-                    $quickSuggestions.fadeOut(200);
                 }
             });
         });

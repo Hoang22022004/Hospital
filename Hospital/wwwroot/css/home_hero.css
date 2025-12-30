@@ -24,7 +24,10 @@
     left: 0;
     height: 100%;
     width: 100%;
-    background: linear-gradient(to right, rgba(10, 29, 55, 0.7), rgba(10, 29, 55, 0.3));
+    /* TĂNG ĐỘ ĐẬM: Thay 0.7 thành 0.85 và 0.3 thành 0.6 */
+    background: linear-gradient(to right, rgba(10, 29, 55, 0.85) 0%, rgba(10, 29, 55, 0.6) 100%);
+    /* Đảm bảo lớp phủ nằm trên ảnh nhưng dưới chữ */
+    z-index: 1;
 }
 
 .carousel-caption {

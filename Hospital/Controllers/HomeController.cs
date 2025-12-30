@@ -11,21 +11,31 @@ namespace Hospital.Controllers
         private readonly ApplicationDbContext _context;
         private readonly ILogger<HomeController> _logger;
 
-        // Tiêm ApplicationDbContext để truy xuất dữ liệu từ các bảng của bạn
         public HomeController(ApplicationDbContext context, ILogger<HomeController> logger)
         {
             _context = context;
             _logger = logger;
         }
 
-        // 1. TRANG CHỦ
-        public IActionResult Index()
+        // ==========================================================================
+        // 1. TRANG CHỦ (Cập nhật để lấy danh sách Bác sĩ)
+        // ==========================================================================
+        public async Task<IActionResult> Index()
         {
-            return View();
+            // Truy vấn lấy danh sách bác sĩ đang hoạt động
+            // .Include(b => b.ChuyenKhoa) để lấy được tên Chuyên khoa từ bảng liên kết
+            var doctors = await _context.BacSi
+                .Include(b => b.ChuyenKhoa)
+                .Where(b => b.IsActive)
+                .ToListAsync();
+
+            // Trả về View kèm theo danh sách dữ liệu bác sĩ
+            return View(doctors);
         }
 
-        // 2. ACTION TÌM KIẾM THÔNG MINH (AJAX)
-        // Kết nối trực tiếp với Database thực của bạn
+        // ==========================================================================
+        // 2. ACTION TÌM KIẾM THÔNG MINH (Giữ nguyên code cũ của bạn)
+        // ==========================================================================
         [HttpGet]
         public async Task<IActionResult> GetSearchSuggestions(string term)
         {
@@ -50,19 +60,18 @@ namespace Hospital.Controllers
                 .Select(b => new { title = b.TenBenhLy, desc = "Thông tin bệnh lý", url = "/BenhLy/Details/" + b.BenhLyId, img = b.HinhAnhUrl, type = "disease" })
                 .Take(3).ToListAsync();
 
-            // 4. MỚI: Tìm Tin tức dựa trên Model bạn vừa gửi (TieuDe, HinhAnhUrl, Id)
+            // 4. Tìm Tin tức (TieuDe)
             var news = await _context.TinTuc
-                .Where(t => t.IsPublished && (t.TieuDe.ToLower().Contains(termLower) || t.DanhMuc.ToLower().Contains(termLower)))
+                .Where(t => t.IsPublished && (t.TieuDe.ToLower().Contains(termLower) || (t.DanhMuc != null && t.DanhMuc.ToLower().Contains(termLower))))
                 .Select(t => new {
                     title = t.TieuDe,
                     desc = t.DanhMuc ?? "Tin tức & Kiến thức",
-                    url = "/TinTuc/Details/" + t.Id, // Sử dụng Id
-                    img = t.HinhAnhUrl, // Sử dụng HinhAnhUrl
+                    url = "/TinTuc/Details/" + t.Id,
+                    img = t.HinhAnhUrl,
                     type = "news"
                 })
                 .Take(3).ToListAsync();
 
-            // Gộp tất cả kết quả trả về JSON
             var results = doctors.Cast<object>()
                 .Concat(services).Concat(diseases).Concat(news)
                 .ToList();
@@ -70,21 +79,10 @@ namespace Hospital.Controllers
             return Json(results);
         }
 
-        // Các Action mặc định khác
-        public IActionResult Privacy()
-        {
-            return View();
-        }
+        // Các Action mặc định khác (Giữ nguyên)
+        public IActionResult Privacy() => View();
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
-        {
-            return HideError();
-        }
-
-        private IActionResult HideError()
-        {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
-        }
+        public IActionResult Error() => View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
     }
 }

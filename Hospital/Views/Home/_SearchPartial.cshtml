@@ -1,0 +1,38 @@
+﻿<section class="quick-search-section">
+    <div class="container">
+        <div class="search-wrapper shadow-lg">
+            <form action="/Search" method="GET" class="row g-0 align-items-center position-relative">
+                <div class="col-lg-7 border-end">
+                    <div class="input-group">
+                        <span class="input-group-text bg-transparent border-0 ps-4">
+                            <i class="bi bi-search text-primary"></i>
+                        </span>
+                        <input type="text" id="mainSearchInput" name="query" class="form-control border-0 py-4 shadow-none"
+                               placeholder="Tìm bác sĩ, chuyên khoa, bệnh lý, thuốc..." autocomplete="off">
+                    </div>
+                </div>
+
+                <div class="col-lg-2 border-end d-none d-lg-block">
+                    <div class="input-group">
+                        <select class="form-select border-0 py-4 shadow-none cursor-pointer text-muted" style="font-size: 0.85rem;">
+                            <option value="" selected>Tất cả dịch vụ</option>
+                            <option value="1">Trị mụn y khoa</option>
+                            <option value="2">Trị nám & Tàn nhang</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 p-2">
+                    <button type="submit" class="btn btn-search-submit w-100 py-3 text-uppercase fw-bold">
+                        <i class="bi bi-search me-2"></i>Tìm kiếm
+                    </button>
+                </div>
+
+                <div id="liveResults" class="live-results-box shadow-lg">
+                    <div class="p-3 border-bottom fw-bold small text-primary bg-light">KẾT QUẢ GỢI Ý</div>
+                    <ul class="list-unstyled mb-0" id="resultsList"></ul>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
