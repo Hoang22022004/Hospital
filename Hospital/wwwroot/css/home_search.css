@@ -1,0 +1,140 @@
+﻿/* ==========================================================================
+   PHẦN 2: QUICK SEARCH SECTION (THANH TÌM KIẾM)
+   ========================================================================== */
+
+.quick-search-section {
+    position: relative;
+    z-index: 10;
+    margin-top: -60px; /* Hiệu ứng đè lên Banner */
+}
+
+.search-wrapper {
+    background: var(--hp-white);
+    border-radius: 15px;
+    padding: 5px;
+    border: 1px solid rgba(69, 195, 210, 0.2);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+}
+
+    .search-wrapper .form-control,
+    .search-wrapper .form-select {
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: var(--hp-navy);
+    }
+
+        .search-wrapper .form-control::placeholder {
+            color: #94a3b8;
+        }
+
+/* Nút tìm kiếm */
+.btn-search-submit {
+    background: linear-gradient(135deg, var(--hp-primary) 0%, var(--hp-primary-dark) 100%);
+    color: white !important;
+    border: none;
+    border-radius: 12px;
+    transition: var(--transition);
+}
+
+    .btn-search-submit:hover {
+        background: var(--hp-navy);
+        transform: scale(1.02);
+        box-shadow: 0 8px 20px rgba(69, 195, 210, 0.3);
+    }
+
+/* Hộp gợi ý thông minh (Autocomplete) */
+.live-results-box {
+    position: absolute;
+    top: 105%;
+    left: 0;
+    width: 58.33%; /* Khớp với tỷ lệ col-lg-7 của ô tìm kiếm */
+    background: white;
+    border-radius: 12px;
+    z-index: 999;
+    display: none;
+    overflow: hidden;
+    border: 1px solid rgba(69, 195, 210, 0.2);
+}
+
+    .live-results-box ul li a {
+        display: flex;
+        align-items: center;
+        padding: 12px 20px;
+        color: var(--hp-navy);
+        text-decoration: none;
+        transition: 0.2s;
+        border-bottom: 1px solid #f8f9fa;
+    }
+
+        .live-results-box ul li a:hover {
+            background-color: var(--hp-nav-bg);
+            color: var(--hp-primary);
+        }
+
+/* Hiệu ứng focus */
+.search-wrapper .col-lg-7:focus-within,
+.search-wrapper .col-lg-2:focus-within {
+    background-color: #f8fafc;
+    border-radius: 10px;
+}
+
+/* Gợi ý Hashtags */
+.search-suggestions a {
+    transition: var(--transition);
+}
+
+    .search-suggestions a:hover {
+        background-color: var(--hp-primary) !important;
+        color: white !important;
+        border-color: var(--hp-primary);
+    }
+
+@media (max-width: 991px) {
+    .quick-search-section {
+        margin-top: -30px;
+    }
+
+    .search-wrapper {
+        margin: 0 10px;
+        padding: 15px;
+    }
+
+        .search-wrapper .border-end {
+            border-end: none !important;
+            border-bottom: 1px solid #eee;
+        }
+
+    .btn-search-submit {
+        margin-top: 10px;
+    }
+
+    .live-results-box {
+        width: 100%;
+    }
+}
+/* Container cho ảnh và icon placeholder */
+.search-result-img,
+.search-result-icon-placeholder {
+    width: 45px;
+    height: 45px;
+    border-radius: 10px; /* Bo góc hiện đại đồng bộ Clinic */
+    object-fit: cover;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Style riêng cho Icon khi không có ảnh */
+.search-result-icon-placeholder {
+    background-color: #f1f8f9; /* Màu xanh nhạt của Navbar */
+    color: var(--hp-primary); /* Màu xanh Teal thương hiệu */
+    font-size: 1.4rem;
+    border: 1px solid rgba(69, 195, 210, 0.2);
+}
+
+/* Hiệu ứng khi hover vào dòng kết quả */
+.live-results-box ul li a:hover .search-result-icon-placeholder {
+    background-color: var(--hp-primary);
+    color: white;
+    transition: 0.3s;
+}

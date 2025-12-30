@@ -3,12 +3,12 @@
 }
 
 @section Styles {
-    <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/home_hero.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/home_search.css" asp-append-version="true" />
 }
 
 <section class="hero-section">
     <div id="heroCarousel" class="carousel slide carousel-fade hero-carousel" data-bs-ride="carousel" data-bs-interval="5000">
-
         <div class="carousel-indicators mb-5">
             <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="0" class="active" aria-current="true"></button>
             <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="1"></button>
@@ -17,15 +17,14 @@
 
         <div class="carousel-inner">
             <div class="carousel-item active" style="background-image: url('https://images.unsplash.com/photo-1629909613654-28e377c37b09?q=80&w=2070&auto=format&fit=crop');">
-                <div class="hero-overlay"></div> <div class="carousel-caption text-start">
+                <div class="hero-overlay"></div>
+                <div class="carousel-caption text-start">
                     <div class="container">
                         <div class="row">
                             <div class="col-lg-8">
-                                <span class="hero-subtitleanimate__animated animate__fadeInDown">VIỆT PHÁP CLINIC HUẾ</span>
+                                <span class="hero-subtitle animate__animated animate__fadeInDown">HELLO PARIS CLINIC</span>
                                 <h1 class="hero-title animate__animated animate__fadeInDown delay-1">Đánh thức vẻ đẹp <br> <span class="text-primary">chuẩn Y khoa</span></h1>
-                                <p class="hero-text animate__animated animate__fadeInUp delay-2">
-                                    Hệ thống phòng khám Da liễu thẩm mỹ công nghệ cao. Chúng tôi cam kết mang lại làn da khỏe mạnh và vẻ đẹp tự nhiên bền vững cho bạn.
-                                </p>
+                                <p class="hero-text animate__animated animate__fadeInUp delay-2">Hệ thống phòng khám Da liễu thẩm mỹ công nghệ cao tại Huế.</p>
                                 <div class="d-flex gap-3 animate__animated animate__fadeInUp delay-3">
                                     <a href="/DatLich" class="btn btn-hero-primary shadow">ĐẶT LỊCH NGAY</a>
                                     <a href="/DichVu" class="btn btn-hero-outline">XEM DỊCH VỤ</a>
@@ -35,56 +34,133 @@
                     </div>
                 </div>
             </div>
-
-            <div class="carousel-item" style="background-image: url('https://images.unsplash.com/photo-1516549655169-df83a0774514?q=80&w=2070&auto=format&fit=crop');">
-                <div class="hero-overlay"></div>
-                <div class="carousel-caption text-start">
-                    <div class="container">
-                        <div class="row justify-content-end">
-                            <div class="col-lg-7 text-end">
-                                <span class="hero-subtitle">CÔNG NGHỆ TIÊN TIẾN</span>
-                                <h1 class="hero-title">Trẻ hóa làn da <br> không phẫu thuật</h1>
-                                <p class="hero-text ms-auto">
-                                    Sử dụng các công nghệ Hifu, Laser Picostar hàng đầu thế giới, giúp xóa nhăn, nâng cơ và tái tạo làn da không xâm lấn.
-                                </p>
-                                <div class="d-flex gap-3 justify-content-end">
-                                    <a href="/DichVu/TreHoa" class="btn btn-hero-primary shadow">TƯ VẤN NGAY</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="carousel-item" style="background-image: url('https://plus.unsplash.com/premium_photo-1661281397737-9b5d75b52beb?q=80&w=2069&auto=format&fit=crop');">
-                <div class="hero-overlay"></div>
-                <div class="carousel-caption text-start">
-                    <div class="container">
-                        <div class="col-lg-8">
-                            <span class="hero-subtitle">CHUYÊN GIA HÀNG ĐẦU</span>
-                            <h1 class="hero-title">Đội ngũ Bác sĩ <br> Da liễu uy tín</h1>
-                            <p class="hero-text">
-                                100% Bác sĩ có chứng chỉ hành nghề, nhiều năm kinh nghiệm tu nghiệp tại Pháp và các bệnh viện lớn trong nước.
-                            </p>
-                            <div class="d-flex gap-3">
-                                <a href="/BacSi" class="btn btn-hero-primary shadow">ĐẶT LỊCH BÁC SĨ</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
-
-        <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
-            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-            <span class="visually-hidden">Previous</span>
-        </button>
-        <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
-            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-            <span class="visually-hidden">Next</span>
-        </button>
     </div>
 </section>
 
-<div style="height: 500px; background-color: #fff;" class="container py-5">
-    <h2 class="text-center brand-font text-primary">Nội dung tiếp theo sẽ ở đây...</h2>
-</div>
+<section class="quick-search-section">
+    <div class="container">
+        <div class="search-wrapper shadow-lg">
+            <form action="/Search" method="GET" class="row g-0 align-items-center position-relative">
+                <div class="col-lg-7 border-end">
+                    <div class="input-group">
+                        <span class="input-group-text bg-transparent border-0 ps-4">
+                            <i class="bi bi-search text-primary"></i>
+                        </span>
+                        <input type="text" id="mainSearchInput" name="query" class="form-control border-0 py-4 shadow-none"
+                               placeholder="Tìm bác sĩ, chuyên khoa, bệnh lý, thuốc..." autocomplete="off">
+                    </div>
+                </div>
+
+                <div class="col-lg-2 border-end d-none d-lg-block">
+                    <div class="input-group">
+                        <select class="form-select border-0 py-4 shadow-none cursor-pointer text-muted" style="font-size: 0.85rem;">
+                            <option value="" selected>Tất cả dịch vụ</option>
+                            <option value="1">Trị mụn y khoa</option>
+                            <option value="2">Trị nám & Tàn nhang</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 p-2">
+                    <button type="submit" class="btn btn-search-submit w-100 py-3 text-uppercase fw-bold">
+                        <i class="bi bi-search me-2"></i>Tìm kiếm
+                    </button>
+                </div>
+
+                <div id="liveResults" class="live-results-box shadow-lg">
+                    <div class="p-3 border-bottom fw-bold small text-primary bg-light">KẾT QUẢ GỢI Ý</div>
+                    <ul class="list-unstyled mb-0" id="resultsList"></ul>
+                </div>
+            </form>
+        </div>
+
+        <div id="quickSuggestions" class="search-suggestions mt-3 text-center" style="display: none;">
+            <span class="small text-muted me-2">Gợi ý:</span>
+            <a href="#" class="badge rounded-pill bg-light text-dark text-decoration-none px-3 py-2 border me-2">#Trị_mụn</a>
+            <a href="#" class="badge rounded-pill bg-light text-dark text-decoration-none px-3 py-2 border me-2">#Bác_sĩ_Yên</a>
+            <a href="#" class="badge rounded-pill bg-light text-dark text-decoration-none px-3 py-2 border me-2">#Thuốc_đặc_trị</a>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            const $searchInput = $('#mainSearchInput');
+            const $liveResults = $('#liveResults');
+            const $resultsList = $('#resultsList');
+            const $quickSuggestions = $('#quickSuggestions');
+
+            $searchInput.on('focus', function () {
+                if ($(this).val().length === 0) $quickSuggestions.fadeIn(300);
+            });
+
+            $searchInput.on('input', function () {
+                const term = $(this).val();
+                if (term.length > 0) {
+                    $quickSuggestions.hide();
+                    $.ajax({
+                        url: '/Home/GetSearchSuggestions',
+                        type: 'GET',
+                        data: { term: term },
+                        success: function (data) {
+                            $resultsList.empty();
+                            if (data.length > 0) {
+                                $liveResults.show();
+                                data.forEach(item => {
+                                    let mediaHtml = '';
+
+                                    // LOGIC HIỂN THỊ ẢNH HOẶC ICON THEO LOẠI DỮ LIỆU
+                                    if (item.img && item.img.trim() !== '') {
+                                        mediaHtml = `<img src="${item.img}" class="search-result-img" onerror="this.src='/images/default.png'">`;
+                                    } else {
+                                        // Gán icon đặc trưng cho từng Model
+                                        let iconClass = 'bi-search';
+                                        switch(item.type) {
+                                            case 'doctor': iconClass = 'bi-person-circle'; break; // Bác sĩ
+                                            case 'service': iconClass = 'bi-activity'; break;    // Dịch vụ
+                                            case 'disease': iconClass = 'bi-capsule-pill'; break; // Bệnh lý
+                                            case 'news': iconClass = 'bi-journal-text'; break;   // Tin tức
+                                            case 'medicine': iconClass = 'bi-capsule'; break;    // Thuốc
+                                            case 'specialty': iconClass = 'bi-hospital'; break;  // Chuyên khoa
+                                        }
+
+                                        mediaHtml = `
+                                            <div class="search-result-icon-placeholder">
+                                                <i class="bi ${iconClass}"></i>
+                                            </div>`;
+                                    }
+
+                                    $resultsList.append(`
+                                        <li>
+                                            <a href="${item.url}" class="d-flex align-items-center p-3 text-decoration-none border-bottom">
+                                                <div class="me-3">${mediaHtml}</div>
+                                                <div>
+                                                    <span class="d-block fw-bold text-dark">${item.title}</span>
+                                                    <small class="text-muted">${item.desc || 'Hello Paris Clinic'}</small>
+                                                </div>
+                                            </a>
+                                        </li>
+                                    `);
+                                });
+                            } else {
+                                $resultsList.html('<li class="p-4 text-center text-muted small">Không tìm thấy dữ liệu phù hợp...</li>');
+                            }
+                        }
+                    });
+                } else {
+                    $liveResults.hide();
+                    $quickSuggestions.show();
+                }
+            });
+
+            $(document).on('click', function (e) {
+                if (!$(e.target).closest('.search-wrapper').length) {
+                    $liveResults.hide();
+                    $quickSuggestions.fadeOut(200);
+                }
+            });
+        });
+    </script>
+}
