@@ -1,0 +1,73 @@
+﻿@model Hospital.Models.TinTuc
+@{
+    ViewData["Title"] = "Chỉnh sửa bài viết";
+}
+
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-white py-3">
+        <h5 class="mb-0 fw-bold text-warning"><i class="bi bi-pencil-square me-2"></i>CHỈNH SỬA BÀI VIẾT</h5>
+    </div>
+    <div class="card-body p-4">
+        <form asp-action="Edit" method="post" enctype="multipart/form-data">
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="HinhAnhUrl" /> <input type="hidden" asp-for="NgayDang" />
+
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="mb-3">
+                        <label asp-for="TieuDe" class="form-label fw-bold"></label>
+                        <input asp-for="TieuDe" class="form-control" />
+                        <span asp-validation-for="TieuDe" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="NoiDung" class="form-label fw-bold"></label>
+                        <textarea asp-for="NoiDung" id="tiny-editor">@Model.NoiDung</textarea>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-light border-0 p-3">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Ảnh hiện tại</label>
+                            <div class="mb-2">
+                                <img id="preview" src="@(Model.HinhAnhUrl ?? "/images/no-image.png")" class="img-thumbnail" style="max-height: 200px; width: 100%; object-fit: cover;" />
+                            </div>
+                            <input type="file" name="imageFile" class="form-control" accept="image/*" onchange="previewImage(this)" />
+                            <small class="text-muted italic">(Chọn ảnh mới nếu muốn thay đổi)</small>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="DanhMuc" class="form-label fw-bold"></label>
+                            <select asp-for="DanhMuc" class="form-select">
+                                <option value="Kiến thức da liễu">Kiến thức da liễu</option>
+                                <option value="Tin tức phòng khám">Tin tức phòng khám</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-warning w-100 mb-2 fw-bold">Cập nhật bài viết</button>
+                        <a asp-action="Index" class="btn btn-outline-secondary w-100">Hủy bỏ</a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.tiny.cloud/1/vy399c75h6gyw1xkemhoj245q01aqnsusy14yaiket9jmz1h/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+    <script>
+        tinymce.init({
+            selector: '#tiny-editor',
+            height: 500,
+            plugins: 'advlist autolink lists link image charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime media table help wordcount',
+            toolbar: 'undo redo | blocks | bold italic | alignleft aligncenter alignright | image media | help',
+            images_upload_url: '/Admin/TinTuc/UploadImageTiny',
+            language: 'vi',
+            branding: false
+        });
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function (e) { document.getElementById('preview').src = e.target.result; }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    </script>
+}

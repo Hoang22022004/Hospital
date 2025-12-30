@@ -30,6 +30,7 @@ namespace Hospital.Data
         public DbSet<HinhAnhBenhAn> HinhAnhBenhAn { get; set; }
         public DbSet<ChiTietDichVu> ChiTietDichVu { get; set; }
         public DbSet<ChiTietDonThuoc> ChiTietDonThuoc { get; set; }
+        public DbSet<TinTuc> TinTuc { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

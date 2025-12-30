@@ -1,0 +1,236 @@
+﻿/* Thêm đoạn này lên đầu file để xóa mọi khoảng cách mặc định của trình duyệt */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+/* ==========================================================================
+   1. BIẾN MÀU SẮC & CẤU TRÚC (CONCEPT: MODERN CLINIC)
+   ========================================================================== */
+:root {
+    --hp-primary: #45c3d2; /* Xanh Teal thương hiệu */
+    --hp-primary-dark: #37a8b6;
+    --hp-navy: #1e293b; /* Xanh Navy đậm sang trọng */
+    --hp-gray-mouse: #f8f9fa; /* Xám chuột sáng sạch sẽ */
+    --hp-nav-bg: rgba(241, 248, 249, 0.96); /* Nền Navbar trong suốt nhẹ */
+    --hp-accent: #ffc107; /* Vàng cam nhấn mạnh */
+    --hp-text-dark: #2d3e50;
+    --hp-text-muted: #64748b;
+    --hp-white: #FFFFFF;
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body {
+    font-family: 'Montserrat', sans-serif;
+    color: var(--hp-text-dark);
+    background-color: var(--hp-white);
+    line-height: 1.6;
+}
+
+/* ==========================================================================
+   2. STYLE THƯƠNG HIỆU (HELLO PARIS) - ĐIỂM NHẤN HIỆN ĐẠI
+   ========================================================================== */
+.brand-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.brand-name {
+    font-family: 'Playfair Display', serif;
+    font-weight: 900;
+    font-size: 1.7rem;
+    line-height: 1;
+    margin: 0;
+    letter-spacing: 1.2px;
+    /* Hiệu ứng Gradient từ Navy sang Teal */
+    background: linear-gradient(135deg, var(--hp-navy) 20%, var(--hp-primary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    transition: var(--transition);
+}
+
+.brand-sub {
+    font-family: 'Montserrat', sans-serif;
+    color: var(--hp-primary);
+    font-weight: 700;
+    font-size: 0.7rem;
+    letter-spacing: 3.5px;
+    text-transform: uppercase;
+    margin-top: 4px;
+    display: block;
+}
+
+/* Tách nền trắng cho tất cả logo để hòa vào màu nền Navbar/Footer */
+.logo-img, .bct-img {
+    mix-blend-mode: multiply;
+    filter: contrast(105%);
+    transition: var(--transition);
+}
+
+.logo-img {
+    height: 65px;
+}
+
+/* Điều chỉnh logo Bộ Công Thương to và rõ nét hơn */
+.bct-img {
+    height: 90px; /* Tăng từ 42px/45px lên 60px để to rõ hơn */
+    width: auto; /* Giữ đúng tỉ lệ ảnh */
+    mix-blend-mode: multiply; /* Tách nền trắng */
+    filter: contrast(110%); /* Làm logo sắc nét hơn */
+    transition: var(--transition);
+    cursor: pointer;
+}
+
+    /* Hiệu ứng nhẹ khi di chuột vào logo BCT */
+    .bct-img:hover {
+        transform: scale(1.05); /* Phóng to nhẹ khi di chuột vào */
+        filter: contrast(120%) brightness(1.05);
+    }
+
+/* ==========================================================================
+   3. TOPBAR & NAVBAR (GIỮ NGUYÊN NỘI DUNG CHỮ CỦA BẠN)
+   ========================================================================== */
+.hp-topbar {
+    background-color: var(--hp-gray-mouse);
+    font-size: 13px;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.btn-tra-cuu {
+    background: #fff;
+    color: var(--hp-navy) !important;
+    padding: 5px 18px;
+    border-radius: 50px;
+    border: 1.5px solid var(--hp-primary);
+    font-weight: 700;
+    font-size: 12px;
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+    .btn-tra-cuu:hover {
+        background: var(--hp-primary);
+        color: #fff !important;
+        box-shadow: 0 4px 12px rgba(69, 195, 210, 0.3);
+    }
+
+/* Hiệu ứng kính (Glassmorphism) cho Navbar */
+.sticky-top {
+    backdrop-filter: blur(15px);
+    background-color: var(--hp-nav-bg);
+    border-bottom: 1px solid rgba(69, 195, 210, 0.1);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+}
+
+/* Menu chính và hiệu ứng gạch chân khi hover */
+.nav-link {
+    position: relative;
+    color: var(--hp-navy) !important;
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    margin: 0 10px;
+    transition: var(--transition);
+}
+
+    .nav-link::after {
+        content: '';
+        position: absolute;
+        width: 0;
+        height: 2px;
+        bottom: 0;
+        left: 50%;
+        background-color: var(--hp-primary);
+        transition: all 0.4s ease-in-out;
+        transform: translateX(-50%);
+    }
+
+    .nav-link:hover::after {
+        width: 60%;
+    }
+
+    .nav-link:hover {
+        color: var(--hp-primary) !important;
+    }
+
+/* Nút Đăng nhập & Đặt lịch */
+.btn-login {
+    color: var(--hp-primary) !important;
+    border: 2px solid var(--hp-primary);
+    border-radius: 8px;
+    font-weight: 700;
+    padding: 6px 20px !important;
+    transition: var(--transition);
+}
+
+    .btn-login:hover {
+        background-color: var(--hp-primary);
+        color: white !important;
+    }
+
+.btn-book {
+    background: linear-gradient(135deg, var(--hp-accent), #f39c12);
+    color: var(--hp-navy) !important;
+    border-radius: 10px;
+    padding: 10px 25px !important;
+    font-weight: 800;
+    border: none;
+    box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);
+    transition: var(--transition);
+}
+
+    .btn-book:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(255, 193, 7, 0.5);
+    }
+
+/* ==========================================================================
+   4. FOOTER (CHÂN TRANG)
+   ========================================================================== */
+.hp-footer {
+    background-color: #f1f8f9;
+    padding-top: 60px;
+}
+
+.footer-heading {
+    color: var(--hp-navy);
+    font-weight: 800;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    margin-bottom: 25px;
+    position: relative;
+}
+
+    .footer-heading::after {
+        content: '';
+        position: absolute;
+        bottom: -8px;
+        left: 0;
+        width: 35px;
+        height: 3px;
+        background: var(--hp-primary);
+    }
+
+/* Hiệu ứng dịch chuyển nhẹ khi hover vào link footer */
+.footer-links a {
+    color: var(--hp-text-muted);
+    text-decoration: none;
+    display: block;
+    margin-bottom: 12px;
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+    .footer-links a:hover {
+        color: var(--hp-primary) !important;
+        padding-left: 8px;
+        transform: translateX(5px);
+    }
+
+.legal-box {
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+}

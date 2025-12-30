@@ -1,55 +1,114 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Hospital</title>
+    <title>@ViewData["Title"] - Hello Paris Việt Pháp</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Playfair+Display:wght@700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/Hospital.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="~/css/main_layout.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Hospital</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
+
+    <div class="hp-topbar py-2 d-none d-lg-block">
+        <div class="container d-flex justify-content-between align-items-center">
+            <div class="topbar-info">
+                <span class="me-4"><i class="bi bi-geo-alt-fill text-primary me-1"></i> 52 Chế Lan Viên, TP Huế</span>
+                <span><i class="bi bi-telephone-outbound-fill text-primary me-1"></i> Hotline: 090 528 04 82</span>
+            </div>
+            <div class="topbar-social">
+                <a href="/TraCuu" class="btn-tra-cuu me-3">TRA CỨU KẾT QUẢ</a>
+                <a href="#" class="text-primary"><i class="bi bi-facebook fs-5"></i></a>
+            </div>
+        </div>
+    </div>
+
+    <header class="sticky-top">
+        <nav class="navbar navbar-expand-lg py-2">
+            <div class="container">
+                <a class="navbar-brand d-flex align-items-center" href="/">
+                    <img src="~/images/layout/logo.png" alt="Hello Paris" class="logo-img">
+                    <div class="ms-2 brand-container">
+                        <span class="brand-name">HELLO PARIS</span>
+                        <small class="brand-sub">VIỆT PHÁP CLINIC</small>
+                    </div>
+                </a>
+
+                <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto align-items-center">
+                        <li class="nav-item"><a class="nav-link" href="/ChuyenKhoa">CHUYÊN KHOA</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/BacSi">BÁC SĨ</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/TinTuc">KIẾN THỨC</a></li>
+                        <li class="nav-item ms-lg-2"><a class="nav-link btn-login px-3" href="/Account/Login">ĐĂNG NHẬP</a></li>
+                        <li class="nav-item ms-lg-3">
+                            <a href="/DatLich" class="btn btn-book text-uppercase">
+                                <i class="bi bi-calendar2-plus-fill me-1"></i> ĐẶT LỊCH NGAY
+                            </a>
                         </li>
                     </ul>
-
-                    @* *************************************************************** *@
-                    @* BỔ SUNG QUAN TRỌNG: Gọi Partial View Đăng nhập/Đăng xuất *@
-                    @* *************************************************************** *@
-                    <partial name="_LoginPartial" />
-
                 </div>
             </div>
         </nav>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2025 - Hospital - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    <main role="main">
+        @RenderBody()
+    </main>
+
+    <footer class="hp-footer mt-5 pb-3">
+        <div class="container mb-5">
+            <div class="row g-5">
+                <div class="col-lg-4">
+                    <div class="brand-container mb-3">
+                        <span class="brand-name" style="font-size: 1.8rem;">HELLO PARIS</span>
+                        <span class="brand-sub">Healthy skin, beautiful you</span>
+                    </div>
+                    <div class="legal-box shadow-sm">
+                        <h6 class="fw-bold mb-3 border-bottom pb-2" style="font-size: 0.8rem;">THÔNG TIN PHÁP LÝ</h6>
+                        <p class="mb-1 small">GPHĐ: Đã được Sở Y Tế cấp phép</p>
+                        <p class="mb-1 small">Số ĐKKD: 031613561</p>
+                        <p class="mb-0 small">Ngày cấp: 27/02/2020 (Sở KH&ĐT Huế)</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <h6 class="footer-heading">Giờ làm việc</h6>
+                    <div class="small text-muted mb-3 border-bottom pb-2">
+                        <strong>Thứ 2 - Thứ 6:</strong> 11:30 - 20:00
+                    </div>
+                    <div class="small text-muted">
+                        <strong>Thứ 7 - Chủ Nhật:</strong> 11:30 - 18:00
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <h6 class="footer-heading">Dịch vụ chính</h6>
+                    <nav class="footer-links list-unstyled">
+                        <li><a href="#" class="text-muted text-decoration-none d-block mb-2 small">Trị mụn y khoa Bio Light</a></li>
+                        <li><a href="#" class="text-muted text-decoration-none d-block mb-2 small">Cấy sẹo Meso scar</a></li>
+                        <li><a href="#" class="text-muted text-decoration-none d-block mb-2 small">Trị nám Melas Picostar</a></li>
+                        <li><a href="#" class="text-muted text-decoration-none d-block mb-2 small">Khám bệnh lý da liễu</a></li>
+                    </nav>
+                </div>
+                <div class="col-lg-2 col-md-6">
+                    <h6 class="footer-heading">Liên hệ</h6>
+                    <p class="small text-muted mb-4"><i class="bi bi-geo-alt-fill text-primary"></i> 52 Chế Lan Viên, Huế</p>
+                    <img src="~/images/Layout/BCT.png" alt="Bộ Công Thương" class="bct-img">
+                </div>
+            </div>
+        </div>
+        <div class="text-center small text-muted pt-3 border-top border-secondary border-opacity-10">
+            © 2025 Hello Paris - Phòng khám Da liễu Việt Pháp.
         </div>
     </footer>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

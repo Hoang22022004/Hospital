@@ -1,0 +1,105 @@
+﻿@model IEnumerable<Hospital.Models.TinTuc>
+
+@{
+    ViewData["Title"] = "Danh sách tin tức";
+    // Không sử dụng @section Styles ở đây để tránh lỗi Layout
+}
+
+<div class="card shadow-sm">
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 fw-bold text-primary">
+            <i class="bi bi-journal-text me-2"></i>QUẢN LÝ BÀI VIẾT TIN TỨC
+        </h5>
+        <a asp-action="Create" class="btn btn-primary btn-sm shadow-sm">
+            <i class="bi bi-plus-circle me-1"></i> Thêm bài viết mới
+        </a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle border">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 80px;">Ảnh</th>
+                        <th>Tiêu đề</th>
+                        <th>Danh mục</th>
+                        <th>Tác giả</th>
+                        <th>Ngày đăng</th>
+                        <th class="text-center">Trạng thái</th>
+                        <th class="text-end" style="width: 150px;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(item.HinhAnhUrl))
+                                    {
+                                        <img src="@item.HinhAnhUrl" class="rounded border" style="width: 60px; height: 60px; object-fit: cover;" />
+                                    }
+                                    else
+                                    {
+                                        <div class="bg-light rounded border d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                                            <i class="bi bi-image text-muted"></i>
+                                        </div>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="fw-bold text-dark text-truncate" style="max-width: 300px;">
+                                        @item.TieuDe
+                                    </div>
+                                    <small class="text-muted">ID: #@item.Id</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info text-dark">@item.DanhMuc</span>
+                                </td>
+                                <td>@item.TacGia</td>
+                                <td>@item.NgayDang.ToString("dd/MM/yyyy")</td>
+                                <td class="text-center">
+                                    @if (item.IsPublished)
+                                    {
+                                        <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i> Hiển thị</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary"><i class="bi bi-eye-slash me-1"></i> Ẩn</span>
+                                    }
+                                </td>
+                                <td class="text-end">
+                                    <div class="btn-group btn-group-sm">
+                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-outline-warning" title="Sửa bài">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </a>
+                                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-info" title="Xem chi tiết">
+                                            <i class="bi bi-info-circle"></i>
+                                        </a>
+                                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-outline-danger" title="Xóa bài">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-muted">
+                                <i>Chưa có bài viết nào được đăng.</i>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @* Chỉ sử dụng Scripts có sẵn *@
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

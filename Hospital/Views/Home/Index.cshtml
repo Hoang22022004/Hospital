@@ -1,8 +1,90 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Trang chủ";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+@section Styles {
+    <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
+}
+
+<section class="hero-section">
+    <div id="heroCarousel" class="carousel slide carousel-fade hero-carousel" data-bs-ride="carousel" data-bs-interval="5000">
+
+        <div class="carousel-indicators mb-5">
+            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="0" class="active" aria-current="true"></button>
+            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="1"></button>
+            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="2"></button>
+        </div>
+
+        <div class="carousel-inner">
+            <div class="carousel-item active" style="background-image: url('https://images.unsplash.com/photo-1629909613654-28e377c37b09?q=80&w=2070&auto=format&fit=crop');">
+                <div class="hero-overlay"></div> <div class="carousel-caption text-start">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-lg-8">
+                                <span class="hero-subtitleanimate__animated animate__fadeInDown">VIỆT PHÁP CLINIC HUẾ</span>
+                                <h1 class="hero-title animate__animated animate__fadeInDown delay-1">Đánh thức vẻ đẹp <br> <span class="text-primary">chuẩn Y khoa</span></h1>
+                                <p class="hero-text animate__animated animate__fadeInUp delay-2">
+                                    Hệ thống phòng khám Da liễu thẩm mỹ công nghệ cao. Chúng tôi cam kết mang lại làn da khỏe mạnh và vẻ đẹp tự nhiên bền vững cho bạn.
+                                </p>
+                                <div class="d-flex gap-3 animate__animated animate__fadeInUp delay-3">
+                                    <a href="/DatLich" class="btn btn-hero-primary shadow">ĐẶT LỊCH NGAY</a>
+                                    <a href="/DichVu" class="btn btn-hero-outline">XEM DỊCH VỤ</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="carousel-item" style="background-image: url('https://images.unsplash.com/photo-1516549655169-df83a0774514?q=80&w=2070&auto=format&fit=crop');">
+                <div class="hero-overlay"></div>
+                <div class="carousel-caption text-start">
+                    <div class="container">
+                        <div class="row justify-content-end">
+                            <div class="col-lg-7 text-end">
+                                <span class="hero-subtitle">CÔNG NGHỆ TIÊN TIẾN</span>
+                                <h1 class="hero-title">Trẻ hóa làn da <br> không phẫu thuật</h1>
+                                <p class="hero-text ms-auto">
+                                    Sử dụng các công nghệ Hifu, Laser Picostar hàng đầu thế giới, giúp xóa nhăn, nâng cơ và tái tạo làn da không xâm lấn.
+                                </p>
+                                <div class="d-flex gap-3 justify-content-end">
+                                    <a href="/DichVu/TreHoa" class="btn btn-hero-primary shadow">TƯ VẤN NGAY</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="carousel-item" style="background-image: url('https://plus.unsplash.com/premium_photo-1661281397737-9b5d75b52beb?q=80&w=2069&auto=format&fit=crop');">
+                <div class="hero-overlay"></div>
+                <div class="carousel-caption text-start">
+                    <div class="container">
+                        <div class="col-lg-8">
+                            <span class="hero-subtitle">CHUYÊN GIA HÀNG ĐẦU</span>
+                            <h1 class="hero-title">Đội ngũ Bác sĩ <br> Da liễu uy tín</h1>
+                            <p class="hero-text">
+                                100% Bác sĩ có chứng chỉ hành nghề, nhiều năm kinh nghiệm tu nghiệp tại Pháp và các bệnh viện lớn trong nước.
+                            </p>
+                            <div class="d-flex gap-3">
+                                <a href="/BacSi" class="btn btn-hero-primary shadow">ĐẶT LỊCH BÁC SĨ</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
+    </div>
+</section>
+
+<div style="height: 500px; background-color: #fff;" class="container py-5">
+    <h2 class="text-center brand-font text-primary">Nội dung tiếp theo sẽ ở đây...</h2>
 </div>

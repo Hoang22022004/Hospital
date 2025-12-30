@@ -190,7 +190,15 @@
                         <a asp-area="Admin" asp-controller="LichLamViec" asp-action="Index" class="list-group-item">Lịch trực cá nhân</a>
                     </div>
                 }
-
+                @* MỤC QUẢN LÝ TIN TỨC - Dành cho Admin và Lễ tân *@
+                @if (User.IsInRole("Admin") || User.IsInRole("Receptionist"))
+                {
+                    <div class="menu-label">Truyền thông & Nội dung</div>
+                    <a asp-area="Admin" asp-controller="TinTuc" asp-action="Index"
+                       class="list-group-item list-group-item-action @(ViewContext.RouteData.Values["Controller"]?.ToString() == "TinTuc" ? "active" : "")">
+                        <i class="bi bi-newspaper"></i> Quản lý Tin tức
+                    </a>
+                }
                 <div class="menu-label">Dữ liệu chung</div>
                 <a class="list-group-item list-group-item-action" data-bs-toggle="collapse" href="#dataMenu">
                     <i class="bi bi-collection-fill"></i> Kho & Dịch vụ
@@ -276,5 +284,6 @@
         });
     </script>
     @await RenderSectionAsync("Scripts", required: false)
+
 </body>
 </html>

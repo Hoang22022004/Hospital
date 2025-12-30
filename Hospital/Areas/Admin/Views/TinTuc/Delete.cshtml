@@ -1,0 +1,46 @@
+﻿@model Hospital.Models.TinTuc
+
+@{
+    ViewData["Title"] = "Xác nhận xoá bài viết";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 fw-bold text-danger">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>XÁC NHẬN XOÁ BÀI VIẾT
+                </h5>
+            </div>
+            <div class="card-body p-4 text-center">
+                <p class="text-muted">Bạn có chắc chắn muốn xoá bài viết này không? Hành động này không thể hoàn tác.</p>
+
+                <div class="border rounded p-3 bg-light mb-4">
+                    <div class="row align-items-center text-start">
+                        <div class="col-md-3 text-center">
+                            <img src="@(Model.HinhAnhUrl ?? "/images/no-image.png")"
+                                 class="rounded border img-thumbnail"
+                                 style="width: 120px; height: 120px; object-fit: cover;" />
+                        </div>
+                        <div class="col-md-9 mt-3 mt-md-0">
+                            <h5 class="fw-bold mb-1">@Model.TieuDe</h5>
+                            <p class="mb-1 text-muted small"><i class="bi bi-person me-1"></i> Tác giả: @Model.TacGia</p>
+                            <p class="mb-1 text-muted small"><i class="bi bi-calendar3 me-1"></i> Ngày đăng: @Model.NgayDang.ToString("dd/MM/yyyy")</p>
+                            <span class="badge bg-info text-dark">@Model.DanhMuc</span>
+                        </div>
+                    </div>
+                </div>
+
+                <form asp-action="Delete" method="post">
+                    <input type="hidden" asp-for="Id" />
+                    <button type="submit" class="btn btn-danger px-4 py-2 me-2">
+                        <i class="bi bi-trash me-2"></i>Xoá vĩnh viễn
+                    </button>
+                    <a asp-action="Index" class="btn btn-outline-secondary px-4 py-2">
+                        Hủy bỏ
+                    </a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
