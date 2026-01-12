@@ -1,67 +1,208 @@
 ﻿@page
 @model RegisterModel
 @{
-    ViewData["Title"] = "Register";
+    ViewData["Title"] = "Đăng ký thành viên - Hello Paris";
 }
 
-<h1>@ViewData["Title"]</h1>
+<style>
+    /* SỬ DỤNG LẠI CSS CỦA TRANG LOGIN ĐỂ ĐỒNG BỘ */
+    .register-container {
+        min-height: 100vh;
+        /* Ảnh nền khác một chút để tạo sự tươi mới */
+        background: url('https://images.unsplash.com/photo-1600334129128-685c5582fd35?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80') no-repeat center center fixed;
+        background-size: cover;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
 
-<div class="row">
-    <div class="col-md-4">
-        <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
-            <h2>Create a new account.</h2>
-            <hr />
-            <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
-            <div class="form-floating mb-3">
-                <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
-                <label asp-for="Input.Email">Email</label>
-                <span asp-validation-for="Input.Email" class="text-danger"></span>
+    .glass-card {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 2rem;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        overflow: hidden;
+        max-width: 1000px;
+        width: 100%;
+        display: flex;
+    }
+
+    /* PHẦN ẢNH TRÁI - THAY ĐỔI NỘI DUNG CHÀO MỪNG */
+    .register-image-side {
+        background: url('https://images.unsplash.com/photo-1552693673-1bf958298935?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80') no-repeat center center;
+        background-size: cover;
+        width: 45%;
+        position: relative;
+    }
+
+    .register-image-overlay {
+        position: absolute;
+        inset: 0;
+        /* Gradient ngược lại so với trang login để tạo điểm nhấn */
+        background: linear-gradient(to bottom, rgba(69, 195, 210, 0.6), rgba(0, 45, 91, 0.8));
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 3rem;
+        color: white;
+    }
+
+    .register-form-side {
+        width: 55%;
+        padding: 3rem;
+    }
+
+    /* NÚT BẤM VÀ INPUT ĐỒNG BỘ */
+    .btn-hello-paris {
+        background: #45c3d2;
+        color: white;
+        border: none;
+        padding: 0.8rem;
+        border-radius: 0.8rem;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+
+        .btn-hello-paris:hover {
+            background: #38aebc;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(69, 195, 210, 0.4);
+        }
+
+    .form-floating > .form-control:focus ~ label {
+        color: #45c3d2;
+    }
+
+    .form-control {
+        border: 1px solid #e2e8f0;
+    }
+
+        .form-control:focus {
+            border-color: #45c3d2;
+            box-shadow: 0 0 0 0.25rem rgba(69, 195, 210, 0.15);
+        }
+
+    .social-btn {
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        border: 1px solid #e2e8f0;
+        transition: all 0.2s;
+        color: #64748b;
+        background: white;
+    }
+
+        .social-btn:hover {
+            background: #f8fafc;
+            transform: scale(1.1);
+            color: #45c3d2;
+        }
+
+    @@media (max-width: 768px) {
+        .register-image-side {
+            display: none;
+        }
+
+        .register-form-side {
+            width: 100%;
+            padding: 2rem;
+        }
+    }
+</style>
+
+<div class="register-container">
+    <div class="glass-card animate__animated animate__fadeInUp">
+
+        <div class="register-image-side">
+            <div class="register-image-overlay text-center">
+                <img src="~/images/layout/logo.png" alt="Logo" class="mb-4" style="height: 70px; filter: brightness(0) invert(1);">
+                <h2 class="Montserrat fw-bold mb-3">Gia nhập Hello Paris</h2>
+                <p class="lead mb-4 fw-light">Bắt đầu hành trình chăm sóc sắc đẹp chuẩn y khoa ngay hôm nay.</p>
+                <ul class="text-start d-inline-block small ps-3" style="list-style-type: none;">
+                    <li class="mb-2"><i class="bi bi-check2-circle me-2"></i>Đặt lịch ưu tiên</li>
+                    <li class="mb-2"><i class="bi bi-check2-circle me-2"></i>Theo dõi hồ sơ điều trị</li>
+                    <li><i class="bi bi-check2-circle me-2"></i>Nhận ưu đãi hội viên</li>
+                </ul>
             </div>
-            <div class="form-floating mb-3">
-                <input asp-for="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
-                <label asp-for="Input.Password">Password</label>
-                <span asp-validation-for="Input.Password" class="text-danger"></span>
+        </div>
+
+        <div class="register-form-side bg-white bg-opacity-75">
+            <div class="text-center mb-4">
+                <h3 class="fw-bold text-navy Montserrat">Tạo tài khoản mới</h3>
+                <p class="text-muted small">Điền thông tin của bạn để đăng ký</p>
             </div>
-            <div class="form-floating mb-3">
-                <input asp-for="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
-                <label asp-for="Input.ConfirmPassword">Confirm Password</label>
-                <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
-            </div>
-            <button id="registerSubmit" type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
-        </form>
-    </div>
-    <div class="col-md-6 col-md-offset-2">
-        <section>
-            <h3>Use another service to register.</h3>
-            <hr />
-            @{
-                if ((Model.ExternalLogins?.Count ?? 0) == 0)
-                {
-                    <div>
-                        <p>
-                            There are no external authentication services configured. See this <a href="https://go.microsoft.com/fwlink/?LinkID=532715">article
-                            about setting up this ASP.NET application to support logging in via external services</a>.
-                        </p>
+
+            <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+                <div class="form-floating mb-3">
+                    <input asp-for="Input.Email" class="form-control bg-light rounded-3 shadow-none" autocomplete="username" aria-required="true" placeholder="name@example.com" />
+                    <label asp-for="Input.Email" class="text-muted small">Địa chỉ Email</label>
+                    <span asp-validation-for="Input.Email" class="text-danger small"></span>
+                </div>
+
+                <div class="form-floating mb-3 position-relative">
+                    <input asp-for="Input.Password" id="passwordField" class="form-control bg-light rounded-3 shadow-none" autocomplete="new-password" aria-required="true" placeholder="password" />
+                    <label asp-for="Input.Password" class="text-muted small">Mật khẩu</label>
+                    <span class="position-absolute end-0 top-50 translate-middle-y pe-3 toggle-password" style="cursor: pointer; z-index: 10;" data-target="#passwordField">
+                        <i class="bi bi-eye text-muted"></i>
+                    </span>
+                    <span asp-validation-for="Input.Password" class="text-danger small"></span>
+                </div>
+
+                <div class="form-floating mb-4 position-relative">
+                    <input asp-for="Input.ConfirmPassword" id="confirmPasswordField" class="form-control bg-light rounded-3 shadow-none" autocomplete="new-password" aria-required="true" placeholder="password" />
+                    <label asp-for="Input.ConfirmPassword" class="text-muted small">Nhập lại mật khẩu</label>
+                    <span class="position-absolute end-0 top-50 translate-middle-y pe-3 toggle-password" style="cursor: pointer; z-index: 10;" data-target="#confirmPasswordField">
+                        <i class="bi bi-eye text-muted"></i>
+                    </span>
+                    <span asp-validation-for="Input.ConfirmPassword" class="text-danger small"></span>
+                </div>
+
+                <button id="registerSubmit" type="submit" class="btn btn-hello-paris w-100 mb-4 shadow-sm py-3 fw-bold">ĐĂNG KÝ THÀNH VIÊN</button>
+
+                <div class="text-center mb-4">
+                    <div class="mb-4">
+                        <span class="text-muted small">Hoặc đăng ký nhanh với</span>
                     </div>
-                }
-                else
-                {
-                    <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="form-horizontal">
-                        <div>
-                            <p>
-                                @foreach (var provider in Model.ExternalLogins!)
-                                {
-                                    <button type="submit" class="btn btn-primary" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">@provider.DisplayName</button>
-                                }
-                            </p>
-                        </div>
-                    </form>
-                }
-            }
-        </section>
+                    <div class="d-flex justify-content-center gap-3">
+                        <a href="#" class="social-btn shadow-sm"><i class="bi bi-google"></i></a>
+                        <a href="#" class="social-btn shadow-sm"><i class="bi bi-facebook"></i></a>
+                    </div>
+                </div>
+
+                <p class="text-center text-muted small mb-0">
+                    Đã có tài khoản? <a asp-page="./Login" asp-route-returnUrl="@Model.ReturnUrl" class="fw-bold text-decoration-none" style="color: #45c3d2;">Đăng nhập ngay</a>
+                </p>
+            </form>
+        </div>
     </div>
 </div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(document).ready(function() {
+            // XỬ LÝ ẨN/HIỆN CHO CẢ 2 Ô MẬT KHẨU
+            $('.toggle-password').on('click', function() {
+                const targetId = $(this).data('target'); // Lấy ID của ô input mục tiêu
+                const passwordField = $(targetId);
+                const icon = $(this).find('i');
+
+                if (passwordField.attr('type') === 'password') {
+                    passwordField.attr('type', 'text');
+                    icon.removeClass('bi-eye').addClass('bi-eye-slash');
+                } else {
+                    passwordField.attr('type', 'password');
+                    icon.removeClass('bi-eye-slash').addClass('bi-eye');
+                }
+            });
+        });
+    </script>
 }

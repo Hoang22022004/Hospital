@@ -1,0 +1,223 @@
+﻿@model Hospital.Models.LichHen
+
+<style>
+    /* Tùy chỉnh thêm để đảm bảo tính thẩm mỹ */
+    .text-navy {
+        color: #002d5b;
+    }
+
+    .btn-info-custom {
+        background-color: #45c3d2;
+        border: none;
+        color: white;
+    }
+
+        .btn-info-custom:hover {
+            background-color: #38aebc;
+            color: white;
+        }
+
+    .form-control:focus, .form-select:focus {
+        box-shadow: none;
+        border: 1px solid #45c3d2 !important;
+    }
+
+    .time-btn {
+        transition: all 0.2s;
+        min-width: 85px;
+    }
+
+    .sticky-card {
+        top: 90px;
+        z-index: 10;
+    }
+
+    /* Style cho thông báo nhận diện SĐT */
+    #phoneNotice {
+        font-size: 0.8rem;
+        margin-top: 5px;
+        animation: fadeIn 0.5s;
+    }
+</style>
+
+<section class="py-5" style="background-color: #f0f4f8; min-height: 100vh;">
+    <div class="container">
+        <div class="row g-4">
+
+            <div class="col-lg-5">
+                <div class="card border-0 shadow-lg rounded-4 overflow-hidden sticky-top sticky-card" style="transition: all 0.3s ease;">
+                    <div id="clinicDefaultView" class="py-4 px-4 text-center bg-white">
+                        <img src="~/images/layout/logo.png" alt="Logo" class="mb-3" style="height: 60px; object-fit: contain;">
+                        <h3 class="fw-bold text-navy mb-1" style="font-family: 'Playfair Display', serif; font-size: 1.5rem;">HELLO PARIS</h3>
+                        <p class="text-muted mb-4 small">Healthy skin, beautiful you</p>
+                        <div class="rounded-4 overflow-hidden shadow-sm border">
+                            <img src="~/images/layout/Datlich.jpg" class="img-fluid" alt="Clinic" style="height: 380px; width: 100%; object-fit: cover;">
+                        </div>
+                    </div>
+
+                    <div id="doctorDetailView" class="p-0 bg-white" style="display: none;">
+                        <div class="position-relative">
+                            <img id="drDetailImg" src="" class="w-100" style="height: 450px; object-fit: cover;">
+                            <div class="position-absolute bottom-0 start-0 w-100 p-4" style="background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);">
+                                <h4 id="drDetailName" class="text-white fw-bold mb-0"></h4>
+                                <span id="drDetailSpecialty" class="badge bg-info text-white mt-2"></span>
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <h6 class="fw-bold text-primary mb-2 small">Bằng cấp / Chức vụ:</h6>
+                            <p id="drDetailDegree" class="text-muted small mb-0" style="font-style: italic;"></p>
+                            <hr class="my-3">
+                            <p class="small text-muted mb-0"><i class="bi bi-info-circle me-2"></i>Bác sĩ đang sẵn sàng tiếp nhận lịch hẹn.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-7">
+                <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white">
+                    <h3 class="fw-bold mb-4">Thông tin đặt lịch</h3>
+
+                    <form asp-action="Create" method="post" id="bookingForm">
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold small">Số điện thoại *</label>
+                                <input asp-for="SoDienThoai" id="phoneInput" class="form-control bg-light border-0 py-3" placeholder="Nhập số điện thoại" required />
+                                <div id="phoneNotice" style="display:none;"></div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold small">Họ tên khách hàng *</label>
+                                <input asp-for="TenKhachHang" id="nameInput" class="form-control bg-light border-0 py-3" placeholder="Nhập họ tên" required />
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold small text-primary">1. Chọn Bác sĩ chuyên khoa</label>
+                                <select asp-for="BacSiId" id="bacSiSelect" class="form-select bg-light border-0 py-3 shadow-none"
+                                        asp-items="@(new SelectList(ViewBag.BacSiList, "BacSiId", "HoTen"))">
+                                    <option value="">-- Chọn bác sĩ --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold small text-primary">2. Chọn Dịch vụ liên quan</label>
+                                <select asp-for="DichVuId" id="dichVuSelect" class="form-select bg-light border-0 py-3 shadow-none">
+                                    <option value="">-- Chọn bác sĩ trước --</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold small text-primary">3. Chọn Ngày & Giờ khám</label>
+                            <input type="date" id="ngayInput" class="form-control bg-light border-0 py-3 mb-3" min="@DateTime.Now.ToString("yyyy-MM-dd")" />
+
+                            <div id="slotArea" style="display:none;">
+                                <p class="small fw-bold mb-2">Khung giờ còn trống:</p>
+                                <div id="slotContainer" class="d-flex flex-wrap gap-2"></div>
+                                <input type="hidden" asp-for="KhungGioBatDau" id="selectedTime" />
+                                <input type="hidden" asp-for="LichLamViecId" id="selectedLichId" />
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="TrieuChung" class="form-label fw-bold small">4. Triệu chứng hoặc Yêu cầu bổ sung</label>
+                            <textarea asp-for="TrieuChung" class="form-control bg-light border-0 shadow-none" rows="3" placeholder="Mô tả tình trạng da hoặc yêu cầu đặc biệt của bạn..."></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 py-3 fw-bold rounded-3 shadow mt-3 btn-info-custom">
+                            XÁC NHẬN ĐẶT LỊCH NGAY
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+
+            // --- TÍNH NĂNG MỚI: NHẬN DIỆN BỆNH NHÂN CŨ QUA SĐT ---
+            $('#phoneInput').on('blur', function () {
+                var phone = $(this).val();
+                var $notice = $('#phoneNotice');
+                if (phone.length >= 10) {
+                    $.get(`/DatLich/CheckPhoneNumber?phone=${phone}`, function (res) {
+                        if (res.found) {
+                            $('#nameInput').val(res.name); // Tự điền tên bệnh nhân cũ
+                            $notice.show().html(`<span class="text-success fw-bold"><i class="bi bi-check-circle"></i> Chào mừng trở lại, ${res.name}!</span>`);
+                            if (res.hasAccount) {
+                                $notice.append(` <a href="/Account/Login" class="text-primary text-decoration-underline">Đăng nhập ngay</a> để xem lịch sử khám.`);
+                            }
+                        } else {
+                            $notice.show().html(`<span class="text-muted"><i class="bi bi-info-circle"></i> Đây là SDT mới. Bạn nên <a href="/Account/Register" class="text-primary">Đăng ký</a> để tối ưu đặt lịch.</span>`);
+                        }
+                    });
+                }
+            });
+
+            // 1. XỬ LÝ KHI THAY ĐỔI BÁC SĨ (GIỮ NGUYÊN)
+            $('#bacSiSelect').change(function () {
+                var id = $(this).val();
+                if (id) {
+                    $('#clinicDefaultView').hide();
+                    $('#doctorDetailView').fadeIn();
+                    $.get(`/DatLich/GetBacSiInfo?id=${id}`, function (data) {
+                        $('#drDetailImg').attr('src', data.hinhAnh);
+                        $('#drDetailName').text(data.hoTen);
+                        $('#drDetailSpecialty').text(data.chuyenKhoa);
+                        $('#drDetailDegree').text(data.bangCap || 'Chuyên gia da liễu');
+                    });
+                    $.get(`/DatLich/GetDichVuByBacSi?bacSiId=${id}`, function (data) {
+                        var s = $('#dichVuSelect').empty().append('<option value="">-- Chọn dịch vụ --</option>');
+                        data.forEach(i => s.append(`<option value="${i.value}">${i.text}</option>`));
+                    });
+                } else {
+                    $('#doctorDetailView').hide();
+                    $('#clinicDefaultView').fadeIn();
+                    $('#dichVuSelect').empty().append('<option value="">-- Chọn bác sĩ trước --</option>');
+                }
+            });
+
+            // 2. XỬ LÝ LẤY LỊCH TRỐNG (GIỮ NGUYÊN)
+            $('#bacSiSelect, #ngayInput').change(function () {
+                var bId = $('#bacSiSelect').val();
+                var ngay = $('#ngayInput').val();
+                if (bId && ngay) {
+                    $('#slotArea').show();
+                    $('#slotContainer').html('<div class="spinner-border spinner-border-sm text-info"></div>');
+                    $.get(`/DatLich/GetAvailableSlots?bacSiId=${bId}&ngay=${ngay}`, function (res) {
+                        var container = $('#slotContainer').empty();
+                        if (res.success) {
+                            $('#selectedLichId').val(res.scheduleId);
+                            res.slots.forEach(s => {
+                                var btn = s.isBooked ?
+                                    `<button type="button" class="btn btn-light disabled opacity-50 time-btn" style="width:85px;">${s.time}</button>` :
+                                    `<button type="button" class="btn btn-outline-info time-btn" data-time="${s.time}" style="width:85px; color:#45c3d2; border-color:#45c3d2;">${s.time}</button>`;
+                                container.append(btn);
+                            });
+                        } else {
+                            container.html(`<p class="text-danger small italic">${res.message}</p>`);
+                        }
+                    });
+                }
+            });
+
+            // 3. XỬ LÝ CHỌN GIỜ (GIỮ NGUYÊN)
+            $(document).on('click', '.time-btn:not(.disabled)', function () {
+                $('.time-btn').removeClass('btn-info text-white').addClass('btn-outline-info').css('background','none');
+                $(this).removeClass('btn-outline-info').addClass('btn-info text-white').css('background','#45c3d2');
+                $('#selectedTime').val($(this).data('time'));
+            });
+
+            // 4. VALIDATION (GIỮ NGUYÊN)
+            $('#bookingForm').submit(function(e) {
+                if (!$('#selectedTime').val()) {
+                    e.preventDefault();
+                    alert("Vui lòng chọn khung giờ khám!");
+                }
+            });
+        });
+    </script>
+}

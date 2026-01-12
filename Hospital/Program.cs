@@ -23,9 +23,24 @@ namespace Hospital
                 options.UseSqlServer(connectionString));
 
             // 3. Cấu hình Identity (Bao gồm hỗ trợ Roles)
-            builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
+            builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = false)
                 .AddRoles<IdentityRole>() // Quan trọng: Thêm hỗ trợ Role
                 .AddEntityFrameworkStores<ApplicationDbContext>();
+            builder.Services.ConfigureApplicationCookie(options =>
+            {
+                options.LoginPath = $"/Identity/Account/Login";
+                options.LogoutPath = $"/Identity/Account/Logout";
+                options.AccessDeniedPath = $"/Identity/Account/AccessDenied";
+
+                // CẤU HÌNH QUAN TRỌNG CHO "REMEMBER ME"
+                options.ExpireTimeSpan = TimeSpan.FromDays(30); // Cookie sống trong 30 ngày
+                options.SlidingExpiration = true; // Tự động gia hạn khi người dùng còn hoạt động
+                options.Cookie.HttpOnly = true;
+                options.Cookie.IsEssential = true;
+
+                // Nếu bạn đang chạy localhost không có HTTPS, hãy thêm dòng này:
+                options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+            });
 
             // ***************************************************************
             // BỔ SUNG QUAN TRỌNG CHO DATA SEEDING (Bước 6)

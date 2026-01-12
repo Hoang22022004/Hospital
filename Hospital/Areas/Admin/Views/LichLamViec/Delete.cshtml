@@ -1,85 +1,104 @@
 ﻿@model Hospital.Models.LichLamViec
-@using Microsoft.AspNetCore.Mvc.Rendering
 @{
-    ViewData["Title"] = "Xóa Ca làm việc";
+    ViewData["Title"] = "Xác nhận xóa ca làm việc";
 }
 
 <form method="post" asp-action="Delete">
-
-
     <input asp-for="LichLamViecId" hidden />
 
-    <div class="border p-4 mt-4 bg-white shadow-sm rounded">
-        <div class="row pb-2">
-            <h2 class="text-danger">Xác nhận Xóa Ca làm việc</h2>
-            <hr />
-        </div>
-
-        <div class="alert alert-warning" role="alert">
-            <i class="bi bi-exclamation-triangle-fill"></i> **Cảnh báo:** Thao tác này sẽ xóa vĩnh viễn Ca làm việc. Chỉ xóa nếu chắc chắn rằng ca làm việc này không còn được sử dụng.
-        </div>
-
-        <div class="row">
-            <div class="col-8">
-
-
-                <div class="mb-3">
-                    <label asp-for="BacSi.HoTen" class="form-label text-primary">Bác sĩ phụ trách</label>
-                    <input value="@Model.BacSi.HoTen" class="form-control" disabled />
-                </div>
-
-                <div class="mb-3">
-                    <label asp-for="NgayLamViec" class="form-label text-primary">Ngày làm việc</label>
-                    <input value="@Model.NgayLamViec.ToString("dd/MM/yyyy")" class="form-control" disabled />
-                </div>
-
-                @* TRƯỜNG THỜI LƯỢNG KHUNG GIỜ MỚI *@
-                <div class="mb-3">
-                    <label asp-for="ThoiLuongKhungGioPhut" class="form-label text-primary">Thời lượng Khung giờ (Phút)</label>
-                    <input value="@Model.ThoiLuongKhungGioPhut" class="form-control" disabled />
-                </div>
-
-
-                <div class="row">
-                    <div class="col-6">
-                        <div class="mb-3">
-                            <label asp-for="GioBatDau" class="form-label text-primary">Giờ Bắt đầu</label>
-                            <input value="@Model.GioBatDau.ToString(@"hh\:mm")" class="form-control" disabled />
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="mb-3">
-                            <label asp-for="GioKetThuc" class="form-label text-primary">Giờ Kết thúc</label>
-                            <input value="@Model.GioKetThuc.ToString(@"hh\:mm")" class="form-control" disabled />
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mb-3">
-                    <label asp-for="IsActive" class="form-label text-primary">Trạng thái hiện tại</label>
-                    @{
-                        string statusText = Model.IsActive ? "Hoạt động" : "Tạm dừng";
-                        string statusClass = Model.IsActive ? "text-success" : "text-secondary";
-                    }
-                    <input value="@statusText" class="form-control @statusClass" disabled style="font-weight: bold;" />
-                </div>
-
+    <div class="container mt-4">
+        <div class="card shadow-lg border-0 rounded-3">
+            <div class="card-header bg-danger text-white p-3">
+                <h4 class="mb-0"><i class="bi bi-trash3-fill me-2"></i>Xác nhận xóa ca làm việc</h4>
             </div>
-        </div>
 
-        <div class="mt-4 pt-3 border-top text-end">
-            <button type="submit" class="btn btn-danger btn-lg shadow-lg" style="width:200px">
-                <i class="bi bi-trash-fill"></i> Xóa ca làm
-            </button>
-            <a asp-controller="LichLamViec" asp-action="Index" class="btn btn-secondary btn-lg" style="width:180px">
-                <i class="bi bi-arrow-left"></i> Quay lại
-            </a>
+            <div class="card-body p-4">
+                <div class="alert alert-warning border-start border-4 border-warning shadow-sm mb-4">
+                    <div class="d-flex">
+                        <div class="me-3">
+                            <i class="bi bi-exclamation-triangle-fill fs-3 text-warning"></i>
+                        </div>
+                        <div>
+                            <h5 class="alert-heading fw-bold">Cảnh báo hành động!</h5>
+                            <p class="mb-0">Bạn đang thực hiện xóa vĩnh viễn ca làm việc này. Dữ liệu sau khi xóa sẽ không thể khôi phục.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-4">
+                    <div class="col-12">
+                        <label class="form-label fw-bold text-muted text-uppercase small">Bác sĩ phụ trách</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="bi bi-person-badge text-primary"></i></span>
+                            <input value="@Model.BacSi?.HoTen" class="form-control bg-light fw-bold" disabled />
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold text-muted text-uppercase small">Ngày làm việc</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="bi bi-calendar-check text-primary"></i></span>
+                            <input value="@Model.NgayLamViec.ToString("dd/MM/yyyy")" class="form-control bg-light" disabled />
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold text-muted text-uppercase small">Thời lượng</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="bi bi-hourglass-split text-primary"></i></span>
+                            <input value="@Model.ThoiLuongKhungGioPhut phút" class="form-control bg-light" disabled />
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold text-muted text-uppercase small">Giờ bắt đầu</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="bi bi-clock text-success"></i></span>
+                            <input value="@Model.GioBatDau.ToString(@"hh\:mm")" class="form-control bg-light" disabled />
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold text-muted text-uppercase small">Giờ kết thúc</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="bi bi-clock-fill text-danger"></i></span>
+                            <input value="@Model.GioKetThuc.ToString(@"hh\:mm")" class="form-control bg-light" disabled />
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label fw-bold text-muted text-uppercase small">Trạng thái hiện tại</label>
+                        <div class="p-3 border rounded bg-light d-flex align-items-center shadow-sm">
+                            @if (Model.IsActive)
+                            {
+                                <span class="badge bg-success px-3 py-2 fs-6">
+                                    <i class="bi bi-check-circle-fill me-1"></i> Đang hoạt động
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary px-3 py-2 fs-6">
+                                    <i class="bi bi-pause-circle-fill me-1"></i> Tạm dừng
+                                </span>
+                            }
+                            <span class="ms-3 text-muted fst-italic small">Ca làm việc này vẫn còn hiệu lực trên hệ thống.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-5 pt-3 border-top text-end">
+                    <a asp-action="Index" class="btn btn-outline-secondary btn-lg px-4 me-2">
+                        <i class="bi bi-arrow-left"></i> Quay lại
+                    </a>
+                    <button type="submit" class="btn btn-danger btn-lg px-5 shadow border-0">
+                        <i class="bi bi-trash-fill me-1"></i> Xác nhận xóa ngay
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 </form>
 
 @section Scripts {
-    @{
-        <partial name="_ValidationScriptsPartial" />
-    }
+    <partial name="_ValidationScriptsPartial" />
 }

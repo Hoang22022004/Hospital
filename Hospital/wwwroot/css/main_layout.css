@@ -1,20 +1,20 @@
-﻿/* Thêm đoạn này lên đầu file để xóa mọi khoảng cách mặc định của trình duyệt */
+﻿/* ==========================================================================
+   1. RESET & BIẾN MÀU SẮC (CONCEPT: MODERN CLINIC 2026)
+   ========================================================================== */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
-/* ==========================================================================
-   1. BIẾN MÀU SẮC & CẤU TRÚC (CONCEPT: MODERN CLINIC)
-   ========================================================================== */
+
 :root {
     --hp-primary: #45c3d2; /* Xanh Teal thương hiệu */
     --hp-primary-dark: #37a8b6;
-    --hp-navy: #1e293b; /* Xanh Navy đậm sang trọng */
-    --hp-gray-mouse: #f8f9fa; /* Xám chuột sáng sạch sẽ */
-    --hp-nav-bg: rgba(241, 248, 249, 0.96); /* Nền Navbar trong suốt nhẹ */
+    --hp-navy: #002d5b; /* Navy đậm quyền lực */
+    --hp-gray-mouse: #f8fafc; /* Xám chuột sáng sạch sẽ */
+    --hp-nav-bg: rgba(255, 255, 255, 0.95);
     --hp-accent: #ffc107; /* Vàng cam nhấn mạnh */
-    --hp-text-dark: #2d3e50;
+    --hp-text-dark: #1e293b;
     --hp-text-muted: #64748b;
     --hp-white: #FFFFFF;
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -28,68 +28,35 @@ body {
 }
 
 /* ==========================================================================
-   2. STYLE THƯƠNG HIỆU (HELLO PARIS) - ĐIỂM NHẤN HIỆN ĐẠI
+   2. STYLE THƯƠNG HIỆU (BRANDING)
    ========================================================================== */
-.brand-container {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-
 .brand-name {
     font-family: 'Playfair Display', serif;
     font-weight: 900;
     font-size: 1.7rem;
     line-height: 1;
-    margin: 0;
-    letter-spacing: 1.2px;
-    /* Hiệu ứng Gradient từ Navy sang Teal */
-    background: linear-gradient(135deg, var(--hp-navy) 20%, var(--hp-primary) 100%);
+    letter-spacing: 1px;
+    background: linear-gradient(135deg, var(--hp-navy) 30%, var(--hp-primary) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    transition: var(--transition);
 }
 
 .brand-sub {
     font-family: 'Montserrat', sans-serif;
     color: var(--hp-primary);
-    font-weight: 700;
-    font-size: 0.7rem;
-    letter-spacing: 3.5px;
+    font-weight: 800;
+    font-size: 0.65rem;
+    letter-spacing: 3px;
     text-transform: uppercase;
-    margin-top: 4px;
-    display: block;
-}
-
-/* Tách nền trắng cho tất cả logo để hòa vào màu nền Navbar/Footer */
-.logo-img, .bct-img {
-    mix-blend-mode: multiply;
-    filter: contrast(105%);
-    transition: var(--transition);
 }
 
 .logo-img {
-    height: 65px;
+    height: 55px;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.05));
 }
-
-/* Điều chỉnh logo Bộ Công Thương to và rõ nét hơn */
-.bct-img {
-    height: 90px; /* Tăng từ 42px/45px lên 60px để to rõ hơn */
-    width: auto; /* Giữ đúng tỉ lệ ảnh */
-    mix-blend-mode: multiply; /* Tách nền trắng */
-    filter: contrast(110%); /* Làm logo sắc nét hơn */
-    transition: var(--transition);
-    cursor: pointer;
-}
-
-    /* Hiệu ứng nhẹ khi di chuột vào logo BCT */
-    .bct-img:hover {
-        transform: scale(1.05); /* Phóng to nhẹ khi di chuột vào */
-        filter: contrast(120%) brightness(1.05);
-    }
 
 /* ==========================================================================
-   3. TOPBAR & NAVBAR (GIỮ NGUYÊN NỘI DUNG CHỮ CỦA BẠN)
+   3. NAVBAR & TOPBAR (GLASSMORPHISM)
    ========================================================================== */
 .hp-topbar {
     background-color: var(--hp-gray-mouse);
@@ -104,75 +71,125 @@ body {
     border-radius: 50px;
     border: 1.5px solid var(--hp-primary);
     font-weight: 700;
-    font-size: 12px;
-    text-decoration: none;
+    font-size: 11px;
     transition: var(--transition);
 }
 
-    .btn-tra-cuu:hover {
-        background: var(--hp-primary);
-        color: #fff !important;
-        box-shadow: 0 4px 12px rgba(69, 195, 210, 0.3);
-    }
-
-/* Hiệu ứng kính (Glassmorphism) cho Navbar */
-.sticky-top {
-    backdrop-filter: blur(15px);
-    background-color: var(--hp-nav-bg);
-    border-bottom: 1px solid rgba(69, 195, 210, 0.1);
-    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+.btn-tra-cuu:hover {
+    background: var(--hp-primary);
+    color: #fff !important;
+    box-shadow: 0 4px 12px rgba(69, 195, 210, 0.3);
 }
 
-/* Menu chính và hiệu ứng gạch chân khi hover */
+.sticky-top {
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    background-color: var(--hp-nav-bg);
+}
+
 .nav-link {
-    position: relative;
     color: var(--hp-navy) !important;
     font-weight: 700;
     font-size: 0.85rem;
-    text-transform: uppercase;
-    margin: 0 10px;
+    margin: 0 12px;
+    position: relative;
     transition: var(--transition);
 }
 
-    .nav-link::after {
-        content: '';
-        position: absolute;
-        width: 0;
-        height: 2px;
-        bottom: 0;
-        left: 50%;
-        background-color: var(--hp-primary);
-        transition: all 0.4s ease-in-out;
-        transform: translateX(-50%);
-    }
+.nav-link::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2.5px;
+    bottom: 0;
+    left: 50%;
+    background: var(--hp-primary);
+    transition: var(--transition);
+    transform: translateX(-50%);
+}
 
-    .nav-link:hover::after {
-        width: 60%;
-    }
+.nav-link:hover::after {
+    width: 100%;
+}
 
-    .nav-link:hover {
-        color: var(--hp-primary) !important;
-    }
+.nav-link:hover {
+    color: var(--hp-primary) !important;
+}
 
-/* Nút Đăng nhập & Đặt lịch */
+/* ==========================================================================
+   4. PHẦN CHÀO USER (MODERN USER DROPDOWN - BẢN XỊN NHẤT)
+   ========================================================================== */
+.user-dropdown-trigger {
+    background: rgba(69, 195, 210, 0.08);
+    border: 1px solid rgba(69, 195, 210, 0.15);
+    transition: var(--transition);
+}
+
+.user-dropdown-trigger:hover {
+    background: rgba(69, 195, 210, 0.15);
+    border-color: var(--hp-primary);
+}
+
+.user-avatar-circle {
+    width: 32px;
+    height: 32px;
+    background: var(--hp-primary);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    box-shadow: 0 4px 10px rgba(69, 195, 210, 0.3);
+}
+
+.user-role-badge {
+    font-size: 0.55rem;
+    color: var(--hp-primary);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    display: block;
+}
+
+.dropdown-menu {
+    min-width: 250px;
+    border: none !important;
+    box-shadow: 0 15px 50px rgba(0,0,0,0.1) !important;
+}
+
+.dropdown-item {
+    font-weight: 600;
+    padding: 10px 20px;
+    transition: var(--transition);
+}
+
+.dropdown-item:hover {
+    background-color: rgba(69, 195, 210, 0.08) !important;
+    color: var(--hp-primary) !important;
+    padding-left: 25px;
+}
+
+/* ==========================================================================
+   5. NÚT BẤM (BUTTONS)
+   ========================================================================== */
 .btn-login {
     color: var(--hp-primary) !important;
     border: 2px solid var(--hp-primary);
-    border-radius: 8px;
+    border-radius: 10px;
     font-weight: 700;
-    padding: 6px 20px !important;
     transition: var(--transition);
 }
 
-    .btn-login:hover {
-        background-color: var(--hp-primary);
-        color: white !important;
-    }
+.btn-login:hover {
+    background: var(--hp-primary);
+    color: #fff !important;
+}
 
 .btn-book {
     background: linear-gradient(135deg, var(--hp-accent), #f39c12);
     color: var(--hp-navy) !important;
-    border-radius: 10px;
+    border-radius: 50px;
     padding: 10px 25px !important;
     font-weight: 800;
     border: none;
@@ -180,57 +197,121 @@ body {
     transition: var(--transition);
 }
 
-    .btn-book:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 25px rgba(255, 193, 7, 0.5);
-    }
+.btn-book:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(255, 193, 7, 0.5);
+}
 
 /* ==========================================================================
-   4. FOOTER (CHÂN TRANG)
+   6. FOOTER (CHÂN TRANG)
    ========================================================================== */
 .hp-footer {
-    background-color: #f1f8f9;
-    padding-top: 60px;
+    background-color: #f8fafc;
+    border-top: 1px solid rgba(0,0,0,0.05);
 }
 
 .footer-heading {
     color: var(--hp-navy);
     font-weight: 800;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     text-transform: uppercase;
-    margin-bottom: 25px;
     position: relative;
+    padding-bottom: 12px;
 }
 
-    .footer-heading::after {
-        content: '';
-        position: absolute;
-        bottom: -8px;
-        left: 0;
-        width: 35px;
-        height: 3px;
-        background: var(--hp-primary);
-    }
+.footer-heading::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 40px;
+    height: 3px;
+    background: var(--hp-primary);
+}
 
-/* Hiệu ứng dịch chuyển nhẹ khi hover vào link footer */
 .footer-links a {
     color: var(--hp-text-muted);
     text-decoration: none;
-    display: block;
-    margin-bottom: 12px;
+    font-size: 0.9rem;
     font-weight: 500;
+    transition: var(--transition);
+    display: block;
+    margin-bottom: 10px;
+}
+
+.footer-links a:hover {
+    color: var(--hp-primary) !important;
+    transform: translateX(8px);
+}
+
+.legal-box {
+    background: #fff;
+    border-radius: 20px;
+    padding: 25px;
+}
+
+.bct-img {
+    height: 60px;
+    mix-blend-mode: multiply;
     transition: var(--transition);
 }
 
-    .footer-links a:hover {
-        color: var(--hp-primary) !important;
-        padding-left: 8px;
-        transform: translateX(5px);
+.bct-img:hover {
+    transform: scale(1.08);
+}
+/* USER PILL - NÚT CHÀO NGƯỜI DÙNG */
+.hp-user-pill {
+    background: rgba(69, 195, 210, 0.08); /* Màu Teal mờ của Hello Paris */
+    border: 1.5px solid rgba(69, 195, 210, 0.2);
+    border-radius: 50px;
+    height: 42px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+    .hp-user-pill:hover {
+        background: rgba(69, 195, 210, 0.15);
+        border-color: #45c3d2;
+        transform: translateY(-1px);
     }
 
-.legal-box {
-    background: white;
-    padding: 20px;
-    border-radius: 15px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+.hp-avatar-mini {
+    width: 28px;
+    height: 28px;
+    background: #45c3d2; /* Màu xanh thương hiệu */
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 10px rgba(69, 195, 210, 0.3);
 }
+
+.hp-role-text {
+    font-size: 0.55rem;
+    color: #45c3d2;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    display: block;
+    margin-top: 2px;
+}
+
+/* DROPDOWN MENU NÂNG CAO */
+.dropdown-menu {
+    min-width: 260px;
+    backdrop-filter: blur(10px);
+}
+
+.dropdown-item {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #1e293b;
+    padding: 10px 15px;
+    transition: all 0.2s;
+}
+
+    .dropdown-item:hover {
+        background-color: rgba(69, 195, 210, 0.1) !important;
+        color: #45c3d2 !important;
+        padding-left: 20px; /* Hiệu ứng đẩy nhẹ khi hover */
+    }

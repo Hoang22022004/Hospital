@@ -1,29 +1,42 @@
 ﻿@{
-    if (ViewData.TryGetValue("ParentLayout", out var parentLayout) && parentLayout !=  null)
-    {
-        Layout = parentLayout.ToString();
-    }
-    else
-    {
-        Layout = "/Areas/Identity/Pages/_Layout.cshtml";
-    }
+    // Trỏ về Layout gốc của toàn bộ Website
+    Layout = "/Views/Shared/_Layout.cshtml";
 }
 
-<h1>Manage your account</h1>
+@section Styles {
+    @* 1. Load tệp CSS chung cho khu vực quản lý tài khoản *@
+    <link rel="stylesheet" href="~/css/account_manage.css" asp-append-version="true" />
 
-<div>
-    <h2>Change your account settings</h2>
-    <hr />
-    <div class="row">
-        <div class="col-md-3">
-            <partial name="_ManageNav" />
+    @* 2. QUAN TRỌNG: Chuyển tiếp các Section Styles từ trang con (như MedicalHistory) lên Layout gốc *@
+    @RenderSection("Styles", required: false)
+}
+
+<div class="container py-5 animate__animated animate__fadeIn">
+    <div class="row g-4">
+        <div class="col-lg-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                <div class="text-center mb-4 py-3 border-bottom">
+                    <div class="avatar-placeholder mx-auto mb-2 bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                        <i class="bi bi-person-fill fs-2"></i>
+                    </div>
+                    <h6 class="fw-bold text-navy mb-0 Montserrat">HỘI VIÊN PARIS</h6>
+                    <small class="text-muted small">Thành viên thân thiết</small>
+                </div>
+
+                @* Render menu điều hướng từ file _ManageNav.cshtml *@
+                <partial name="_ManageNav" />
+            </div>
         </div>
-        <div class="col-md-9">
-            @RenderBody()
+
+        <div class="col-lg-9">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white manage-content-card" style="min-height: 500px;">
+                @RenderBody()
+            </div>
         </div>
     </div>
 </div>
 
 @section Scripts {
+    @* Chuyển tiếp các Scripts từ trang con lên Layout gốc *@
     @RenderSection("Scripts", required: false)
 }

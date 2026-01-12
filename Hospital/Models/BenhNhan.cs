@@ -1,6 +1,7 @@
 ﻿using System;
-using System.Collections.Generic; // Thư viện để dùng ICollection và HashSet
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema; // Thêm thư viện này
 
 namespace Hospital.Models
 {
@@ -19,6 +20,11 @@ namespace Hospital.Models
         [DataType(DataType.PhoneNumber)]
         [Display(Name = "Số điện thoại")]
         public string SoDienThoai { get; set; }
+
+        // --- TRƯỜNG CẦN BỔ SUNG ĐỂ SỬA LỖI ---
+        // Lưu ID từ bảng Identity User để biết khách này đã có tài khoản hay chưa
+        [Display(Name = "Mã tài khoản")]
+        public string? IdentityUserId { get; set; }
 
         [Display(Name = "Ngày sinh")]
         [DataType(DataType.Date)]
@@ -42,16 +48,12 @@ namespace Hospital.Models
 
         public DateTime NgayTao { get; set; } = DateTime.Now;
 
-        // ********** THÊM PHẦN NÀY ĐỂ KẾT NỐI VỚI HỒ SƠ BỆNH ÁN **********
-        // Giúp bác sĩ xem lại lịch sử các lần khám và sự thay đổi của da
         [Display(Name = "Lịch sử khám bệnh")]
         public virtual ICollection<HoSoBenhAn>? HoSoBenhAns { get; set; }
 
-        // Constructor để khởi tạo danh sách tránh lỗi Null
         public BenhNhan()
         {
             HoSoBenhAns = new HashSet<HoSoBenhAn>();
         }
-        // ***************************************************************
     }
 }

@@ -1,4 +1,9 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.AspNetCore.Identity
+@using Hospital.Models
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="utf-8" />
@@ -8,32 +13,39 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Playfair+Display:wght@700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
     <link rel="stylesheet" href="~/css/main_layout.css" asp-append-version="true" />
+
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
 
-    <div class="hp-topbar py-2 d-none d-lg-block">
+    <div class="hp-topbar py-2 d-none d-lg-block border-bottom bg-light">
         <div class="container d-flex justify-content-between align-items-center">
             <div class="topbar-info">
-                <span class="me-4"><i class="bi bi-geo-alt-fill text-primary me-1"></i> 52 Chế Lan Viên, TP Huế</span>
-                <span><i class="bi bi-telephone-outbound-fill text-primary me-1"></i> Hotline: 090 528 04 82</span>
+                <span class="me-4 small"><i class="bi bi-geo-alt-fill text-primary me-1"></i> 52 Chế Lan Viên, TP Huế</span>
+                <span class="small"><i class="bi bi-telephone-outbound-fill text-primary me-1"></i> Hotline: 090 528 04 82</span>
             </div>
             <div class="topbar-social">
-                <a href="/TraCuu" class="btn-tra-cuu me-3">TRA CỨU KẾT QUẢ</a>
-                <a href="#" class="text-primary"><i class="bi bi-facebook fs-5"></i></a>
+                <a asp-controller="TraCuu" asp-action="Index" class="btn-tra-cuu me-3 text-decoration-none small fw-bold">TRA CỨU KẾT QUẢ</a>
+                <a href="https://www.facebook.com/ParisClinicHue" target="_blank" class="text-primary"><i class="bi bi-facebook fs-5"></i></a>
             </div>
         </div>
     </div>
 
-    <header class="sticky-top">
-        <nav class="navbar navbar-expand-lg py-2">
+    <header class="sticky-top shadow-sm">
+        <nav class="navbar navbar-expand-lg py-2 bg-white">
             <div class="container">
-                <a class="navbar-brand d-flex align-items-center" href="/">
-                    <img src="~/images/layout/logo.png" alt="Hello Paris" class="logo-img">
+                <a class="navbar-brand d-flex align-items-center"
+                   asp-area=""
+                   asp-controller="Home"
+                   asp-action="Index">
+
+                    <img src="~/images/layout/logo.png" alt="Hello Paris" class="logo-img" style="height: 50px;">
+
                     <div class="ms-2 brand-container">
-                        <span class="brand-name">HELLO PARIS</span>
-                        <small class="brand-sub">VIỆT PHÁP CLINIC</small>
+                        <span class="brand-name fw-bold text-navy" style="letter-spacing: 1px;">HELLO PARIS</span>
+                        <small class="brand-sub d-block text-muted" style="font-size: 0.65rem;">VIỆT PHÁP CLINIC</small>
                     </div>
                 </a>
 
@@ -43,12 +55,52 @@
 
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav ms-auto align-items-center">
-                        <li class="nav-item"><a class="nav-link" href="/ChuyenKhoa">CHUYÊN KHOA</a></li>
-                        <li class="nav-item"><a class="nav-link" href="/BacSi">BÁC SĨ</a></li>
-                        <li class="nav-item"><a class="nav-link" href="/TinTuc">KIẾN THỨC</a></li>
-                        <li class="nav-item ms-lg-2"><a class="nav-link btn-login px-3" href="/Account/Login">ĐĂNG NHẬP</a></li>
+                        <li class="nav-item"><a class="nav-link fw-bold small text-navy" asp-controller="ChuyenKhoa" asp-action="Index">CHUYÊN KHOA</a></li>
+                        <li class="nav-item"><a class="nav-link fw-bold small text-navy" asp-controller="BacSi" asp-action="Index">BÁC SĨ</a></li>
+                        <li class="nav-item"><a class="nav-link fw-bold small text-navy" asp-controller="TinTuc" asp-action="Index">KIẾN THỨC</a></li>
+
+                        @if (SignInManager.IsSignedIn(User))
+                        {
+                            @* --- PHẦN ĐÃ CHỈNH SỬA: USER PILL HIỆN ĐẠI --- *@
+                            <li class="nav-item dropdown ms-lg-3">
+                                <a class="nav-link hp-user-pill d-flex align-items-center px-3 py-1"
+                                   href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="border-radius: 50px; background: rgba(69, 195, 210, 0.1); border: 1px solid rgba(69, 195, 210, 0.2);">
+                                    <div class="hp-avatar-mini me-2 d-flex align-items-center justify-content-center bg-primary text-white rounded-circle" style="width: 30px; height: 30px;">
+                                        <i class="bi bi-person-fill"></i>
+                                    </div>
+                                    <div class="hp-user-meta d-none d-xl-block">
+                                        <span class="d-block fw-bold text-navy" style="font-size: 0.75rem; line-height: 1;">CHÀO, @(User.Identity?.Name?.Split('@')[0].ToUpper())</span>
+                                        <span class="hp-role-text text-primary fw-bold" style="font-size: 0.55rem; letter-spacing: 0.5px;">@((User.IsInRole("Admin") ? "QUẢN TRỊ VIÊN" : "BÁC SĨ"))</span>
+                                    </div>
+                                    <i class="bi bi-chevron-down ms-2 opacity-50" style="font-size: 0.7rem;"></i>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 p-2 mt-3 animate__animated animate__fadeInUp animate__faster">
+                                    <li class="p-3 mb-1 bg-light rounded-3">
+                                        <p class="mb-0 small text-muted">Tài khoản:</p>
+                                        <p class="mb-0 fw-bold text-navy text-truncate">@User.Identity?.Name</p>
+                                    </li>
+                                    <li><hr class="dropdown-divider opacity-50"></li>
+                                    <li><a class="dropdown-item rounded-3 py-2 small" asp-area="Identity" asp-page="/Account/Manage/Index"><i class="bi bi-person-circle me-2"></i>Hồ sơ cá nhân</a></li>
+                                    @if (User.IsInRole("Admin") || User.IsInRole("Doctor"))
+                                    {
+                                        <li><a class="dropdown-item rounded-3 py-2 small" asp-area="Admin" asp-controller="Home" asp-action="Index"><i class="bi bi-speedometer2 me-2"></i>Trang quản trị</a></li>
+                                    }
+                                    <li><hr class="dropdown-divider opacity-50"></li>
+                                    <li>
+                                        <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+                                            <button type="submit" class="dropdown-item rounded-3 py-2 small text-danger fw-bold"><i class="bi bi-box-arrow-right me-2"></i>Đăng xuất</button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item ms-lg-2"><a class="nav-link btn-login px-3 fw-bold small" asp-area="Identity" asp-page="/Account/Login">ĐĂNG NHẬP</a></li>
+                        }
+
                         <li class="nav-item ms-lg-3">
-                            <a href="/DatLich" class="btn btn-book text-uppercase">
+                            <a asp-controller="DatLich" asp-action="Index" class="btn btn-book text-uppercase shadow-sm fw-bold px-4" style="background-color: #45c3d2; color: white; border-radius: 50px;">
                                 <i class="bi bi-calendar2-plus-fill me-1"></i> ĐẶT LỊCH NGAY
                             </a>
                         </li>
@@ -62,23 +114,23 @@
         @RenderBody()
     </main>
 
-    <footer class="hp-footer mt-5 pb-3">
-        <div class="container mb-5">
+    <footer class="hp-footer mt-5 pb-3 bg-light border-top">
+        <div class="container mb-5 pt-5">
             <div class="row g-5">
                 <div class="col-lg-4">
                     <div class="brand-container mb-3">
-                        <span class="brand-name" style="font-size: 1.8rem;">HELLO PARIS</span>
-                        <span class="brand-sub">Healthy skin, beautiful you</span>
+                        <span class="brand-name fw-bold" style="font-size: 1.8rem; color: #002d5b;">HELLO PARIS</span>
+                        <span class="brand-sub d-block text-muted">Healthy skin, beautiful you</span>
                     </div>
-                    <div class="legal-box shadow-sm">
+                    <div class="legal-box shadow-sm p-3 bg-white rounded-4 border-0">
                         <h6 class="fw-bold mb-3 border-bottom pb-2" style="font-size: 0.8rem;">THÔNG TIN PHÁP LÝ</h6>
                         <p class="mb-1 small">GPHĐ: Đã được Sở Y Tế cấp phép</p>
                         <p class="mb-1 small">Số ĐKKD: 031613561</p>
-                        <p class="mb-0 small">Ngày cấp: 27/02/2020 (Sở KH&ĐT Huế)</p>
+                        <p class="mb-0 small text-muted">Ngày cấp: 27/02/2020 (Sở KH&ĐT Huế)</p>
                     </div>
                 </div>
                 <div class="col-lg-3 col-md-6">
-                    <h6 class="footer-heading">Giờ làm việc</h6>
+                    <h6 class="footer-heading fw-bold text-navy mb-4">Giờ làm việc</h6>
                     <div class="small text-muted mb-3 border-bottom pb-2">
                         <strong>Thứ 2 - Thứ 6:</strong> 11:30 - 20:00
                     </div>
@@ -87,7 +139,7 @@
                     </div>
                 </div>
                 <div class="col-lg-3 col-md-6">
-                    <h6 class="footer-heading">Dịch vụ chính</h6>
+                    <h6 class="footer-heading fw-bold text-navy mb-4">Dịch vụ chính</h6>
                     <nav class="footer-links list-unstyled">
                         <li><a href="#" class="text-muted text-decoration-none d-block mb-2 small">Trị mụn y khoa Bio Light</a></li>
                         <li><a href="#" class="text-muted text-decoration-none d-block mb-2 small">Cấy sẹo Meso scar</a></li>
@@ -96,19 +148,42 @@
                     </nav>
                 </div>
                 <div class="col-lg-2 col-md-6">
-                    <h6 class="footer-heading">Liên hệ</h6>
+                    <h6 class="footer-heading fw-bold text-navy mb-4">Liên hệ</h6>
                     <p class="small text-muted mb-4"><i class="bi bi-geo-alt-fill text-primary"></i> 52 Chế Lan Viên, Huế</p>
-                    <img src="~/images/Layout/BCT.png" alt="Bộ Công Thương" class="bct-img">
+                    <img src="~/images/Layout/BCT.png" alt="Bộ Công Thương" class="bct-img img-fluid" style="max-height: 50px;">
                 </div>
             </div>
         </div>
         <div class="text-center small text-muted pt-3 border-top border-secondary border-opacity-10">
-            © 2025 Hello Paris - Phòng khám Da liễu Việt Pháp.
+            © @DateTime.Now.Year Hello Paris - Phòng khám Da liễu Việt Pháp.
         </div>
     </footer>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     @await RenderSectionAsync("Scripts", required: false)
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var successMessage = '@Html.Raw(TempData["success"])';
+            if (successMessage && successMessage.trim() !== "") {
+                Swal.fire({
+                    title: 'Thành công!',
+                    text: successMessage,
+                    icon: 'success',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true,
+                    toast: true,
+                    position: 'top-end',
+                    iconColor: '#45c3d2',
+                    customClass: {
+                        popup: 'rounded-4 shadow-lg'
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 </html>

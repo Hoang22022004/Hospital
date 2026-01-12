@@ -1,83 +1,223 @@
 ﻿@page
 @model LoginModel
-
 @{
-    ViewData["Title"] = "Log in";
+    ViewData["Title"] = "Đăng nhập - Hello Paris";
 }
 
-<h1>@ViewData["Title"]</h1>
-<div class="row">
-    <div class="col-md-4">
-        <section>
+<style>
+    /* 1. NỀN TỔNG THỂ VỚI HIỆU ỨNG BLUR */
+    .login-container {
+        min-height: 100vh;
+        background: url('https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80') no-repeat center center fixed;
+        background-size: cover;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    /* 2. THIẾT KẾ GLASSMORPHISM */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 2rem;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        overflow: hidden;
+        max-width: 1000px;
+        width: 100%;
+        display: flex;
+    }
+
+    /* PHẦN ẢNH TRÁI */
+    .login-image-side {
+        background: url('https://images.unsplash.com/photo-1512290923902-8a9f81dc236c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80') no-repeat center center;
+        background-size: cover;
+        width: 45%;
+        position: relative;
+    }
+
+    .login-image-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to top, rgba(69, 195, 210, 0.7), transparent);
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        padding: 2rem;
+        color: white;
+    }
+
+    /* PHẦN FORM PHẢI */
+    .login-form-side {
+        width: 55%;
+        padding: 3rem;
+    }
+
+    /* NÚT BẤM THƯƠNG HIỆU */
+    .btn-hello-paris {
+        background: #45c3d2;
+        color: white;
+        border: none;
+        padding: 0.8rem;
+        border-radius: 0.8rem;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+
+        .btn-hello-paris:hover {
+            background: #38aebc;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(69, 195, 210, 0.4);
+        }
+
+    .form-floating > .form-control:focus ~ label {
+        color: #45c3d2;
+    }
+
+    /* NÚT MẠNG XÃ HỘI */
+    .social-btn {
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        border: 1px solid #e2e8f0;
+        transition: all 0.2s;
+        color: #64748b;
+        background: white;
+    }
+
+        .social-btn:hover {
+            background: #f8fafc;
+            transform: scale(1.1);
+            color: #45c3d2;
+        }
+
+    @@media (max-width: 768px) {
+        .login-image-side {
+            display: none;
+        }
+
+        .login-form-side {
+            width: 100%;
+            padding: 2rem;
+        }
+    }
+</style>
+
+<div class="login-container">
+    <div class="glass-card animate__animated animate__fadeIn">
+
+        <div class="login-image-side">
+            <div class="login-image-overlay">
+                <h2 class="Montserrat fw-bold">Hello Paris</h2>
+                <p class="small mb-0">Nâng niu làn da, khơi nguồn vẻ đẹp tự nhiên của bạn.</p>
+            </div>
+        </div>
+
+        <div class="login-form-side bg-white bg-opacity-75">
+            <div class="text-center mb-4">
+                <img src="~/images/layout/logo.png" alt="Logo" class="mb-3" style="height: 50px;">
+                <h3 class="fw-bold text-navy Montserrat">Chào mừng trở lại!</h3>
+                <p class="text-muted small">Vui lòng đăng nhập để tiếp tục</p>
+            </div>
+
             <form id="account" method="post">
-                <h2>Use a local account to log in.</h2>
-                <hr />
-                <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+                <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
                 <div class="form-floating mb-3">
-                    <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
-                    <label asp-for="Input.Email" class="form-label">Email</label>
-                    <span asp-validation-for="Input.Email" class="text-danger"></span>
+                    <input asp-for="Input.Email"
+                           id="username"
+                           class="form-control border-0 bg-light rounded-3 shadow-none"
+                           autocomplete="username"
+                           aria-required="true"
+                           placeholder="name@example.com" />
+                    <label asp-for="Input.Email" class="text-muted small">Địa chỉ Email</label>
+                    <span asp-validation-for="Input.Email" class="text-danger small"></span>
                 </div>
-                <div class="form-floating mb-3">
-                    <input asp-for="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="password" />
-                    <label asp-for="Input.Password" class="form-label">Password</label>
-                    <span asp-validation-for="Input.Password" class="text-danger"></span>
+
+                <div class="form-floating mb-2 position-relative">
+                    <input asp-for="Input.Password"
+                           id="passwordField"
+                           class="form-control border-0 bg-light rounded-3 shadow-none"
+                           autocomplete="current-password"
+                           aria-required="true"
+                           placeholder="password" />
+                    <label asp-for="Input.Password" class="text-muted small">Mật khẩu</label>
+                    <span class="position-absolute end-0 top-50 translate-middle-y pe-3"
+                          style="cursor: pointer; z-index: 10;"
+                          id="togglePassword">
+                        <i class="bi bi-eye text-muted"></i>
+                    </span>
+                    <span asp-validation-for="Input.Password" class="text-danger small"></span>
                 </div>
-                <div class="checkbox mb-3">
-                    <label asp-for="Input.RememberMe" class="form-label">
-                        <input class="form-check-input" asp-for="Input.RememberMe" />
-                        @Html.DisplayNameFor(m => m.Input.RememberMe)
-                    </label>
-                </div>
-                <div>
-                    <button id="login-submit" type="submit" class="w-100 btn btn-lg btn-primary">Log in</button>
-                </div>
-                <div>
-                    <p>
-                        <a id="forgot-password" asp-page="./ForgotPassword">Forgot your password?</a>
-                    </p>
-                    <p>
-                        <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">Register as a new user</a>
-                    </p>
-                    <p>
-                        <a id="resend-confirmation" asp-page="./ResendEmailConfirmation">Resend email confirmation</a>
-                    </p>
-                </div>
-            </form>
-        </section>
-    </div>
-    <div class="col-md-6 col-md-offset-2">
-        <section>
-            <h3>Use another service to log in.</h3>
-            <hr />
-            @{
-                if ((Model.ExternalLogins?.Count ?? 0) == 0)
-                {
-                    <div>
-                        <p>
-                            There are no external authentication services configured. See this <a href="https://go.microsoft.com/fwlink/?LinkID=532715">article
-                            about setting up this ASP.NET application to support logging in via external services</a>.
-                        </p>
+
+                <div class="d-flex justify-content-between align-items-center mb-4 mt-2">
+                    <div class="form-check">
+                        <input class="form-check-input" asp-for="Input.RememberMe" id="rememberMeCheck" />
+                        <label class="form-check-label small text-muted" asp-for="Input.RememberMe">Ghi nhớ tôi</label>
                     </div>
-                }
-                else
-                {
-                    <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="form-horizontal">
-                        <div>
-                            <p>
-                                @foreach (var provider in Model.ExternalLogins!)
-                                {
-                                    <button type="submit" class="btn btn-primary" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">@provider.DisplayName</button>
-                                }
-                            </p>
-                        </div>
-                    </form>
-                }
-            }
-        </section>
+                    <a id="forgot-password" asp-page="./ForgotPassword" class="small text-decoration-none fw-bold" style="color: #45c3d2;">Quên mật khẩu?</a>
+                </div>
+
+                <button id="login-submit" type="submit" class="btn btn-hello-paris w-100 mb-4 shadow-sm">ĐĂNG NHẬP NGAY</button>
+
+                <div class="text-center mb-4">
+                    <div class="mb-4">
+                        <span class="text-muted small">Hoặc đăng nhập với</span>
+                    </div>
+
+                    <div class="d-flex justify-content-center gap-3">
+                        <a href="#" class="social-btn"><i class="bi bi-google"></i></a>
+                        <a href="#" class="social-btn"><i class="bi bi-facebook"></i></a>
+                        <a href="#" class="social-btn"><i class="bi bi-apple"></i></a>
+                    </div>
+                </div>
+
+                <p class="text-center text-muted small mb-0">
+                    Chưa có tài khoản? <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl" class="fw-bold text-decoration-none" style="color: #45c3d2;">Đăng ký thành viên</a>
+                </p>
+            </form>
+        </div>
     </div>
 </div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(document).ready(function() {
+            // 1. TÍNH NĂNG AUTOCOMPLETE: Tự động điền email từ LocalStorage
+            var savedEmail = localStorage.getItem('hp_login_email');
+            if (savedEmail) {
+                $('#username').val(savedEmail);
+                $('#rememberMeCheck').prop('checked', true);
+            }
+
+            // 2. LƯU EMAIL KHI SUBMIT NẾU TÍCH GHI NHỚ
+            $('#account').on('submit', function() {
+                if ($('#rememberMeCheck').is(':checked')) {
+                    localStorage.setItem('hp_login_email', $('#username').val());
+                } else {
+                    localStorage.removeItem('hp_login_email');
+                }
+            });
+
+            // 3. TÍNH NĂNG ẨN/HIỆN MẬT KHẨU
+            $('#togglePassword').on('click', function() {
+                const passwordField = $('#passwordField');
+                const icon = $(this).find('i');
+
+                if (passwordField.attr('type') === 'password') {
+                    passwordField.attr('type', 'text');
+                    icon.removeClass('bi-eye').addClass('bi-eye-slash');
+                } else {
+                    passwordField.attr('type', 'password');
+                    icon.removeClass('bi-eye-slash').addClass('bi-eye');
+                }
+            });
+        });
+    </script>
 }

@@ -16,11 +16,14 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+
     <style>
         :root {
-            --sidebar-bg: #1e293b; /* Màu Slate hiện đại */
+            --sidebar-bg: #1e293b;
             --sidebar-hover: #334155;
-            --accent-color: #6366f1; /* Tím Indigo */
+            --accent-color: #6366f1;
             --text-muted: #94a3b8;
             --bg-body: #f8fafc;
         }
@@ -40,7 +43,6 @@
             z-index: 1000;
         }
 
-        /* BRANDING AREA */
         .sidebar-brand {
             padding: 2rem 1.5rem;
             display: flex;
@@ -68,7 +70,6 @@
             line-height: 1.2;
         }
 
-        /* MENU STYLE */
         .menu-label {
             color: var(--text-muted);
             font-size: 0.7rem;
@@ -115,7 +116,6 @@
             transform: rotate(-90deg);
         }
 
-        /* NAVBAR & UTILS */
         .navbar {
             background: #fff !important;
             border-bottom: 1px solid #e2e8f0;
@@ -183,14 +183,11 @@
                     </a>
                     <div class="collapse show sub-menu" id="doctorMenu">
                         <a asp-area="Admin" asp-controller="HoSoBenhAn" asp-action="Index" class="list-group-item">Danh sách khám hôm nay</a>
-
-                        @* MODUL MỚI: Bác sĩ xem danh sách bệnh nhân *@
                         <a asp-area="Admin" asp-controller="BenhNhan" asp-action="Index" class="list-group-item">Tra cứu Bệnh nhân</a>
-
                         <a asp-area="Admin" asp-controller="LichLamViec" asp-action="Index" class="list-group-item">Lịch trực cá nhân</a>
                     </div>
                 }
-                @* MỤC QUẢN LÝ TIN TỨC - Dành cho Admin và Lễ tân *@
+
                 @if (User.IsInRole("Admin") || User.IsInRole("Receptionist"))
                 {
                     <div class="menu-label">Truyền thông & Nội dung</div>
@@ -199,6 +196,7 @@
                         <i class="bi bi-newspaper"></i> Quản lý Tin tức
                     </a>
                 }
+
                 <div class="menu-label">Dữ liệu chung</div>
                 <a class="list-group-item list-group-item-action" data-bs-toggle="collapse" href="#dataMenu">
                     <i class="bi bi-collection-fill"></i> Kho & Dịch vụ
@@ -265,7 +263,11 @@
     </div>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
+
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
     <script>
         $("#menu-toggle").click(function(e) {
             e.preventDefault();
@@ -283,6 +285,7 @@
             });
         });
     </script>
+
     @await RenderSectionAsync("Scripts", required: false)
 
 </body>

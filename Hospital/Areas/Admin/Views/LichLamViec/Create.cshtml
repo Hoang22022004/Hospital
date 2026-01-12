@@ -1,143 +1,133 @@
 ﻿@model Hospital.Models.LichLamViec
-@using Microsoft.AspNetCore.Mvc.Rendering
 @{
-    ViewData["Title"] = "Thêm Ca làm việc mới";
-    var bacSiList = ViewData["BacSiId"] as SelectList;
+    ViewData["Title"] = "Thiết lập lịch làm việc";
 }
 
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/material_blue.css">
+
 <form method="post">
-    <div class="border p-4 mt-4 bg-white shadow-sm rounded">
-        <div class="row pb-2">
-            <h2 class="text-primary">Thiết lập ca làm việc</h2>
-            <hr />
-        </div>
-        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
-        <div class="row">
-            <div class="col-8">
-
-                @* --- PHẦN SỬA ĐỔI: PHÂN QUYỀN CHỌN BÁC SĨ (DÙNG ROLE DOCTOR) --- *@
-                <div class="mb-3">
-                    <label asp-for="BacSiId" class="form-label">Bác sĩ phụ trách</label>
-
-                    @if (User.IsInRole("Doctor"))
-                    {
-                        @* Nếu là Bác sĩ: Khóa cứng ID và hiện tên từ ViewBag *@
-                        <input type="hidden" asp-for="BacSiId" value="@ViewBag.CurrentBacSiId" />
-
-                        <div class="input-group">
-                            <span class="input-group-text bg-light"><i class="bi bi-person-badge-fill text-primary"></i></span>
-                            <input class="form-control bg-light fw-bold text-dark" value="@ViewBag.CurrentBacSiName" readonly />
-                        </div>
-                        <small class="text-muted fst-italic">Hệ thống đang thiết lập ca trực cho tài khoản của bạn.</small>
-                    }
-                    else
-                    {
-                        @* Nếu là Admin: Hiện Dropdown Select2 như cũ *@
-                        <select asp-for="BacSiId" asp-items="@bacSiList" class="form-select select2-dropdown">
-                            <option value="">-- Tìm kiếm Bác sĩ --</option>
-                        </select>
-                    }
-                    <span asp-validation-for="BacSiId" class="text-danger"></span>
-                </div>
-
-                @* TRƯỜNG 2: Ngày làm việc *@
-                <div class="mb-3">
-                    <label asp-for="NgayLamViec" class="form-label">Ngày làm việc</label>
-                    <input type="text" id="datepickerNgayLamViec" class="form-control" placeholder="Chọn ngày (dd/mm/yyyy)..." autocomplete="off" />
-                    <input type="hidden" asp-for="NgayLamViec" id="NgayLamViecHidden" />
-                    <span asp-validation-for="NgayLamViec" class="text-danger"></span>
-                </div>
-
-                @* TRƯỜNG 3 & 4: Giờ Bắt đầu và Giờ Kết thúc *@
-                <div class="row">
-                    <div class="col-6">
-                        <div class="mb-3">
-                            <label asp-for="GioBatDau" class="form-label">Giờ Bắt đầu</label>
-                            <input asp-for="GioBatDau" type="text" id="gioBatDau" class="form-control time-picker" placeholder="Chọn giờ" />
-                            <span asp-validation-for="GioBatDau" class="text-danger"></span>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="mb-3">
-                            <label asp-for="GioKetThuc" class="form-label">Giờ Kết thúc</label>
-                            <input asp-for="GioKetThuc" type="text" id="gioKetThuc" class="form-control time-picker" placeholder="Chọn giờ" />
-                            <span asp-validation-for="GioKetThuc" class="text-danger"></span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mb-3">
-                    <label asp-for="ThoiLuongKhungGioPhut" class="form-label">Thời lượng Khung giờ (Phút)</label>
-                    <input asp-for="ThoiLuongKhungGioPhut" type="number" class="form-control" placeholder="Ví dụ: 30, 45, 60" min="5" max="180" step="5" />
-                    <span asp-validation-for="ThoiLuongKhungGioPhut" class="text-danger"></span>
-                </div>
-
-                @* TRƯỜNG 5: IsActive *@
-                <div class="form-check form-switch mb-3 p-3 border rounded shadow-sm d-flex justify-content-between align-items-center">
-                    <label class="form-check-label" for="IsActiveSwitch">Kích hoạt ca làm việc</label>
-                    <input class="form-check-input" type="checkbox" role="switch" asp-for="IsActive" id="IsActiveSwitch" checked>
-                </div>
-
+    <div class="container mt-4">
+        <div class="card shadow-lg border-0 rounded-3">
+            <div class="card-header bg-primary text-white p-3">
+                <h4 class="mb-0"><i class="bi bi-calendar2-plus me-2"></i>Thiết lập ca làm việc</h4>
             </div>
-        </div>
+            <div class="card-body p-4">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-        <div class="mt-4 pt-3 border-top text-end">
-            <button type="submit" class="btn btn-primary btn-lg shadow-lg" style="width:200px">
-                <i class="bi bi-calendar-plus"></i> Thêm ca làm
-            </button>
-            <a asp-controller="LichLamViec" asp-action="Index" class="btn btn-secondary btn-lg" style="width:180px">
-                <i class="bi bi-arrow-left"></i> Quay lại
-            </a>
+                <div class="row g-4">
+                    <div class="col-12">
+                        <label asp-for="BacSiId" class="form-label fw-bold">Bác sĩ phụ trách</label>
+                        @if (User.IsInRole("Doctor"))
+                        {
+                            <input type="hidden" asp-for="BacSiId" value="@ViewBag.CurrentBacSiId" />
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="bi bi-person-badge"></i></span>
+                                <input class="form-control bg-light fw-bold" value="@ViewBag.CurrentBacSiName" readonly />
+                            </div>
+                        }
+                        else
+                        {
+                            <select asp-for="BacSiId" asp-items="@(ViewData["BacSiId"] as SelectList)" class="form-select select2-dropdown">
+                                <option value="">-- Chọn bác sĩ --</option>
+                            </select>
+                        }
+                        <span asp-validation-for="BacSiId" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="NgayLamViec" class="form-label fw-bold">Ngày làm việc</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white"><i class="bi bi-calendar-event text-primary"></i></span>
+                            <input asp-for="NgayLamViec" id="flatpickr-date" type="text"
+                                   class="form-control bg-white" placeholder="Chọn ngày trực..." readonly />
+                        </div>
+                        <span asp-validation-for="NgayLamViec" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="ThoiLuongKhungGioPhut" class="form-label fw-bold">Thời lượng (Phút)</label>
+                        <input asp-for="ThoiLuongKhungGioPhut" type="number" class="form-control" placeholder="Ví dụ: 30" />
+                        <span asp-validation-for="ThoiLuongKhungGioPhut" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="GioBatDau" class="form-label fw-bold">Giờ bắt đầu</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white"><i class="bi bi-clock text-success"></i></span>
+                            <input asp-for="GioBatDau" id="flatpickr-start-time" type="text"
+                                   class="form-control bg-white" placeholder="--:--" readonly />
+                        </div>
+                        <span asp-validation-for="GioBatDau" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="GioKetThuc" class="form-label fw-bold">Giờ kết thúc</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white"><i class="bi bi-clock-fill text-danger"></i></span>
+                            <input asp-for="GioKetThuc" id="flatpickr-end-time" type="text"
+                                   class="form-control bg-white" placeholder="--:--" readonly />
+                        </div>
+                        <span asp-validation-for="GioKetThuc" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="form-check form-switch p-3 border rounded shadow-sm bg-light d-flex justify-content-between align-items-center">
+                            <label class="form-check-label fw-bold" for="IsActive">Kích hoạt ca làm việc</label>
+                            <input class="form-check-input" type="checkbox" role="switch" asp-for="IsActive" checked>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 pt-3 border-top text-end">
+                    <a asp-action="Index" class="btn btn-outline-secondary btn-lg px-4 me-2">
+                        <i class="bi bi-arrow-left"></i> Quay lại
+                    </a>
+                    <button type="submit" class="btn btn-primary btn-lg px-5 shadow">
+                        <i class="bi bi-check-circle"></i> Lưu ca làm
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 </form>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/vn.js"></script>
 
     <script>
         $(document).ready(function () {
-            // 1. Kích hoạt Select2 cho Admin
-            if ($('.select2-dropdown').length > 0) {
-                $('.select2-dropdown').select2({
-                    placeholder: "-- Tìm kiếm Bác sĩ...",
-                    allowClear: true,
-                    theme: 'bootstrap-5'
-                });
-            }
-
-            // 2. JQUERY UI DATEPICKER
-            $('#datepickerNgayLamViec').datepicker({
-                dateFormat: 'dd/mm/yy',
-                changeMonth: true,
-                changeYear: true,
-                minDate: 0,
-                onSelect: function(dateText) {
-                    var parts = dateText.split('/');
-                    var formattedDate = parts[2] + '-' + parts[1] + '-' + parts[0];
-                    $('#NgayLamViecHidden').val(formattedDate);
-                }
+            // 1. Cấu hình Chọn Ngày (Date Picker)
+            flatpickr("#flatpickr-date", {
+                locale: "vn",
+                dateFormat: "Y-m-d", // Định dạng gửi về Server
+                altInput: true,      // Hiện một input đẹp cho người dùng
+                altFormat: "d/m/Y",  // Định dạng người dùng thấy (VN)
+                minDate: "today",    // Không cho chọn ngày quá khứ
+                disableMobile: "true"
             });
 
-            // 3. FLATPICKR TIME PICKER
-            flatpickr(".time-picker", {
+            // 2. Cấu hình Chọn Giờ (Time Picker)
+            const timeConfig = {
                 enableTime: true,
                 noCalendar: true,
                 dateFormat: "H:i",
                 time_24hr: true,
-                minuteIncrement: 5,
+                minuteIncrement: 15, // Nhảy mỗi 15 phút cho chuyên nghiệp
                 locale: "vn"
-            });
+            };
 
-            // Xử lý hiển thị ngày khi có lỗi hoặc quay lại trang
-            var hiddenDateValue = $('#NgayLamViecHidden').val();
-            if (hiddenDateValue) {
-                // Giả định hiddenDateValue có định dạng yyyy-mm-dd từ server
-                var dateParts = hiddenDateValue.split('T')[0].split('-');
-                if(dateParts.length === 3) {
-                    $('#datepickerNgayLamViec').val(dateParts[2] + '/' + dateParts[1] + '/' + dateParts[0]);
-                }
+            flatpickr("#flatpickr-start-time", timeConfig);
+            flatpickr("#flatpickr-end-time", timeConfig);
+
+            // 3. Select2 cho phần chọn bác sĩ
+            if ($('.select2-dropdown').length > 0) {
+                $('.select2-dropdown').select2({
+                    theme: 'bootstrap-5',
+                    width: '100%'
+                });
             }
         });
     </script>

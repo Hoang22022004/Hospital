@@ -1,0 +1,71 @@
+﻿@{
+    ViewData["Title"] = "Đặt lịch thành công - Hello Paris";
+}
+
+<section class="py-5 d-flex align-items-center" style="min-height: 80vh; background-color: #f8fafc;">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-7 text-center">
+                <div class="mb-4 animate__animated animate__zoomIn">
+                    <div class="bg-success bg-opacity-10 d-inline-block p-4 rounded-circle">
+                        <i class="bi bi-check-all text-success" style="font-size: 4rem;"></i>
+                    </div>
+                </div>
+
+                <h1 class="fw-bold mb-3 text-dark" style="font-family: 'Playfair Display', serif;">Đặt lịch thành công!</h1>
+                <p class="text-muted fs-5 mb-5 px-lg-5">
+                    Cảm ơn bạn đã tin tưởng lựa chọn phòng khám Hello Paris. Thông tin đặt hẹn của bạn đã được chuyển đến đội ngũ bác sĩ chuyên khoa.
+                </p>
+
+                <div class="card border-0 shadow-sm rounded-4 p-4 mb-5 bg-white text-start">
+                    <h6 class="fw-bold text-primary mb-3"><i class="bi bi-info-circle me-2"></i>Các bước tiếp theo:</h6>
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-3 d-flex align-items-top">
+                            <span class="badge bg-primary rounded-circle me-3" style="width: 24px; height: 24px;">1</span>
+                            <span>Nhân viên tư vấn sẽ gọi điện xác nhận lịch hẹn trong vòng 15 - 30 phút.</span>
+                        </li>
+                        <li class="mb-3 d-flex align-items-top">
+                            <span class="badge bg-primary rounded-circle me-3" style="width: 24px; height: 24px;">2</span>
+                            <span>Vui lòng có mặt tại phòng khám sớm 10 phút để làm thủ tục check-in.</span>
+                        </li>
+                        <li class="d-flex align-items-top">
+                            <span class="badge bg-primary rounded-circle me-3" style="width: 24px; height: 24px;">3</span>
+                            <span>Nếu cần thay đổi giờ hẹn, vui lòng gọi hotline: 0905.280.482.</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center">
+                    <a href="/" class="btn btn-outline-dark px-5 py-3 rounded-pill fw-bold">
+                        <i class="bi bi-house-door me-2"></i>VỀ TRANG CHỦ
+                    </a>
+                    <a href="/DichVu" class="btn btn-primary px-5 py-3 rounded-pill fw-bold shadow-lg" style="background-color: #45c3d2; border: none;">
+                        XEM THÊM DỊCH VỤ <i class="bi bi-arrow-right ms-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <script>
+        // Hiệu ứng pháo giấy ăn mừng khi đặt lịch thành công
+        var duration = 3 * 1000;
+        var animationEnd = Date.now() + duration;
+        var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+        function randomInRange(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+
+        var interval = setInterval(function() {
+            var timeLeft = animationEnd - Date.now();
+            if (timeLeft <= 0) return clearInterval(interval);
+            var particleCount = 50 * (timeLeft / duration);
+            confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
+            confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
+        }, 250);
+    </script>
+}

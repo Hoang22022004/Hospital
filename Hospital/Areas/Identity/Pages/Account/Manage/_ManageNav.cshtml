@@ -1,15 +1,30 @@
 ﻿@inject SignInManager<ApplicationUser> SignInManager
-@{
-    var hasExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).Any();
-}
-<ul class="nav nav-pills flex-column">
-    <li class="nav-item"><a class="nav-link @ManageNavPages.IndexNavClass(ViewContext)" id="profile" asp-page="./Index">Profile</a></li>
-    <li class="nav-item"><a class="nav-link @ManageNavPages.EmailNavClass(ViewContext)" id="email" asp-page="./Email">Email</a></li>
-    <li class="nav-item"><a class="nav-link @ManageNavPages.ChangePasswordNavClass(ViewContext)" id="change-password" asp-page="./ChangePassword">Password</a></li>
-    @if (hasExternalLogins)
-    {
-        <li id="external-logins" class="nav-item"><a id="external-login" class="nav-link @ManageNavPages.ExternalLoginsNavClass(ViewContext)" asp-page="./ExternalLogins">External logins</a></li>
-    }
-    <li class="nav-item"><a class="nav-link @ManageNavPages.TwoFactorAuthenticationNavClass(ViewContext)" id="two-factor" asp-page="./TwoFactorAuthentication">Two-factor authentication</a></li>
-    <li class="nav-item"><a class="nav-link @ManageNavPages.PersonalDataNavClass(ViewContext)" id="personal-data" asp-page="./PersonalData">Personal data</a></li>
+<ul class="nav nav-pills flex-column hp-manage-nav">
+    <li class="nav-item mb-2">
+        <a class="nav-link @ManageNavPages.IndexNavClass(ViewContext)" id="profile" asp-page="./Index">
+            <i class="bi bi-person-vcard me-2"></i> Thông tin chung
+        </a>
+    </li>
+    <li class="nav-item mb-2">
+        <a class="nav-link @ManageNavPages.ChangePasswordNavClass(ViewContext)" id="change-password" asp-page="./ChangePassword">
+            <i class="bi bi-shield-lock me-2"></i> Đổi mật khẩu
+        </a>
+    </li>
+    <li class="nav-item mb-2">
+        <a class="nav-link @ManageNavPages.TwoFactorAuthenticationNavClass(ViewContext)" id="two-factor" asp-page="./TwoFactorAuthentication">
+            <i class="bi bi-patch-check me-2"></i> Bảo mật 2 lớp
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link @ManageNavPages.PersonalDataNavClass(ViewContext)" id="personal-data" asp-page="./PersonalData">
+            <i class="bi bi-trash3 me-2"></i> Xóa tài khoản
+        </a>
+    </li>
+    @* Thêm mục Lịch sử khám vào cuối danh sách *@
+    <li class="nav-item mb-2">
+        <a class="nav-link @(ViewContext.RouteData.Values["Page"]?.ToString() == "/Account/Manage/MedicalHistory" ? "active" : "")"
+           id="medical-history" asp-page="./MedicalHistory">
+            <i class="bi bi-clock-history me-2"></i> Lịch sử khám bệnh
+        </a>
+    </li>
 </ul>
