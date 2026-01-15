@@ -1,13 +1,12 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Hospital.Data;
+using Hospital.Models;
+// 1. Thêm directive này
+
+
 namespace Hospital
 {
-    using Hospital.Data;
-    using Microsoft.EntityFrameworkCore;
-    using Microsoft.AspNetCore.Identity;
-    using Hospital.Models;
-
     public class Program
     {
         public static void Main(string[] args)
@@ -24,42 +23,43 @@ namespace Hospital
 
             // 3. Cấu hình Identity (Bao gồm hỗ trợ Roles)
             builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = false)
-                .AddRoles<IdentityRole>() // Quan trọng: Thêm hỗ trợ Role
+                .AddRoles<IdentityRole>() // Cần thiết để phân quyền Admin/Bác sĩ
                 .AddEntityFrameworkStores<ApplicationDbContext>();
+
             builder.Services.ConfigureApplicationCookie(options =>
             {
                 options.LoginPath = $"/Identity/Account/Login";
                 options.LogoutPath = $"/Identity/Account/Logout";
                 options.AccessDeniedPath = $"/Identity/Account/AccessDenied";
-
-                // CẤU HÌNH QUAN TRỌNG CHO "REMEMBER ME"
-                options.ExpireTimeSpan = TimeSpan.FromDays(30); // Cookie sống trong 30 ngày
-                options.SlidingExpiration = true; // Tự động gia hạn khi người dùng còn hoạt động
+                options.ExpireTimeSpan = TimeSpan.FromDays(30);
+                options.SlidingExpiration = true;
                 options.Cookie.HttpOnly = true;
                 options.Cookie.IsEssential = true;
-
-                // Nếu bạn đang chạy localhost không có HTTPS, hãy thêm dòng này:
                 options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
             });
 
-            // ***************************************************************
-            // BỔ SUNG QUAN TRỌNG CHO DATA SEEDING (Bước 6)
-            // ***************************************************************
-            // 3b. Đăng ký DbInitializer (Service khởi tạo dữ liệu)
+            // 3b. Đăng ký DbInitializer (Service khởi tạo dữ liệu mẫu)
             builder.Services.AddScoped<DbInitializer>();
 
-            // Add services to the container.
+            // *****************************************************************************
+            // 3c. CẤU HÌNH DỊCH VỤ THANH TOÁN (ĐÃ SỬA LỖI XUNG ĐỘT)
+            // *****************************************************************************
+
+            // Đổi tên biến thành payOSClient để không trùng với tên namespace Net.payOS
+
+
+            // Đăng ký HttpContextAccessor: Bắt buộc để VNPAY lấy địa chỉ IP khách hàng
+            builder.Services.AddHttpContextAccessor();
+
+            // Thêm các dịch vụ cho Controller và View
             builder.Services.AddControllersWithViews();
 
             var app = builder.Build();
 
-            // ***************************************************************
-            // BỔ SUNG QUAN TRỌNG CHO DATA SEEDING (Gọi hàm khởi tạo)
-            // ***************************************************************
-            // Khai báo và gọi hàm để thực hiện Seeding khi ứng dụng chạy
-            SeedDatabase();
+            // Thực hiện Seeding Database (Tạo tài khoản Admin mặc định, v.v.)
+            SeedDatabase(app);
 
-            // Configure the HTTP request pipeline.
+            // Cấu hình Pipeline cho yêu cầu HTTP
             if (!app.Environment.IsDevelopment())
             {
                 app.UseExceptionHandler("/Home/Error");
@@ -71,22 +71,19 @@ namespace Hospital
 
             app.UseRouting();
 
-            // 4. Kích hoạt Authentication (Phải đặt trước UseAuthorization)
+            // 4. Kích hoạt Authentication & Authorization
             app.UseAuthentication();
-
             app.UseAuthorization();
 
-            // *************************************************************
-            // KHẮC PHỤC LỖI KHÔNG TÌM THẤY TRANG IDENTITY (Đăng nhập, Đăng ký)
-            // *************************************************************
-            app.MapRazorPages(); // Dòng này là bắt buộc để mapping các trang Identity
+            // Mapping các trang Identity (Razor Pages)
+            app.MapRazorPages();
 
-            // 5. Định tuyến cho Area (Phải đặt TRƯỚC định tuyến mặc định)
+            // 5. Định tuyến cho Area (Admin) - Phải đặt trước định tuyến mặc định
             app.MapControllerRoute(
                 name: "areas",
                 pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
 
-            // Định tuyến mặc định (cho giao diện Khách hàng)
+            // Định tuyến mặc định cho giao diện khách hàng
             app.MapControllerRoute(
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}");
@@ -94,13 +91,11 @@ namespace Hospital
             app.Run();
 
             // Hàm thực hiện Seeding Database
-            void SeedDatabase()
+            void SeedDatabase(WebApplication appInstance)
             {
-                using (var scope = app.Services.CreateScope())
+                using (var scope = appInstance.Services.CreateScope())
                 {
-                    // Lấy service DbInitializer đã đăng ký
                     var dbInitializer = scope.ServiceProvider.GetRequiredService<DbInitializer>();
-                    // Gọi hàm khởi tạo
                     dbInitializer.Initialize().Wait();
                 }
             }

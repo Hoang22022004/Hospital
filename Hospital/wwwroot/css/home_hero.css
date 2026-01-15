@@ -10,8 +10,8 @@
 }
 
 .hero-carousel .carousel-item {
-    height: calc(100vh - 115px); /* Full màn hình trừ chiều cao Header */
-    min-height: 550px;
+    height: calc(110vh - 120px); /* Full màn hình trừ chiều cao Header */
+    min-height: 650px;
     background-repeat: no-repeat;
     background-position: center top !important; /* Giữ phần đầu ảnh, mặt bác sĩ */
     background-size: cover;

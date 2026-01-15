@@ -3,7 +3,7 @@
 @{
     ViewData["Title"] = "Xác nhận Thanh toán";
     Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
-    // Lấy dữ liệu tiền tệ từ ViewBag đã tính ở Controller
+
     decimal tongDichVu = ViewBag.TongDichVu;
     decimal tongThuoc = ViewBag.TongThuoc;
     decimal tongTien = ViewBag.TongTien;
@@ -11,106 +11,178 @@
 
 <div class="container py-4">
     <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="card shadow-sm border-0" style="border-radius: 15px;">
-                <div class="card-header bg-success text-white py-3" style="border-radius: 15px 15px 0 0;">
+        <div class="col-lg-9">
+            <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+                @* Header chuyên nghiệp hơn *@
+                <div class="card-header bg-navy text-white py-3 border-0">
                     <div class="d-flex justify-content-between align-items-center">
-                        <h4 class="mb-0 fw-bold"><i class="fas fa-file-invoice-dollar me-2"></i>HÓA ĐƠN CHI PHÍ</h4>
-                        <span class="badge bg-white text-success fw-bold">Mã HS: #@Model.Id</span>
+                        <h4 class="mb-0 fw-bold"><i class="fas fa-file-invoice-dollar me-2"></i>HÓA ĐƠN CHI PHÍ ĐIỀU TRỊ</h4>
+                        <span class="badge bg-white text-primary fw-bold px-3 py-2 rounded-pill">Mã HS: #@Model.Id</span>
                     </div>
                 </div>
 
-                <div class="card-body p-4">
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <p class="text-muted small mb-1 text-uppercase fw-bold">Bệnh nhân</p>
-                            <h5 class="text-dark fw-bold">@Model.BenhNhan?.HoTen</h5>
-                            <p class="mb-0 text-muted">SĐT: @Model.BenhNhan?.SoDienThoai</p>
+                <div class="card-body p-4 p-md-5">
+                    @* Thông tin chung *@
+                    <div class="row mb-4 pb-4 border-bottom">
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <p class="text-muted small mb-1 text-uppercase fw-bold ls-1">Thông tin Bệnh nhân</p>
+                            <h5 class="text-dark fw-bold mb-1">@Model.BenhNhan?.HoTen</h5>
+                            <p class="mb-0 text-muted"><i class="fas fa-phone-alt me-2 small"></i>@Model.BenhNhan?.SoDienThoai</p>
                         </div>
                         <div class="col-md-6 text-md-end">
-                            <p class="text-muted small mb-1 text-uppercase fw-bold">Ngày khám</p>
-                            <h5 class="text-dark">@Model.NgayKham.ToString("dd/MM/yyyy HH:mm")</h5>
-                            <p class="mb-0 text-muted">Bác sĩ: @Model.BacSi?.HoTen</p>
+                            <p class="text-muted small mb-1 text-uppercase fw-bold ls-1">Chi tiết ca khám</p>
+                            <h5 class="text-dark mb-1">@Model.NgayKham.ToString("dd/MM/yyyy HH:mm")</h5>
+                            <p class="mb-0 text-muted"><i class="fas fa-user-md me-2 small"></i>Bác sĩ: <strong>@Model.BacSi?.HoTen</strong></p>
                         </div>
                     </div>
 
-                    <h6 class="fw-bold border-bottom pb-2 mb-3"><i class="fas fa-list-ul me-2"></i>Chi phí Dịch vụ kỹ thuật</h6>
-                    <table class="table table-sm table-borderless mb-4">
-                        <thead class="text-muted small text-uppercase">
-                            <tr>
-                                <th>Tên dịch vụ</th>
-                                <th class="text-end">Thành tiền</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var dv in Model.ChiTietDichVus)
-                            {
-                                <tr>
-                                    <td>@dv.DichVu.TenDichVu</td>
-                                    <td class="text-end">@dv.DichVu.Gia.ToString("N0") đ</td>
-                                </tr>
-                            }
-                        </tbody>
-                        <tfoot class="border-top">
-                            <tr>
-                                <td class="fw-bold">Tổng tiền dịch vụ:</td>
-                                <td class="text-end fw-bold text-primary">@tongDichVu.ToString("N0") đ</td>
-                            </tr>
-                        </tfoot>
-                    </table>
+                    @* Bảng Dịch vụ *@
+                    <div class="mb-4">
+                        <h6 class="fw-bold mb-3 text-primary uppercase"><i class="fas fa-hand-holding-medical me-2"></i>1. Dịch vụ kỹ thuật thực hiện</h6>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead class="table-light">
+                                    <tr class="small text-uppercase">
+                                        <th>Tên dịch vụ / Liệu trình</th>
+                                        <th class="text-end">Đơn giá</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var dv in Model.ChiTietDichVus)
+                                    {
+                                        <tr>
+                                            <td class="fw-bold text-navy">@dv.DichVu.TenDichVu</td>
+                                            <td class="text-end fw-bold">@dv.DichVu.Gia.ToString("N0") đ</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td class="text-end text-muted">Cộng tiền dịch vụ:</td>
+                                        <td class="text-end fw-bold text-primary">@tongDichVu.ToString("N0") đ</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
 
+                    @* Bảng Thuốc *@
                     @if (Model.ChiTietDonThuocs != null && Model.ChiTietDonThuocs.Any())
                     {
-                        <h6 class="fw-bold border-bottom pb-2 mb-3"><i class="fas fa-pills me-2"></i>Chi phí Thuốc & Mỹ phẩm</h6>
-                        <table class="table table-sm table-borderless mb-4">
-                            <thead class="text-muted small text-uppercase">
-                                <tr>
-                                    <th>Tên thuốc</th>
-                                    <th class="text-center">SL</th>
-                                    <th class="text-end">Thành tiền</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var t in Model.ChiTietDonThuocs)
-                                {
-                                    <tr>
-                                        <td>@t.Thuoc.TenThuoc</td>
-                                        <td class="text-center">@t.SoLuong</td>
-                                        <td class="text-end">@((t.SoLuong * t.Thuoc.GiaBan).ToString("N0")) đ</td>
-                                    </tr>
-                                }
-                            </tbody>
-                            <tfoot class="border-top">
-                                <tr>
-                                    <td colspan="2" class="fw-bold">Tổng tiền thuốc:</td>
-                                    <td class="text-end fw-bold text-primary">@tongThuoc.ToString("N0") đ</td>
-                                </tr>
-                            </tfoot>
-                        </table>
+                        <div class="mb-4">
+                            <h6 class="fw-bold mb-3 text-success uppercase"><i class="fas fa-pills me-2"></i>2. Thuốc & Dược mỹ phẩm chỉ định</h6>
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle">
+                                    <thead class="table-light">
+                                        <tr class="small text-uppercase">
+                                            <th>Tên thuốc</th>
+                                            <th class="text-center">Số lượng</th>
+                                            <th class="text-end">Thành tiền</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var t in Model.ChiTietDonThuocs)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <span class="fw-bold">@t.Thuoc.TenThuoc</span>
+                                                    <div class="small text-muted italic">@t.LieuDung</div>
+                                                </td>
+                                                <td class="text-center">@t.SoLuong @t.Thuoc.DonViTinh</td>
+                                                <td class="text-end fw-bold">@((t.SoLuong * t.Thuoc.GiaBan).ToString("N0")) đ</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <td colspan="2" class="text-end text-muted">Cộng tiền thuốc:</td>
+                                            <td class="text-end fw-bold text-success">@tongThuoc.ToString("N0") đ</td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
                     }
 
-                    <div class="bg-light p-3 rounded-3 mb-4">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0 fw-bold text-dark">TỔNG CỘNG THANH TOÁN:</h5>
-                            <h3 class="mb-0 fw-bold text-danger">@tongTien.ToString("N0") đ</h3>
+                    @* Khối Tổng cộng *@
+                    <div class="bg-light p-4 rounded-4 border mb-5 shadow-sm">
+                        <div class="row align-items-center">
+                            <div class="col-sm-6 mb-2 mb-sm-0">
+                                <h5 class="mb-0 fw-bold text-navy uppercase">Tổng cộng thanh toán:</h5>
+                                <small class="text-muted italic">Đã bao gồm VAT và các loại phí dịch vụ</small>
+                            </div>
+                            <div class="col-sm-6 text-sm-end">
+                                <h2 class="mb-0 fw-bold text-danger">@tongTien.ToString("N0") <small>VNĐ</small></h2>
+                            </div>
                         </div>
                     </div>
 
-                    <form asp-action="XacNhanThanhToan" method="post">
-                        <input type="hidden" name="id" value="@Model.Id" />
-                        <div class="row g-2">
+                    @* Lựa chọn phương thức thanh toán *@
+                    <div class="text-center mb-4">
+                        <h6 class="text-muted fw-bold text-uppercase ls-1 mb-3">Vui lòng chọn phương thức thanh toán</h6>
+                        <div class="row g-3">
+                            @* Nút Thanh toán Tiền mặt (Bản cũ của bạn) *@
                             <div class="col-md-6">
-                                <a asp-action="Index" class="btn btn-light w-100 py-2 fw-bold">QUAY LẠI</a>
+                                <form asp-action="XacNhanThanhToan" method="post">
+                                    <input type="hidden" name="id" value="@Model.Id" />
+                                    <button type="submit" class="btn btn-success w-100 py-3 rounded-3 fw-bold shadow-sm transition-up">
+                                        <i class="fas fa-money-bill-wave me-2"></i>XÁC NHẬN TIỀN MẶT
+                                    </button>
+                                </form>
                             </div>
+
+                            @* Nút Thanh toán VNPAY (Mới thêm vào) *@
                             <div class="col-md-6">
-                                <button type="submit" class="btn btn-success w-100 py-2 fw-bold shadow">
-                                    <i class="fas fa-check-circle me-1"></i> XÁC NHẬN ĐÃ THU TIỀN
-                                </button>
+                                <a asp-action="ThanhToanVnpay" asp-route-id="@Model.Id" class="btn btn-primary w-100 py-3 rounded-3 fw-bold shadow-sm transition-up" style="background-color: #005baa;">
+                                    <i class="fas fa-credit-card me-2"></i>THANH TOÁN VNPAY (QR/ATM)
+                                </a>
                             </div>
                         </div>
-                    </form>
+                    </div>
+
+                    @* Nút Quay lại *@
+                    <div class="text-center">
+                        <a asp-action="Index" class="btn btn-link text-decoration-none text-muted fw-bold">
+                            <i class="fas fa-arrow-left me-2"></i>Quay lại danh sách hồ sơ
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+@* Thêm CSS bổ trợ cho giao diện đẹp hơn *@
+<style>
+    .bg-navy {
+        background-color: #002d5b;
+    }
+
+    .text-navy {
+        color: #002d5b;
+    }
+
+    .ls-1 {
+        letter-spacing: 1px;
+    }
+
+    .uppercase {
+        text-transform: uppercase;
+    }
+
+    .italic {
+        font-style: italic;
+    }
+
+    .rounded-4 {
+        border-radius: 1rem !important;
+    }
+
+    .transition-up {
+        transition: all 0.3s;
+    }
+
+        .transition-up:hover {
+            transform: translateY(-3px);
+        }
+</style>

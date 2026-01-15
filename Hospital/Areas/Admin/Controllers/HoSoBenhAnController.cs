@@ -7,20 +7,23 @@ using Microsoft.AspNetCore.Hosting;
 using System.Linq;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using Hospital.Helpers;
 
 namespace Hospital.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize(Roles = "Admin,Receptionist,Doctor")] // Cho phép cả 3 vào xem danh sách chung
+    [Authorize(Roles = "Admin,Receptionist,Doctor,Customer")] // Cho phép cả 3 vào xem danh sách chung
     public class HoSoBenhAnController : Controller
     {
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _hostEnvironment;
+        private readonly IConfiguration _configuration; // <--- THÊM DÒNG NÀY
 
-        public HoSoBenhAnController(ApplicationDbContext context, IWebHostEnvironment hostEnvironment)
+        public HoSoBenhAnController(ApplicationDbContext context, IWebHostEnvironment hostEnvironment, IConfiguration configuration) // <--- THÊM THAM SỐ NÀY
         {
             _context = context;
             _hostEnvironment = hostEnvironment;
+            _configuration = configuration; // <--- THÊM DÒNG NÀY
         }
 
         // --- HÀM HELPER: Lấy ID Bác sĩ từ tài khoản đang đăng nhập ---
@@ -98,6 +101,7 @@ namespace Hospital.Areas.Admin.Controllers
         // ===============================================================
         // 2. CHI TIẾT BỆNH ÁN & TÍNH TIỀN (TẤT CẢ QUYỀN XEM ĐƯỢC)
         // ===============================================================
+        [Authorize(Roles = "Admin,Receptionist,Doctor,Customer")]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null) return NotFound();
@@ -310,12 +314,88 @@ namespace Hospital.Areas.Admin.Controllers
         // ===============================================================
         // 5. THANH TOÁN (CHỈ ADMIN & RECEPTIONIST)
         // ===============================================================
-        [Authorize(Roles = "Admin,Receptionist")]
+        [Authorize(Roles = "Admin,Receptionist,Customer")]
         public async Task<IActionResult> ThanhToan(int id)
         {
             return await Details(id);
         }
+        // ===============================================================
+        // CHIẾN LƯỢC THANH TOÁN VNPAY
+        // ===============================================================
+        [Authorize(Roles = "Admin,Receptionist,Customer")]
+        public async Task<IActionResult> ThanhToanVnpay(int id)
+        {
+            var hoSo = await _context.HoSoBenhAn
+                .Include(h => h.ChiTietDichVus).ThenInclude(d => d.DichVu)
+                .Include(h => h.ChiTietDonThuocs).ThenInclude(t => t.Thuoc)
+                .FirstOrDefaultAsync(h => h.Id == id);
 
+            if (hoSo == null) return NotFound();
+
+            // Tính tổng tiền (đảm bảo không có phần thập phân)
+            long tongTien = (long)((hoSo.ChiTietDichVus?.Sum(d => d.DichVu.Gia) ?? 0) +
+                                   (hoSo.ChiTietDonThuocs?.Sum(t => t.SoLuong * t.Thuoc.GiaBan) ?? 0));
+
+            var vnpay = new VnPayLibrary();
+            vnpay.AddRequestData("vnp_Version", "2.1.0");
+            vnpay.AddRequestData("vnp_Command", "pay");
+            vnpay.AddRequestData("vnp_TmnCode", _configuration["Vnpay:TmnCode"]);
+            vnpay.AddRequestData("vnp_Amount", (tongTien * 100).ToString()); // VNPAY yêu cầu nhân 100
+            vnpay.AddRequestData("vnp_CreateDate", DateTime.Now.ToString("yyyyMMddHHmmss"));
+            vnpay.AddRequestData("vnp_CurrCode", "VND");
+            vnpay.AddRequestData("vnp_IpAddr", HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1");
+            vnpay.AddRequestData("vnp_Locale", "vn");
+            vnpay.AddRequestData("vnp_OrderInfo", "Thanh toan ho so benh an: " + id);
+            vnpay.AddRequestData("vnp_OrderType", "other");
+            vnpay.AddRequestData("vnp_ReturnUrl", _configuration["Vnpay:ReturnUrl"]);
+
+            // Mã tham chiếu: ID_ThờiGian để tránh trùng lặp đơn hàng khi test lại
+            vnpay.AddRequestData("vnp_TxnRef", $"{id}_{DateTime.Now.Ticks}");
+
+            string paymentUrl = vnpay.CreateRequestUrl(_configuration["Vnpay:BaseUrl"], _configuration["Vnpay:HashSecret"]);
+            return Redirect(paymentUrl);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> VnpayReturn()
+        {
+            var vnpayData = Request.Query;
+            var vnpay = new VnPayLibrary();
+
+            foreach (var (key, value) in vnpayData)
+            {
+                if (!string.IsNullOrEmpty(key) && key.StartsWith("vnp_"))
+                {
+                    vnpay.AddResponseData(key, value);
+                }
+            }
+
+            // Tách ID từ chuỗi txnRef (ví dụ "15_638123...")
+            string txnRef = vnpay.GetResponseData("vnp_TxnRef");
+            int hoSoId = int.Parse(txnRef.Split('_')[0]);
+
+            string vnp_ResponseCode = vnpay.GetResponseData("vnp_ResponseCode");
+            string vnp_SecureHash = Request.Query["vnp_SecureHash"];
+            bool checkSignature = vnpay.ValidateSignature(vnp_SecureHash, _configuration["Vnpay:HashSecret"]);
+
+            if (checkSignature && vnp_ResponseCode == "00")
+            {
+                var hoSo = await _context.HoSoBenhAn.Include(h => h.LichHen).FirstOrDefaultAsync(h => h.Id == hoSoId);
+                if (hoSo != null)
+                {
+                    hoSo.TrangThai = TrangThaiHoSo.HoanThanh;
+                    if (hoSo.LichHen != null) hoSo.LichHen.TrangThai = TrangThaiLichHen.HoanThanh;
+                    await _context.SaveChangesAsync();
+                    TempData["success"] = "Thanh toán thành công!";
+                }
+            }
+            else
+            {
+                TempData["error"] = "Thanh toán thất bại. Mã lỗi: " + vnp_ResponseCode;
+            }
+
+            return RedirectToAction("Details", new { id = hoSoId });
+        }
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin,Receptionist")]

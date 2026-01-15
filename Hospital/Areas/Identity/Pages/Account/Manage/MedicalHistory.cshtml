@@ -54,6 +54,18 @@
                                                 <i class="bi bi-check-circle-fill me-1"></i> @GetDisplayName(item.TrangThai)
                                             </span>
                                         }
+                                        else if (item.TrangThai == TrangThaiHoSo.ChoThanhToan)
+                                        {
+                                            <span class="badge bg-info bg-opacity-10 text-info rounded-pill px-3 py-2 border border-info border-opacity-25">
+                                                <i class="bi bi-credit-card me-1"></i> @GetDisplayName(item.TrangThai)
+                                            </span>
+                                        }
+                                        else if (item.TrangThai == TrangThaiHoSo.DaHuy)
+                                        {
+                                            <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3 py-2 border border-danger border-opacity-25">
+                                                <i class="bi bi-x-circle me-1"></i> @GetDisplayName(item.TrangThai)
+                                            </span>
+                                        }
                                         else
                                         {
                                             <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-3 py-2 border border-warning border-opacity-25">
@@ -66,7 +78,7 @@
                                 @* CHẨN ĐOÁN *@
                                 <div class="col-md-6 px-lg-4">
                                     <small class="text-muted text-uppercase fw-bold ls-1 mb-2 d-block" style="font-size: 0.65rem;">Chẩn đoán chuyên khoa</small>
-                                    <h6 class="fw-bold text-navy mb-3 lh-base">@item.ChanDoan</h6>
+                                    <h6 class="fw-bold text-navy mb-3 lh-base">@(string.IsNullOrEmpty(item.ChanDoan) ? "Đang cập nhật..." : item.ChanDoan)</h6>
 
                                     <div class="d-flex align-items-center small text-muted bg-light p-2 rounded-3 d-inline-flex">
                                         <i class="bi bi-person-badge me-2 text-primary"></i>
@@ -74,12 +86,38 @@
                                     </div>
                                 </div>
 
-                                @* HÀNH ĐỘNG *@
+                                @* HÀNH ĐỘNG (ĐÃ CẬP NHẬT TRẠNG THÁI CHỜ THANH TOÁN) *@
                                 <div class="col-md-3 text-center text-md-end">
-                                    <a asp-page="./MedicalRecordDetails" asp-route-id="@item.Id"
-                                       class="btn btn-navy-outline rounded-pill px-4 fw-bold small">
-                                        XEM PHÁC ĐỒ <i class="bi bi-arrow-right ms-1"></i>
-                                    </a>
+                                    @if (item.TrangThai == TrangThaiHoSo.ChoKham)
+                                    {
+                                        <form asp-page-handler="HuyHoSo" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn hủy lịch khám này không?')">
+                                            <input type="hidden" name="id" value="@item.Id" />
+                                            <button type="submit" class="btn btn-outline-danger rounded-pill px-4 fw-bold small shadow-sm">
+                                                <i class="bi bi-x-circle me-1"></i> HỦY LỊCH
+                                            </button>
+                                        </form>
+                                    }
+                                    else if (item.TrangThai == TrangThaiHoSo.ChoThanhToan)
+                                    {
+                                        @* HIỂN THỊ CẢ THANH TOÁN VÀ XEM PHÁC ĐỒ *@
+                                        <div class="d-flex flex-column gap-2">
+                                            <a asp-area="Admin" asp-controller="HoSoBenhAn" asp-action="ThanhToanVnpay" asp-route-id="@item.Id"
+                                               class="btn btn-success rounded-pill px-4 fw-bold small shadow-sm animate__animated animate__pulse animate__infinite">
+                                                <i class="bi bi-credit-card me-1"></i> THANH TOÁN
+                                            </a>
+                                            <a asp-page="./MedicalRecordDetails" asp-route-id="@item.Id"
+                                               class="btn btn-navy-outline rounded-pill px-4 fw-bold small">
+                                                XEM PHÁC ĐỒ <i class="bi bi-arrow-right ms-1"></i>
+                                            </a>
+                                        </div>
+                                    }
+                                    else if (item.TrangThai == TrangThaiHoSo.DangKham || item.TrangThai == TrangThaiHoSo.HoanThanh)
+                                    {
+                                        <a asp-page="./MedicalRecordDetails" asp-route-id="@item.Id"
+                                           class="btn btn-navy-outline rounded-pill px-4 fw-bold small">
+                                            XEM PHÁC ĐỒ <i class="bi bi-arrow-right ms-1"></i>
+                                        </a>
+                                    }
                                 </div>
                             </div>
                         </div>
@@ -137,4 +175,21 @@
             background: #002d5b;
             color: #fff;
         }
+
+    /* Hiệu ứng cho nút Thanh toán */
+    .btn-success {
+        background-color: #28a745;
+        border-color: #28a745;
+    }
+
+        .btn-success:hover {
+            background-color: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(40, 167, 69, 0.2);
+        }
+
+    /* Đảm bảo các nút trong d-flex flex-column có chiều rộng đồng nhất nếu cần */
+    .gap-2 {
+        gap: 0.5rem !important;
+    }
 </style>
