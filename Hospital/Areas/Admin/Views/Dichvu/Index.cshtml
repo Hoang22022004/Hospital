@@ -4,8 +4,24 @@
     ViewData["Title"] = "Quản lý Dịch vụ";
 }
 
-<div class="container p-3">
+<style>
+    /* CSS để giới hạn số dòng và hiện dấu ... */
+    .text-ellipsis-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2; /* Số dòng muốn hiển thị */
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        word-break: break-word;
+        max-width: 250px; /* Độ rộng tối đa của cột mô tả */
+    }
 
+    .no-wrap-header {
+        white-space: nowrap;
+    }
+</style>
+
+<div class="container p-3">
     <div class="row pt-4 align-items-center">
         <div class="col-6">
             <h2 class="text-primary mb-0">Danh sách Dịch vụ</h2>
@@ -26,22 +42,21 @@
                     <th width="15%" class="no-wrap-header">@Html.DisplayNameFor(model => model.TenDichVu)</th>
                     <th width="10%" class="no-wrap-header text-center">@Html.DisplayNameFor(model => model.AnhDichVuUrl)</th>
                     <th width="15%" class="no-wrap-header">Chuyên khoa</th>
-                    <th width="15%" class="no-wrap-header">@Html.DisplayNameFor(model => model.MoTaNgan)</th>
-                    <th width="15%" class="no-wrap-header">@Html.DisplayNameFor(model => model.Gia)</th>
+                    <th width="20%" class="no-wrap-header">@Html.DisplayNameFor(model => model.MoTaNgan)</th>
+                    <th width="10%" class="no-wrap-header">@Html.DisplayNameFor(model => model.Gia)</th>
                     <th width="10%" class="no-wrap-header">@Html.DisplayNameFor(model => model.IsActive)</th>
-                    <th width="15%" class="no-wrap-header">Thao tác</th>
+                    <th width="20%" class="no-wrap-header">Thao tác</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach (var obj in Model)
                 {
                     <tr>
-                        <td>@obj.TenDichVu</td>
+                        <td style="vertical-align: middle;">@obj.TenDichVu</td>
                         <td class="text-center" style="vertical-align: middle;">
-
                             @if (!string.IsNullOrEmpty(obj.AnhDichVuUrl))
                             {
-                                <img src="@obj.AnhDichVuUrl" style="width: 80px; height: 80px; object-fit: cover; border-radius: 5px;" />
+                                <img src="@obj.AnhDichVuUrl" style="width: 60px; height: 60px; object-fit: cover; border-radius: 5px;" />
                             }
                         </td>
                         <td style="vertical-align: middle;">
@@ -49,7 +64,7 @@
                             {
                                 @foreach (var link in obj.ChuyenKhoaDichVus)
                                 {
-                                    <span class="badge bg-primary me-1 mb-1">@link.ChuyenKhoa.TenChuyenKhoa</span>
+                                    <span class="badge bg-primary me-1 mb-1" style="font-size: 0.75rem;">@link.ChuyenKhoa.TenChuyenKhoa</span>
                                 }
                             }
                             else
@@ -57,17 +72,28 @@
                                 <span class="badge bg-secondary">Chưa gán</span>
                             }
                         </td>
-                        <td style="vertical-align: middle;">@obj.MoTaNgan</td>
-                        <td style="vertical-align: middle;">@obj.Gia.ToString("N0") VNĐ</td>
                         <td style="vertical-align: middle;">
-                            @(obj.IsActive ? "Có" : "Không")
+                            <div class="text-ellipsis-2" title="@obj.MoTaNgan">
+                                @obj.MoTaNgan
+                            </div>
+                        </td>
+                        <td style="vertical-align: middle; white-space: nowrap;">@obj.Gia.ToString("N0") VNĐ</td>
+                        <td class="text-center" style="vertical-align: middle;">
+                            @if (obj.IsActive)
+                            {
+                                <span class="badge bg-success"><i class="bi bi-check-circle"></i></span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger"><i class="bi bi-x-circle"></i></span>
+                            }
                         </td>
                         <td style="vertical-align: middle;">
-                            <div class="w-100 btn-group" role="group">
-                                <a asp-controller="DichVu" asp-action="Edit" asp-route-id="@obj.DichVuId" class="btn btn-primary mx-1">
+                            <div class="btn-group" role="group">
+                                <a asp-controller="DichVu" asp-action="Edit" asp-route-id="@obj.DichVuId" class="btn btn-primary btn-sm mx-1 shadow-sm">
                                     <i class="bi bi-pencil-square"></i> Sửa
                                 </a>
-                                <a asp-controller="DichVu" asp-action="Delete" asp-route-id="@obj.DichVuId" class="btn btn-danger mx-1">
+                                <a asp-controller="DichVu" asp-action="Delete" asp-route-id="@obj.DichVuId" class="btn btn-danger btn-sm mx-1 shadow-sm">
                                     <i class="bi bi-trash-fill"></i> Xóa
                                 </a>
                             </div>
@@ -79,17 +105,15 @@
     }
     else
     {
-        <p>Không có dịch vụ nào tồn tại.</p>
+        <div class="alert alert-warning text-center">Không có dịch vụ nào tồn tại.</div>
     }
 </div>
 
 @section Scripts {
     <script>
         $(document).ready(function () {
-            // GỌI HÀM KHỞI TẠO DATATABLES CHUNG TỪ LAYOUT
             initializeDataTable('tblData', {
-                "order": [[0, 'asc']] // Tùy chỉnh sắp xếp (Nếu cần)
-                // Các tùy chỉnh khác đã nằm trong hàm initializeDataTable() ở _LayoutAdmin.cshtml
+                "order": [[0, 'asc']]
             });
         });
     </script>

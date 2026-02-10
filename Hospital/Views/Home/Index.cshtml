@@ -1,94 +1,135 @@
 ﻿@model IEnumerable<Hospital.Models.BacSi>
+@using Hospital.Models
 
 @{
     ViewData["Title"] = "Trang chủ";
+
+    // Ép kiểu từ ViewBag sang List để C# nhận diện được tên 'listTinTuc'
+    var listTinTuc = ViewBag.ListTinTuc as IEnumerable<Hospital.Models.TinTuc>;
 }
 
 @section Styles {
-    @* Gọi các tệp CSS đã được tối ưu đồng bộ màu sắc và bố cục *@
+    @* Gọi các tệp CSS đồng bộ cho Hello Paris *@
     <link rel="stylesheet" href="~/css/home_hero.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/home_search.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/why-choose.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/home_doctors.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/services.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/process-tree.css" asp-append-version="true" />
+
+    @* CSS Tin tức mới *@
+    <link rel="stylesheet" href="~/css/news.css" asp-append-version="true" />
+
+    @* Thư viện Swiper CSS *@
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
 }
 
 @* 1. Phần Banner chính *@
 <partial name="_HeroPartial" />
 
-@* 2. Thanh tìm kiếm (Vị trí 50% Banner - 50% Bác sĩ) *@
+@* 2. Thanh tìm kiếm thông minh *@
 <partial name="_SearchPartial" />
 
-@* 3. Phần Đội ngũ chuyên gia (Nền màu #f8fafc đồng bộ) *@
+@* 3. Phần Tại sao nên chọn Hello Paris *@
+<partial name="_WhyChoosePartial" />
+
+@* 4. Phần Đội ngũ chuyên gia *@
 <partial name="_DoctorsPartial" model="Model" />
 
+@* 5. Phần Dịch vụ nổi bật *@
+<partial name="~/Views/DichVu/_ServicePartial.cshtml" />
+
+@* 6. Phần Quy trình thăm khám *@
+<partial name="_ProcessTree" />
+
+@* 7. Phần Tin tức & Kiến thức *@
+<partial name="~/Views/TinTuc/_NewsPartial.cshtml" model="listTinTuc" />
+
 @section Scripts {
+@* Thêm Swiper JS *@
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
     <script>
         $(document).ready(function () {
+            // A. Slide "Tại sao chọn"
+            new Swiper(".whyChooseSwiper", {
+                loop: true,
+                autoplay: { delay: 4000 },
+                pagination: { el: ".swiper-pagination", clickable: true },
+                effect: "fade"
+            });
+
+            // B. Slide "Ảnh phòng khám"
+            new Swiper(".leftImageSwiper", {
+                loop: true,
+                speed: 1000,
+                navigation: {
+                    nextEl: ".srv-left-arrow",
+                    prevEl: ".srv-left-arrow"
+                },
+                pagination: { el: ".swiper-pagination", clickable: true },
+            });
+
+            // C. Slide "Dịch vụ nổi bật"
+            new Swiper(".rightServiceSwiper", {
+                slidesPerView: 1.5,
+                spaceBetween: 25,
+                grabCursor: true,
+                autoplay: { delay: 3500, disableOnInteraction: false },
+                pagination: {
+                    el: ".srv-pagination-pill",
+                    clickable: true
+                },
+                breakpoints: {
+                    768: { slidesPerView: 2.5 },
+                    1024: { slidesPerView: 3 }
+                }
+            });
+
+            // --- ĐÂY LÀ PHẦN THÊM MỚI ---
+            // D. Slide "Tin tức & Kiến thức" (Lướt qua bằng di chuột)
+            new Swiper(".newsSwiper", {
+                slidesPerView: 1.2,
+                spaceBetween: 25,
+                grabCursor: true,   // Hiệu ứng bàn tay khi di chuột lướt qua
+                autoplay: { delay: 5000, disableOnInteraction: false },
+                pagination: {
+                    el: ".news-pagination-pill",
+                    clickable: true,
+                },
+                breakpoints: {
+                    768: { slidesPerView: 2.2 },
+                    1024: { slidesPerView: 3.2 }
+                }
+            });
+
+            // Logic xử lý tìm kiếm
             const $searchInput = $('#mainSearchInput');
             const $liveResults = $('#liveResults');
             const $resultsList = $('#resultsList');
 
-            // Logic xử lý tìm kiếm thời gian thực khi người dùng gõ chữ
             $searchInput.on('input', function () {
                 const term = $(this).val();
-
                 if (term.length > 0) {
-                    // Gọi API lấy gợi ý từ Database
                     $.ajax({
                         url: '/Home/GetSearchSuggestions',
                         type: 'GET',
                         data: { term: term },
                         success: function (data) {
                             $resultsList.empty();
-
                             if (data.length > 0) {
                                 $liveResults.show();
                                 data.forEach(item => {
-                                    let mediaHtml = '';
-
-                                    // Xử lý hiển thị Ảnh hoặc Icon tùy loại dữ liệu
-                                    if (item.img && item.img.trim() !== '') {
-                                        mediaHtml = `<img src="${item.img}" class="search-result-img">`;
-                                    } else {
-                                        let iconClass = 'bi-search';
-                                        if (item.type === 'doctor') iconClass = 'bi-person-circle';
-                                        if (item.type === 'disease') iconClass = 'bi-capsule-pill';
-                                        if (item.type === 'service') iconClass = 'bi-activity';
-                                        if (item.type === 'news') iconClass = 'bi-journal-text';
-
-                                        mediaHtml = `<div class="search-result-icon-placeholder"><i class="bi ${iconClass}"></i></div>`;
-                                    }
-
-                                    // Đổ dữ liệu vào danh sách hiển thị
-                                    $resultsList.append(`
-                                        <li>
-                                            <a href="${item.url}" class="d-flex align-items-center p-3 text-decoration-none border-bottom">
-                                                <div class="me-3">${mediaHtml}</div>
-                                                <div>
-                                                    <span class="d-block fw-bold text-dark">${item.title}</span>
-                                                    <small class="text-muted">${item.desc || 'Hello Paris Clinic'}</small>
-                                                </div>
-                                            </a>
-                                        </li>
-                                    `);
+                                    let mediaHtml = item.img ? `<img src="${item.img}" class="search-result-img">` : `<div class="search-result-icon-placeholder"><i class="bi bi-search"></i></div>`;
+                                    $resultsList.append(`<li><a href="${item.url}" class="d-flex align-items-center p-3 text-decoration-none border-bottom"><div class="me-3">${mediaHtml}</div><div><span class="d-block fw-bold text-dark">${item.title}</span><small class="text-muted">${item.desc || 'Hello Paris Clinic'}</small></div></a></li>`);
                                 });
                             } else {
-                                // Hiển thị thông báo nếu không có kết quả
-                                $resultsList.html('<li class="p-4 text-center text-muted small">Không tìm thấy kết quả phù hợp...</li>');
+                                $resultsList.html('<li class="p-4 text-center text-muted small">Không tìm thấy kết quả...</li>');
                                 $liveResults.show();
                             }
                         }
                     });
-                } else {
-                    // Ẩn hộp kết quả nếu ô tìm kiếm trống
-                    $liveResults.hide();
-                }
-            });
-
-            // Tự động ẩn hộp kết quả khi người dùng click ra ngoài vùng tìm kiếm
-            $(document).on('click', function (e) {
-                if (!$(e.target).closest('.search-wrapper').length) {
-                    $liveResults.hide();
-                }
+                } else { $liveResults.hide(); }
             });
         });
     </script>

@@ -1,0 +1,105 @@
+﻿@model IEnumerable<Hospital.Models.TinTuc>
+@using System.Net
+
+@{
+    ViewData["Title"] = "Kiến thức & Tin tức";
+    string currentCat = ViewBag.CurrentCategory as string;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/news.css" asp-append-version="true" />
+    <style>
+        .filter-btn {
+            border: 2px solid var(--teal);
+            color: var(--teal);
+            font-weight: 600;
+            transition: 0.3s;
+            padding: 8px 25px;
+        }
+
+            .filter-btn:hover, .filter-btn.active {
+                background-color: var(--teal);
+                color: white;
+                box-shadow: 0 5px 15px rgba(69, 195, 210, 0.3);
+            }
+    </style>
+}
+
+@* BANNER ĐẦU TRANG *@
+<div class="bg-light-blue py-5 mb-4">
+    <div class="container text-center">
+        <h1 class="fw-bold text-navy Montserrat">TIN TỨC & KIẾN THỨC</h1>
+        <p class="text-muted">Cập nhật những kiến thức da liễu và tin tức mới nhất từ Hello Paris</p>
+    </div>
+</div>
+
+<div class="container pb-5">
+    @* BỘ LỌC CHUYÊN MỤC *@
+    <div class="d-flex flex-wrap justify-content-center gap-2 mb-5">
+        <a asp-action="Index" asp-route-category=""
+           class="btn filter-btn rounded-pill @(string.IsNullOrEmpty(currentCat) ? "active" : "")">Tất cả</a>
+
+        <a asp-action="Index" asp-route-category="Kiến thức da liễu"
+           class="btn filter-btn rounded-pill @(currentCat == "Kiến thức da liễu" ? "active" : "")">Kiến thức da liễu</a>
+
+        <a asp-action="Index" asp-route-category="Tin tức phòng khám"
+           class="btn filter-btn rounded-pill @(currentCat == "Tin tức phòng khám" ? "active" : "")">Tin tức phòng khám</a>
+
+        <a asp-action="Index" asp-route-category="Khuyến mãi"
+           class="btn filter-btn rounded-pill @(currentCat == "Khuyến mãi" ? "active" : "")">Khuyến mãi</a>
+    </div>
+
+    @* DANH SÁCH BÀI VIẾT *@
+    <div class="row g-4">
+        @if (Model != null && Model.Any())
+        {
+            foreach (var item in Model)
+            {
+                <div class="col-lg-4 col-md-6">
+                    <div class="news-card h-100 shadow-sm border-0">
+                        <div class="news-img-wrapper">
+                            @if (!string.IsNullOrEmpty(item.DanhMuc))
+                            {
+                                <span class="news-badge">@item.DanhMuc</span>
+                            }
+                            <img src="@(string.IsNullOrEmpty(item.HinhAnhUrl) ? "/images/no-image.png" : item.HinhAnhUrl)"
+                                 alt="@item.TieuDe" class="news-img" onerror="this.src='/images/no-image.png';">
+                            <div class="news-overlay">
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-light btn-sm rounded-pill px-4 fw-bold">ĐỌC BÀI VIẾT</a>
+                            </div>
+                        </div>
+
+                        <div class="news-body p-4">
+                            <div class="news-meta mb-2">
+                                <small class="me-3 text-muted"><i class="bi bi-calendar3 me-1 text-teal"></i> @item.NgayDang.ToString("dd/MM/yyyy")</small>
+                                <small class="text-muted"><i class="bi bi-person me-1 text-teal"></i> @item.TacGia</small>
+                            </div>
+
+                            <h5 class="news-title mb-3">
+                                <a asp-action="Details" asp-route-id="@item.Id" class="text-decoration-none text-navy hp-hover-teal">
+                                    @item.TieuDe
+                                </a>
+                            </h5>
+
+                            <p class="news-excerpt text-muted mb-0 small">
+                                @{
+                                    var plainText = System.Text.RegularExpressions.Regex.Replace(item.NoiDung ?? "", "<.*?>", string.Empty);
+                                    var decodedText = WebUtility.HtmlDecode(plainText);
+                                    var summary = decodedText.Length > 110 ? decodedText.Substring(0, 107) + "..." : decodedText;
+                                }
+                                @summary
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12 text-center py-5">
+                <p class="text-muted fs-5">Chưa có bài viết nào trong danh mục này.</p>
+                <a asp-action="Index" asp-route-category="" class="btn btn-teal rounded-pill px-4">Xem tất cả bài viết</a>
+            </div>
+        }
+    </div>
+</div>

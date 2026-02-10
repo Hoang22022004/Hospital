@@ -234,24 +234,61 @@ namespace Hospital.Areas.Admin.Controllers
             return View(lichHen);
         }
 
+        // 5. XÓA LỊCH HẸN (GET)
+        [HttpGet]
         public async Task<IActionResult> Delete(int? id)
         {
-            var lichHen = await _db.LichHen.Include(l => l.BacSi).FirstOrDefaultAsync(l => l.LichHenId == id);
+            if (id == null) return NotFound();
+
+            var lichHen = await _db.LichHen
+                .Include(l => l.BacSi)
+                .Include(l => l.DichVu)
+                .Include(l => l.LichLamViec)
+                .FirstOrDefaultAsync(l => l.LichHenId == id);
+
+            if (lichHen == null) return NotFound();
+
             if (User.IsInRole("Doctor"))
             {
                 var bacSi = await GetCurrentBacSi();
                 if (bacSi == null || lichHen.BacSiId != bacSi.BacSiId) return Forbid();
             }
+
             return View(lichHen);
         }
 
-        [HttpPost, ActionName("Delete")]
-        public async Task<IActionResult> DeletePOST(int id)
+        // 6. XÓA LỊCH HẸN (POST - Xử lý xóa)
+        // Đổi tên hàm thành DeletePost để khớp với asp-action="DeletePost" trong View
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeletePost(int LichHenId) // Tham số đổi thành LichHenId để khớp với asp-for
         {
-            var obj = await _db.LichHen.FindAsync(id);
-            _db.LichHen.Remove(obj);
-            await _db.SaveChangesAsync();
-            return RedirectToAction("Index");
+            var lichHen = await _db.LichHen.FindAsync(LichHenId);
+
+            if (lichHen == null)
+            {
+                TempData["error"] = "Không tìm thấy lịch hẹn.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            if (User.IsInRole("Doctor"))
+            {
+                var bacSi = await GetCurrentBacSi();
+                if (bacSi == null || lichHen.BacSiId != bacSi.BacSiId) return Forbid();
+            }
+
+            try
+            {
+                _db.LichHen.Remove(lichHen);
+                await _db.SaveChangesAsync();
+                TempData["success"] = "Đã xóa lịch hẹn thành công.";
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = "Không thể xóa: " + ex.Message;
+            }
+
+            return RedirectToAction(nameof(Index));
         }
     }
 }

@@ -325,34 +325,42 @@ namespace Hospital.Areas.Admin.Controllers
         [Authorize(Roles = "Admin,Receptionist,Customer")]
         public async Task<IActionResult> ThanhToanVnpay(int id)
         {
+            // 1. Lấy thông tin hồ sơ bệnh án và các chi phí liên quan
             var hoSo = await _context.HoSoBenhAn
+                .Include(h => h.BenhNhan)
                 .Include(h => h.ChiTietDichVus).ThenInclude(d => d.DichVu)
                 .Include(h => h.ChiTietDonThuocs).ThenInclude(t => t.Thuoc)
                 .FirstOrDefaultAsync(h => h.Id == id);
 
             if (hoSo == null) return NotFound();
 
-            // Tính tổng tiền (đảm bảo không có phần thập phân)
+            // 2. Tính tổng tiền và ép kiểu long để tránh sai số khi nhân 100
             long tongTien = (long)((hoSo.ChiTietDichVus?.Sum(d => d.DichVu.Gia) ?? 0) +
                                    (hoSo.ChiTietDonThuocs?.Sum(t => t.SoLuong * t.Thuoc.GiaBan) ?? 0));
 
             var vnpay = new VnPayLibrary();
+
+            // 3. Thiết lập các tham số chuẩn VNPAY 2.1.0
             vnpay.AddRequestData("vnp_Version", "2.1.0");
             vnpay.AddRequestData("vnp_Command", "pay");
-            vnpay.AddRequestData("vnp_TmnCode", _configuration["Vnpay:TmnCode"]);
-            vnpay.AddRequestData("vnp_Amount", (tongTien * 100).ToString()); // VNPAY yêu cầu nhân 100
+            vnpay.AddRequestData("vnp_TmnCode", _configuration["Vnpay:TmnCode"]); // Lấy 9TXCP1FE từ config
+            vnpay.AddRequestData("vnp_Amount", (tongTien * 100).ToString());
             vnpay.AddRequestData("vnp_CreateDate", DateTime.Now.ToString("yyyyMMddHHmmss"));
             vnpay.AddRequestData("vnp_CurrCode", "VND");
-            vnpay.AddRequestData("vnp_IpAddr", HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1");
+            vnpay.AddRequestData("vnp_IpAddr", "127.0.0.1");
             vnpay.AddRequestData("vnp_Locale", "vn");
-            vnpay.AddRequestData("vnp_OrderInfo", "Thanh toan ho so benh an: " + id);
+            vnpay.AddRequestData("vnp_OrderInfo", "Thanh toan ho so " + id);
             vnpay.AddRequestData("vnp_OrderType", "other");
             vnpay.AddRequestData("vnp_ReturnUrl", _configuration["Vnpay:ReturnUrl"]);
 
-            // Mã tham chiếu: ID_ThờiGian để tránh trùng lặp đơn hàng khi test lại
-            vnpay.AddRequestData("vnp_TxnRef", $"{id}_{DateTime.Now.Ticks}");
+            // 4. Tạo mã đơn hàng duy nhất để không bị Sandbox từ chối (ID_ThờiGian)
+            string txnRef = id.ToString() + "_" + DateTime.Now.ToString("HHmmssfff");
+            vnpay.AddRequestData("vnp_TxnRef", txnRef);
 
+            // 5. Tạo URL thanh toán với mã bí mật mới
+            // Hàm CreateRequestUrl sẽ tự động gọi CustomUrlEncode để viết HOA các ký tự mã hóa URL
             string paymentUrl = vnpay.CreateRequestUrl(_configuration["Vnpay:BaseUrl"], _configuration["Vnpay:HashSecret"]);
+
             return Redirect(paymentUrl);
         }
 
@@ -370,12 +378,16 @@ namespace Hospital.Areas.Admin.Controllers
                 }
             }
 
-            // Tách ID từ chuỗi txnRef (ví dụ "15_638123...")
             string txnRef = vnpay.GetResponseData("vnp_TxnRef");
-            int hoSoId = int.Parse(txnRef.Split('_')[0]);
 
+            // Kiểm tra an toàn trước khi ép kiểu ID
+            if (string.IsNullOrEmpty(txnRef) || !txnRef.Contains("_")) return BadRequest("Tham số không lệ.");
+
+            int hoSoId = int.Parse(txnRef.Split('_')[0]);
             string vnp_ResponseCode = vnpay.GetResponseData("vnp_ResponseCode");
             string vnp_SecureHash = Request.Query["vnp_SecureHash"];
+
+            // Kiểm tra chữ ký trả về
             bool checkSignature = vnpay.ValidateSignature(vnp_SecureHash, _configuration["Vnpay:HashSecret"]);
 
             if (checkSignature && vnp_ResponseCode == "00")
@@ -391,7 +403,7 @@ namespace Hospital.Areas.Admin.Controllers
             }
             else
             {
-                TempData["error"] = "Thanh toán thất bại. Mã lỗi: " + vnp_ResponseCode;
+                TempData["error"] = "Thanh toán thất bại hoặc chữ ký không hợp lệ. Mã lỗi: " + vnp_ResponseCode;
             }
 
             return RedirectToAction("Details", new { id = hoSoId });

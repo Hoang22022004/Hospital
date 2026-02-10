@@ -1,0 +1,95 @@
+﻿/* --- Tiêu đề & Font --- */
+.text-teal {
+    color: #45c3d2;
+}
+
+.text-navy {
+    color: #002d5b;
+}
+
+.ls-2 {
+    letter-spacing: 2px;
+}
+
+.Montserrat {
+    font-family: 'Montserrat', sans-serif;
+}
+
+.title-line-news {
+    width: 60px;
+    height: 3px;
+    background: #45c3d2;
+    margin-top: 15px;
+}
+
+/* --- Nút XEM TẤT CẢ (Đồng bộ tuyệt đối) --- */
+.btn-view-all {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+    color: #002d5b;
+    border: 2px solid #002d5b;
+    background: transparent;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+}
+
+    .btn-view-all:hover {
+        background-color: #002d5b;
+        color: #fff !important;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 45, 91, 0.2);
+    }
+
+    .btn-view-all i {
+        transition: transform 0.3s ease;
+    }
+
+    .btn-view-all:hover i {
+        transform: translateX(5px);
+    }
+
+/* --- Layout Dịch vụ --- */
+.img-square-2048 {
+    width: 100%;
+    aspect-ratio: 1/1;
+    object-fit: cover;
+}
+
+.service-card-square {
+    aspect-ratio: 1/1;
+    overflow: hidden;
+    transition: transform 0.3s ease;
+}
+
+    .service-card-square:hover {
+        transform: translateY(-5px);
+    }
+
+.service-name-label {
+    color: #002d5b;
+    margin-top: 12px;
+    transition: color 0.3s ease;
+}
+
+.service-item-box:hover .service-name-label {
+    color: #45c3d2;
+}
+
+/* Pagination viên thuốc */
+.srv-pagination-pill .swiper-pagination-bullet {
+    width: 10px;
+    height: 10px;
+    background: #002d5b !important;
+    opacity: 0.2;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+}
+
+.srv-pagination-pill .swiper-pagination-bullet-active {
+    width: 30px;
+    background: #45c3d2 !important;
+    opacity: 1;
+}

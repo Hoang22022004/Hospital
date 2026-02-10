@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 namespace Hospital.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    // PHÂN QUYỀN CHUNG: Cho phép cả 3 vai trò vào Controller để xem danh sách (Index)
     [Authorize(Roles = "Admin,Doctor,Receptionist")]
     public class DichVuController : Controller
     {
@@ -23,7 +22,27 @@ namespace Hospital.Areas.Admin.Controllers
             _webHostEnvironment = webHostEnvironment;
         }
 
-        // Action phụ trợ: Lấy danh sách Chuyên khoa (Giữ nguyên code của Huy)
+        // --- HÀM HỖ TRỢ UPLOAD ẢNH CHO TINYMCE ---
+        [HttpPost]
+        public async Task<IActionResult> UploadImageTiny(IFormFile file)
+        {
+            if (file == null) return Json(new { location = "" });
+
+            string folderPath = Path.Combine(_webHostEnvironment.WebRootPath, "images", "dichvu");
+            if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
+
+            string fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+            string fullPath = Path.Combine(folderPath, fileName);
+
+            using (var fileStream = new FileStream(fullPath, FileMode.Create))
+            {
+                await file.CopyToAsync(fileStream);
+            }
+            // Trả về đường dẫn đúng định dạng JSON mà TinyMCE yêu cầu
+            return Json(new { location = "/images/dichvu/" + fileName });
+        }
+
+        // Action phụ trợ: Lấy danh sách Chuyên khoa
         private void PrepareChuyenKhoaForView(int? dichVuId = null)
         {
             var allChuyenKhoas = _db.ChuyenKhoa
@@ -52,8 +71,6 @@ namespace Hospital.Areas.Admin.Controllers
             ViewData["ChuyenKhoaList"] = allChuyenKhoas;
         }
 
-        // Action: HIỂN THỊ DANH SÁCH (READ)
-        // Tất cả Admin, Doctor, Receptionist đều vào được đây nhờ [Authorize] ở cấp Class
         public async Task<IActionResult> Index()
         {
             var danhSachDichVu = await _db.DichVu
@@ -63,11 +80,6 @@ namespace Hospital.Areas.Admin.Controllers
             return View(danhSachDichVu);
         }
 
-        // =========================================================================
-        // CÁC HÀM THAY ĐỔI DỮ LIỆU: CHỈ DÀNH CHO ADMIN VÀ RECEPTIONIST
-        // =========================================================================
-
-        // Action: TẠO MỚI - GET
         [Authorize(Roles = "Admin,Receptionist")]
         public IActionResult Create()
         {
@@ -75,7 +87,6 @@ namespace Hospital.Areas.Admin.Controllers
             return View();
         }
 
-        // Action: TẠO MỚI - POST
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin,Receptionist")]
@@ -119,7 +130,6 @@ namespace Hospital.Areas.Admin.Controllers
             return View(dichVu);
         }
 
-        // Action: SỬA (EDIT) - GET
         [Authorize(Roles = "Admin,Receptionist")]
         public async Task<IActionResult> Edit(int? id)
         {
@@ -131,7 +141,6 @@ namespace Hospital.Areas.Admin.Controllers
             return View(dichVuFromDb);
         }
 
-        // Action: SỬA (EDIT) - POST
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin,Receptionist")]
@@ -182,7 +191,6 @@ namespace Hospital.Areas.Admin.Controllers
             return View(dichVu);
         }
 
-        // Action: XÓA (DELETE) - GET
         [Authorize(Roles = "Admin,Receptionist")]
         public async Task<IActionResult> Delete(int? id)
         {
@@ -196,7 +204,6 @@ namespace Hospital.Areas.Admin.Controllers
             return View(dichVuFromDb);
         }
 
-        // Action: XÓA (DELETE) - POST
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin,Receptionist")]

@@ -8,13 +8,16 @@
     ViewData["ActivePage"] = "MedicalHistory";
 
     // Hàm hỗ trợ lấy nội dung trong [Display(Name = "...")]
+    // Đã thêm kiểm tra null để tránh lỗi khi chạy
     string GetDisplayName(Enum enumValue)
     {
-        return enumValue.GetType()
-                        .GetMember(enumValue.ToString())
-                        .First()
-                        .GetCustomAttribute<DisplayAttribute>()
-                        ?.GetName() ?? enumValue.ToString();
+        if (enumValue == null) return "";
+
+        var memberInfo = enumValue.GetType().GetMember(enumValue.ToString());
+        if (memberInfo.Length == 0) return enumValue.ToString();
+
+        var attribute = memberInfo[0].GetCustomAttribute<DisplayAttribute>();
+        return attribute?.GetName() ?? enumValue.ToString();
     }
 }
 
@@ -30,7 +33,7 @@
         </div>
     </div>
 
-    @if (Model.MedicalHistories.Any())
+    @if (Model.MedicalHistories != null && Model.MedicalHistories.Any())
     {
         <div class="timeline-container px-3">
             @foreach (var item in Model.MedicalHistories)
@@ -66,6 +69,12 @@
                                                 <i class="bi bi-x-circle me-1"></i> @GetDisplayName(item.TrangThai)
                                             </span>
                                         }
+                                        else if (item.TrangThai == TrangThaiHoSo.DangKham)
+                                        {
+                                            <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2 border border-primary border-opacity-25">
+                                                <i class="bi bi-stethoscope me-1"></i> @GetDisplayName(item.TrangThai)
+                                            </span>
+                                        }
                                         else
                                         {
                                             <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-3 py-2 border border-warning border-opacity-25">
@@ -78,46 +87,43 @@
                                 @* CHẨN ĐOÁN *@
                                 <div class="col-md-6 px-lg-4">
                                     <small class="text-muted text-uppercase fw-bold ls-1 mb-2 d-block" style="font-size: 0.65rem;">Chẩn đoán chuyên khoa</small>
-                                    <h6 class="fw-bold text-navy mb-3 lh-base">@(string.IsNullOrEmpty(item.ChanDoan) ? "Đang cập nhật..." : item.ChanDoan)</h6>
+                                    <h6 class="fw-bold text-navy mb-3 lh-base">@(string.IsNullOrEmpty(item.ChanDoan) ? "Đang cập nhật kết quả..." : item.ChanDoan)</h6>
 
                                     <div class="d-flex align-items-center small text-muted bg-light p-2 rounded-3 d-inline-flex">
                                         <i class="bi bi-person-badge me-2 text-primary"></i>
-                                        Bác sĩ: <span class="text-dark fw-bold ms-1">@item.BacSi?.HoTen</span>
+                                        Bác sĩ: <span class="text-dark fw-bold ms-1">@(item.BacSi?.HoTen ?? "Đang phân công")</span>
                                     </div>
                                 </div>
 
-                                @* HÀNH ĐỘNG (ĐÃ CẬP NHẬT TRẠNG THÁI CHỜ THANH TOÁN) *@
+                                @* HÀNH ĐỘNG *@
                                 <div class="col-md-3 text-center text-md-end">
-                                    @if (item.TrangThai == TrangThaiHoSo.ChoKham)
-                                    {
-                                        <form asp-page-handler="HuyHoSo" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn hủy lịch khám này không?')">
-                                            <input type="hidden" name="id" value="@item.Id" />
-                                            <button type="submit" class="btn btn-outline-danger rounded-pill px-4 fw-bold small shadow-sm">
-                                                <i class="bi bi-x-circle me-1"></i> HỦY LỊCH
-                                            </button>
-                                        </form>
-                                    }
-                                    else if (item.TrangThai == TrangThaiHoSo.ChoThanhToan)
-                                    {
-                                        @* HIỂN THỊ CẢ THANH TOÁN VÀ XEM PHÁC ĐỒ *@
-                                        <div class="d-flex flex-column gap-2">
+                                    <div class="d-flex flex-column gap-2">
+                                        @if (item.TrangThai == TrangThaiHoSo.ChoKham)
+                                        {
+                                            <form asp-page-handler="HuyHoSo" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn hủy lịch khám này không?')">
+                                                <input type="hidden" name="id" value="@item.Id" />
+                                                <button type="submit" class="btn btn-outline-danger rounded-pill px-4 fw-bold small shadow-sm w-100">
+                                                    <i class="bi bi-x-circle me-1"></i> HỦY LỊCH
+                                                </button>
+                                            </form>
+                                        }
+
+                                        @if (item.TrangThai == TrangThaiHoSo.ChoThanhToan)
+                                        {
                                             <a asp-area="Admin" asp-controller="HoSoBenhAn" asp-action="ThanhToanVnpay" asp-route-id="@item.Id"
                                                class="btn btn-success rounded-pill px-4 fw-bold small shadow-sm animate__animated animate__pulse animate__infinite">
                                                 <i class="bi bi-credit-card me-1"></i> THANH TOÁN
                                             </a>
+                                        }
+
+                                        @if (item.TrangThai != TrangThaiHoSo.DaHuy && item.TrangThai != TrangThaiHoSo.ChoKham)
+                                        {
                                             <a asp-page="./MedicalRecordDetails" asp-route-id="@item.Id"
                                                class="btn btn-navy-outline rounded-pill px-4 fw-bold small">
                                                 XEM PHÁC ĐỒ <i class="bi bi-arrow-right ms-1"></i>
                                             </a>
-                                        </div>
-                                    }
-                                    else if (item.TrangThai == TrangThaiHoSo.DangKham || item.TrangThai == TrangThaiHoSo.HoanThanh)
-                                    {
-                                        <a asp-page="./MedicalRecordDetails" asp-route-id="@item.Id"
-                                           class="btn btn-navy-outline rounded-pill px-4 fw-bold small">
-                                            XEM PHÁC ĐỒ <i class="bi bi-arrow-right ms-1"></i>
-                                        </a>
-                                    }
+                                        }
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -134,16 +140,19 @@
             </div>
             <h5 class="fw-bold text-navy">Bạn chưa có hồ sơ bệnh án nào</h5>
             <p class="text-muted small mb-4">Mọi lịch sử thăm khám và kết quả sẽ hiện ở đây sau lần khám đầu tiên.</p>
-            <a asp-controller="DatLich" asp-action="Index" asp-area="" class="btn btn-hello-paris rounded-pill px-5 shadow-sm">ĐẶT LỊCH KHÁM NGAY</a>
+            <a asp-page="/DatLich/Index" class="btn btn-hello-paris rounded-pill px-5 shadow-sm">ĐẶT LỊCH KHÁM NGAY</a>
         </div>
     }
 </div>
 
 <style>
-    .timeline-item:hover {
-        transform: scale(1.01);
+    .timeline-item {
         transition: 0.3s;
     }
+
+        .timeline-item:hover {
+            transform: translateX(5px);
+        }
 
     .ls-1 {
         letter-spacing: 1px;
@@ -155,20 +164,21 @@
 
     .timeline-dot {
         position: absolute;
-        left: -8px;
+        left: -9px;
         top: 12px;
-        width: 16px;
-        height: 16px;
+        width: 18px;
+        height: 18px;
         background: #45c3d2;
-        border: 3px solid #fff;
+        border: 4px solid #fff;
         border-radius: 50%;
-        box-shadow: 0 0 0 5px rgba(69, 195, 210, 0.1);
+        box-shadow: 0 0 0 4px rgba(69, 195, 210, 0.15);
+        z-index: 2;
     }
 
     .btn-navy-outline {
         border: 1.5px solid #002d5b;
         color: #002d5b;
-        transition: 0.3s;
+        background: transparent;
     }
 
         .btn-navy-outline:hover {
@@ -176,19 +186,25 @@
             color: #fff;
         }
 
-    /* Hiệu ứng cho nút Thanh toán */
-    .btn-success {
-        background-color: #28a745;
-        border-color: #28a745;
+    .btn-hello-paris {
+        background-color: #45c3d2;
+        color: white;
+        border: none;
     }
 
-        .btn-success:hover {
-            background-color: #218838;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(40, 167, 69, 0.2);
+        .btn-hello-paris:hover {
+            background-color: #38aebc;
+            color: white;
         }
 
-    /* Đảm bảo các nút trong d-flex flex-column có chiều rộng đồng nhất nếu cần */
+    .hp-card-hover {
+        transition: all 0.3s ease;
+    }
+
+        .hp-card-hover:hover {
+            box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important;
+        }
+
     .gap-2 {
         gap: 0.5rem !important;
     }

@@ -21,62 +21,53 @@
 
         <div class="row">
             <div class="col-md-8">
-
-
                 <div class="mb-3">
-                    <label asp-for="TenDichVu"></label>
+                    <label asp-for="TenDichVu" class="form-label fw-bold"></label>
                     <input asp-for="TenDichVu" class="form-control" />
                     <span asp-validation-for="TenDichVu" class="text-danger"></span>
                 </div>
 
                 <div class="mb-3">
-                    <label asp-for="Gia"></label>
+                    <label asp-for="Gia" class="form-label fw-bold"></label>
                     <input asp-for="Gia" class="form-control" />
                     <span asp-validation-for="Gia" class="text-danger"></span>
                 </div>
 
                 <div class="mb-3">
-                    <label asp-for="MoTaNgan"></label>
+                    <label asp-for="MoTaNgan" class="form-label fw-bold"></label>
                     <textarea asp-for="MoTaNgan" rows="3" class="form-control"></textarea>
                 </div>
 
                 <div class="mb-3">
-                    <label asp-for="MoTaChiTiet"></label>
+                    <label asp-for="MoTaChiTiet" class="form-label fw-bold"></label>
                     <textarea asp-for="MoTaChiTiet" id="MoTaChiTiet" rows="5" class="form-control"></textarea>
                 </div>
 
-
                 <div class="mb-3">
-                    <label for="file" class="form-label">Tải lên ảnh mới (Để trống nếu không thay đổi)</label>
-                    <input type="file" name="file" id="file" class="form-control" />
+                    <label for="file" class="form-label fw-bold">Tải lên ảnh đại diện mới (Để trống nếu giữ nguyên)</label>
+                    <input type="file" name="file" id="file" class="form-control" accept="image/*" />
                 </div>
 
-       
                 <div class="form-check form-switch mb-3 p-3 border rounded d-flex justify-content-between align-items-center">
-                    <label class="form-check-label" asp-for="IsHot">@Html.DisplayNameFor(m => m.IsHot)</label>
+                    <label class="form-check-label fw-bold" asp-for="IsHot">@Html.DisplayNameFor(m => m.IsHot)</label>
                     <input class="form-check-input" type="checkbox" role="switch" asp-for="IsHot">
                 </div>
 
-             
                 <div class="form-check form-switch mb-3 p-3 border rounded d-flex justify-content-between align-items-center">
-                    <label class="form-check-label" asp-for="IsActive">@Html.DisplayNameFor(m => m.IsActive)</label>
+                    <label class="form-check-label fw-bold" asp-for="IsActive">@Html.DisplayNameFor(m => m.IsActive)</label>
                     <input class="form-check-input" type="checkbox" role="switch" asp-for="IsActive">
                 </div>
-
             </div>
 
             <div class="col-md-4">
-
-
                 <div class="card p-3 mb-4 shadow-sm border-info">
                     <h5 class="card-title text-info mb-3"><i class="bi bi-tags"></i> Liên kết Chuyên khoa</h5>
                     @if (chuyenKhoaList != null && chuyenKhoaList.Any())
                     {
-                        <div class="d-flex flex-column" style="max-height: 200px; overflow-y: auto;">
+                        <div class="d-flex flex-column" style="max-height: 250px; overflow-y: auto;">
                             @foreach (var item in chuyenKhoaList)
                             {
                                 <div class="form-check">
-
                                     <input class="form-check-input" type="checkbox" name="selectedChuyenKhoaIds" value="@item.Value" id="ck_@item.Value" @(item.Selected ? "checked" : "")>
                                     <label class="form-check-label" for="ck_@item.Value">@item.Text</label>
                                 </div>
@@ -89,11 +80,12 @@
                     }
                 </div>
 
-
                 @if (!string.IsNullOrEmpty(anhDichVuUrl))
                 {
-                    <p class="text-muted">Ảnh đang dùng:</p>
-                    <img src="@anhDichVuUrl" width="100%" class="img-thumbnail" style="border-radius:5px; border:1px solid #bbb9b9" />
+                    <div class="card p-2 shadow-sm">
+                        <p class="text-muted fw-bold mb-2">Ảnh hiện tại:</p>
+                        <img src="@anhDichVuUrl" width="100%" class="img-thumbnail" style="border-radius:5px; object-fit: cover;" />
+                    </div>
                 }
             </div>
         </div>
@@ -110,16 +102,27 @@
 </form>
 
 @section Scripts {
+    <script src="https://cdn.tiny.cloud/1/vy399c75h6gyw1xkemhoj245q01aqnsusy14yaiket9jmz1h/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+
     @{
-        <partial name="_ValidationScriptsPartial" />
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+
     <script>
-        // Kích hoạt TinyMCE cho Mô tả Chi tiết
         tinymce.init({
             selector: 'textarea#MoTaChiTiet',
-            plugins: 'lists link image code help wordcount table',
-            toolbar: 'undo redo | formatselect | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image table | code',
-            height: 300
+            height: 500,
+            plugins: 'advlist autolink lists link image charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime media table help wordcount',
+            toolbar: 'undo redo | blocks | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | image media table | removeformat | help',
+
+            // Cấu hình upload ảnh trực tiếp vào nội dung
+            images_upload_url: '/Admin/DichVu/UploadImageTiny',
+            automatic_uploads: true,
+            file_picker_types: 'image',
+
+            language: 'vi',
+            branding: false,
+            placeholder: 'Chỉnh sửa nội dung chi tiết dịch vụ tại đây...'
         });
     </script>
 }

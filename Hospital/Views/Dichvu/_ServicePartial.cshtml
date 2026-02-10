@@ -1,0 +1,65 @@
+﻿@using Hospital.Models
+@{
+    // Lấy danh sách dịch vụ từ túi hành lý ViewBag đã nạp ở HomeController
+    var services = ViewBag.DanhSachDichVu as IEnumerable<DichVu>;
+}
+
+<section class="hp-section py-5" id="hp-services-section">
+    <div class="container-fluid px-lg-5">
+
+        @* --- PHẦN TIÊU ĐỀ ĐỒNG BỘ TIN TỨC (Dịch chuyển ra ngoài Row để cân bằng) --- *@
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-5 text-center text-md-start">
+            <div>
+                <span class="text-teal fw-bold text-uppercase ls-2 small">Chăm sóc & Điều trị</span>
+                <h2 class="fw-bold text-navy Montserrat mt-2 mb-0">DỊCH VỤ CHUYÊN KHOA</h2>
+                <div class="title-line-news mx-auto mx-md-0"></div>
+            </div>
+            <div class="mt-4 mt-md-0">
+                <a asp-controller="DichVu" asp-action="Index" class="btn btn-view-all rounded-pill px-4 shadow-sm text-uppercase">
+                    XEM TẤT CẢ <i class="bi bi-arrow-right ms-2"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="row align-items-center">
+            @* Cột trái: Bìa dịch vụ *@
+            <div class="col-lg-5 mb-4 mb-lg-0">
+                <div class="swiper leftImageSwiper rounded-4 shadow-lg overflow-hidden">
+                    <div class="swiper-wrapper">
+                        <div class="swiper-slide"><img src="/images/dichvu/biadv1.png" class="img-square-2048" alt="Bìa 1"></div>
+                        <div class="swiper-slide"><img src="/images/dichvu/biadv2.png" class="img-square-2048" alt="Bìa 2"></div>
+                    </div>
+                    <div class="swiper-pagination"></div>
+                    <div class="swiper-button-next srv-left-arrow"></div>
+                    <div class="swiper-button-prev srv-left-arrow"></div>
+                </div>
+            </div>
+
+            @* Cột phải: Danh sách Swiper dịch vụ *@
+            <div class="col-lg-7 ps-lg-5">
+                <div class="service-nav-container">
+                    <div class="swiper rightServiceSwiper pb-5">
+                        <div class="swiper-wrapper">
+                            @if (services != null)
+                            {
+                                foreach (var item in services)
+                                {
+                                    <div class="swiper-slide p-1">
+                                        <div class="service-item-box text-center">
+                                            <a asp-controller="DichVu" asp-action="Details" asp-route-id="@item.DichVuId" class="service-card-square shadow-sm rounded-4 mb-3 d-block">
+                                                <img src="@(string.IsNullOrEmpty(item.AnhDichVuUrl) ? "/images/no-image.jpg" : item.AnhDichVuUrl)"
+                                                     class="img-fluid rounded-4" alt="@item.TenDichVu">
+                                            </a>
+                                            <h6 class="fw-bold service-name-label">@item.TenDichVu</h6>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                        </div>
+                        <div class="swiper-pagination srv-pagination-pill"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

@@ -1,0 +1,308 @@
+﻿/* ==========================================================================
+   1. BIẾN CHUNG & KHỞI TẠO (VARIABLES)
+   ========================================================================== */
+:root {
+    --navy: #002d5b;
+    --teal: #45c3d2;
+    --light-bg: #f8fafc;
+    --light-blue: #f0f7ff;
+    --orange: #e67e22; /* Màu cam cho Hotline tư vấn */
+}
+
+/* Các lớp tiện ích màu sắc và chữ */
+.text-teal {
+    color: var(--teal);
+}
+
+.text-navy {
+    color: var(--navy);
+}
+
+.bg-navy {
+    background-color: var(--navy);
+}
+
+.bg-orange {
+    background-color: var(--orange);
+}
+/* Lớp màu cam mới */
+.bg-teal-soft {
+    background-color: rgba(69, 195, 210, 0.1);
+}
+
+.ls-2 {
+    letter-spacing: 2px;
+}
+
+.ls-1 {
+    letter-spacing: 1px;
+}
+
+.title-line-news {
+    width: 60px;
+    height: 3px;
+    background: var(--teal);
+    margin-top: 15px;
+}
+
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* ==========================================================================
+   2. PHẦN DANH SÁCH TIN TỨC (NEWS LIST / SLIDER TRANG CHỦ)
+   ========================================================================== */
+.news-section {
+    background-color: #ffffff;
+}
+
+.newsSwiper {
+    padding-bottom: 50px !important;
+}
+
+.news-card {
+    background: #fff;
+    border-radius: 20px;
+    overflow: hidden;
+    height: 100%;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    display: flex;
+    flex-direction: column;
+}
+
+    .news-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(0, 45, 91, 0.1) !important;
+    }
+
+.news-img-wrapper {
+    position: relative;
+    width: 100%;
+    height: 240px;
+    overflow: hidden;
+}
+
+.news-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    transition: transform 0.6s ease;
+}
+
+.news-card:hover .news-img {
+    transform: scale(1.1);
+}
+
+.news-badge {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background: var(--teal);
+    color: white;
+    padding: 5px 15px;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    z-index: 2;
+}
+
+.news-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 45, 91, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: 0.3s;
+}
+
+.news-card:hover .news-overlay {
+    opacity: 1;
+}
+
+.news-meta {
+    font-size: 0.8rem;
+    color: #94a3b8;
+}
+
+.news-title {
+    font-family: 'Montserrat', sans-serif;
+    line-height: 1.4;
+    font-weight: 700;
+}
+
+    .news-title a {
+        color: var(--navy);
+        text-decoration: none;
+        transition: 0.3s;
+    }
+
+        .news-title a:hover {
+            color: var(--teal);
+        }
+
+.news-excerpt {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.news-pagination-pill .swiper-pagination-bullet {
+    width: 15px;
+    height: 5px;
+    border-radius: 5px;
+    background: var(--navy);
+    opacity: 0.2;
+    transition: 0.3s;
+}
+
+.news-pagination-pill .swiper-pagination-bullet-active {
+    width: 35px;
+    background: var(--teal);
+    opacity: 1;
+}
+
+/* ==========================================================================
+   3. PHẦN CHI TIẾT TIN TỨC (NEWS DETAIL)
+   ========================================================================== */
+.bg-light-blue {
+    background-color: var(--light-blue);
+}
+
+.news-detail-wrapper {
+    background: #fff;
+    padding: 30px;
+    border-radius: 30px;
+}
+
+.rich-text p {
+    margin-bottom: 1.5rem;
+    color: #4b5563;
+    font-size: 1.1rem;
+    line-height: 1.8;
+}
+
+.rich-text img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 15px;
+    margin: 2rem 0;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+}
+
+.related-card {
+    transition: 0.3s;
+    border: 1px solid rgba(0,0,0,0.05) !important;
+}
+
+    .related-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important;
+    }
+
+/* ==========================================================================
+   4. SIDEBAR TIỆN ÍCH (WORKING HOURS, HOTLINE, COMMITMENT)
+   ========================================================================== */
+.sidebar-box {
+    border: none;
+    transition: transform 0.3s ease;
+}
+
+    .sidebar-box:hover {
+        transform: translateY(-5px);
+    }
+
+/* 4.1 Giờ làm việc */
+.schedule-item p.small {
+    font-style: italic;
+    opacity: 0.9;
+}
+
+/* 4.2 Danh sách cam kết (Giống ảnh image_10de38.png) */
+.commitment-list li {
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 12px;
+    font-weight: 500;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+}
+
+    .commitment-list li:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+    }
+
+    .commitment-list li i {
+        font-size: 1.2rem;
+    }
+
+/* ==========================================================================
+   5. NÚT BẤM & HIỆU ỨNG (BUTTONS & HOVER)
+   ========================================================================== */
+.btn-teal {
+    background-color: var(--teal);
+    color: white;
+    border: none;
+    transition: 0.3s;
+}
+
+    .btn-teal:hover {
+        background-color: #38aebc;
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(69, 195, 210, 0.4);
+    }
+
+.btn-outline-navy {
+    border: 2px solid var(--navy);
+    color: var(--navy);
+    font-weight: 700;
+    transition: 0.3s;
+}
+
+    .btn-outline-navy:hover {
+        background: var(--navy);
+        color: #fff;
+    }
+
+.group-hover-teal {
+    transition: 0.3s;
+}
+
+.group:hover .group-hover-teal {
+    color: var(--teal);
+}
+
+/* ==========================================================================
+   6. RESPONSIVE (TƯƠNG THÍCH THIẾT BỊ)
+   ========================================================================== */
+@media (max-width: 768px) {
+    .news-detail-wrapper {
+        padding: 15px;
+    }
+
+    .news-img-wrapper {
+        height: 200px;
+    }
+
+    .news-title {
+        font-size: 1.1rem;
+    }
+
+    .sidebar-box {
+        margin-bottom: 20px;
+    }
+}

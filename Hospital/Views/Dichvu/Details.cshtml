@@ -1,0 +1,158 @@
+﻿@model Hospital.Models.DichVu
+@{
+    ViewData["Title"] = Model.TenDichVu;
+    // Lấy danh sách dịch vụ liên quan từ ViewBag đã truyền từ Controller
+    var lienQuan = ViewBag.DichVuLienQuan as IEnumerable<Hospital.Models.DichVu>;
+}
+
+@section Styles {
+    @* Tái sử dụng file CSS dịch vụ để đồng bộ các thẻ hình vuông *@
+    <link rel="stylesheet" href="~/css/services.css" asp-append-version="true" />
+    <style>
+        .service-header {
+            padding: 80px 0 40px;
+            background-color: #fff;
+        }
+
+        .breadcrumb-item a {
+            color: #45c3d2;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .service-price {
+            color: #45c3d2;
+            font-size: 2rem;
+            font-weight: 800;
+            letter-spacing: -1px;
+        }
+
+        .service-detail-box {
+            line-height: 1.9;
+            font-size: 1.1rem;
+            color: #334155;
+            background: #ffffff;
+            border-radius: 20px;
+        }
+
+            .service-detail-box img {
+                max-width: 100%;
+                height: auto;
+                border-radius: 15px;
+                margin: 20px 0;
+            }
+
+        .btn-book-now {
+            background-color: #45c3d2;
+            color: white !important;
+            padding: 15px 45px;
+            font-weight: 700;
+            box-shadow: 0 10px 20px rgba(69, 195, 210, 0.3);
+        }
+
+        .section-divider {
+            border-left: 6px solid #45c3d2;
+            padding-left: 15px;
+        }
+    </style>
+}
+
+@* --- PHẦN 1: TỔNG QUAN DỊCH VỤ --- *@
+<div class="service-header mt-5">
+    <div class="container">
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Trang chủ</a></li>
+                <li class="breadcrumb-item"><a asp-action="Index">Dịch vụ</a></li>
+                <li class="breadcrumb-item active" aria-current="page">@Model.TenDichVu</li>
+            </ol>
+        </nav>
+
+        <div class="row align-items-center">
+            <div class="col-lg-6 mb-4 mb-lg-0">
+                @* Ảnh đại diện dịch vụ lấy từ Database *@
+                <img src="@Model.AnhDichVuUrl" class="img-fluid rounded-4 shadow-lg w-100" alt="@Model.TenDichVu">
+            </div>
+            <div class="col-lg-6 ps-lg-5">
+                <h1 class="fw-bold text-navy display-5 mb-3">@Model.TenDichVu</h1>
+                <div class="service-price mb-4">@Model.Gia.ToString("N0") VNĐ</div>
+                <p class="text-muted fs-5 mb-5">@Model.MoTaNgan</p>
+                <div class="d-flex gap-3">
+                    <a asp-controller="DatLich" asp-action="Index" asp-route-serviceId="@Model.DichVuId" class="btn btn-book-now rounded-pill">
+                        ĐẶT LỊCH NGAY
+                    </a>
+
+                    <a href="https://zalo.me/0905280482" target="_blank" class="btn btn-outline-secondary rounded-pill px-4 d-flex align-items-center">
+                        <i class="bi bi-chat-dots-fill me-2"></i> TƯ VẤN ZALO
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* --- PHẦN 2: MÔ TẢ CHI TIẾT --- *@
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <h3 class="fw-bold mb-4 section-divider">Thông tin chi tiết</h3>
+            <div class="service-detail-box p-4 shadow-sm">
+                @* Sử dụng Html.Raw để hiển thị nội dung định dạng từ trình soạn thảo Backend *@
+                @Html.Raw(Model.MoTaChiTiet)
+            </div>
+        </div>
+    </div>
+</div>
+
+@* --- PHẦN 3: DỊCH VỤ LIÊN QUAN (Sử dụng lại Style trang chủ) --- *@
+<section id="hp-services-section" class="py-5 mt-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h3 class="fw-bold fs-2">Dịch vụ <span class="text-primary">liên quan khác</span></h3>
+            <p class="text-muted">Có thể bạn sẽ quan tâm đến các giải pháp chăm sóc da này</p>
+        </div>
+
+        @* Thanh trượt lướt chuột sử dụng Swiper *@
+        <div class="swiper rightServiceSwiper">
+            <div class="swiper-wrapper">
+                @if (lienQuan != null)
+                {
+                    foreach (var item in lienQuan)
+                    {
+                        <div class="swiper-slide">
+                            <div class="service-item-wrapper text-center">
+                                <a asp-action="Details" asp-route-id="@item.DichVuId" class="service-card-square shadow-sm rounded-4 mb-3">
+                                    <img src="@item.AnhDichVuUrl" class="img-fluid" alt="@item.TenDichVu">
+                                </a>
+                                <h6 class="service-name-label">@item.TenDichVu</h6>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+            @* Dấu chấm phân trang dạng viên thuốc *@
+            <div class="swiper-pagination srv-pagination-pill mt-5"></div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Khởi tạo lướt chuột cho phần dịch vụ liên quan
+            new Swiper(".rightServiceSwiper", {
+                slidesPerView: 1.5,
+                spaceBetween: 25,
+                grabCursor: true,
+                pagination: {
+                    el: ".srv-pagination-pill",
+                    clickable: true,
+                },
+                breakpoints: {
+                    768: { slidesPerView: 2.5 },
+                    1024: { slidesPerView: 4 } // Hiển thị 4 thẻ cho trang chi tiết thoáng hơn
+                }
+            });
+        });
+    </script>
+}

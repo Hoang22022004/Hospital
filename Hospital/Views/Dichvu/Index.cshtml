@@ -1,0 +1,189 @@
+﻿@model IEnumerable<Hospital.Models.DichVu>
+@{
+    ViewData["Title"] = "Dịch vụ Hello Paris";
+    var chuyenKhoas = ViewBag.ChuyenKhoas as IEnumerable<Hospital.Models.ChuyenKhoa>;
+}
+
+@* ==========================================================================
+   PHẦN 1: CSS - Giao diện sáng tạo trên nền Xám khói (Giữ nguyên yêu cầu của bạn)
+   ========================================================================== *@
+<style>
+    .services-page-wrapper {
+        background-color: #F2F4F7;
+        min-height: 100vh;
+        padding-top: 100px;
+        padding-bottom: 80px;
+    }
+
+    .header-content {
+        margin-bottom: 60px;
+    }
+
+        .header-content .badge-top {
+            background: #E9ECEF;
+            color: #495057;
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+
+        .header-content h1 {
+            font-weight: 800;
+            color: #212529;
+            margin-top: 20px;
+            font-size: 3rem;
+        }
+
+    /* BỘ LỌC (FILTER) - Tông Đen & Trắng sang trọng */
+    .filter-group {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 50px;
+    }
+
+    .btn-filter {
+        border: none;
+        background: #FFFFFF;
+        color: #495057;
+        padding: 12px 28px;
+        border-radius: 50px;
+        font-weight: 600;
+        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+    }
+
+        .btn-filter.active, .btn-filter:hover {
+            background: #212529;
+            color: #FFFFFF !important;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+    /* CARD DỊCH VỤ - Hình vuông & Tên ở dưới */
+    .service-box {
+        transition: all 0.4s;
+    }
+
+    .service-card-modern {
+        display: block;
+        background: #FFFFFF;
+        aspect-ratio: 1 / 1;
+        border-radius: 30px;
+        overflow: hidden;
+        position: relative;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        border: 1px solid rgba(0,0,0,0.03);
+    }
+
+        .service-card-modern img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.6s;
+        }
+
+        .service-card-modern:hover img {
+            transform: scale(1.1);
+        }
+
+    .hot-label {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        background: #FF4757;
+        color: white;
+        padding: 5px 15px;
+        border-radius: 50px;
+        font-size: 0.7rem;
+        font-weight: 800;
+        z-index: 2;
+    }
+
+    .service-info-name {
+        margin-top: 20px;
+        font-weight: 700;
+        color: #212529;
+        font-size: 1.1rem;
+        transition: color 0.3s;
+    }
+
+    .service-box:hover .service-info-name {
+        color: #45c3d2;
+    }
+</style>
+
+@* ==========================================================================
+   PHẦN 2: HTML - Cấu trúc lưới dịch vụ
+   ========================================================================== *@
+<div class="services-page-wrapper">
+    <div class="container">
+
+        <div class="header-content text-center">
+            <span class="badge-top">HELLO PARIS CLINIC</span>
+            <h1>Giải pháp <span style="color: #45c3d2;">Chuẩn Y Khoa</span></h1>
+        </div>
+
+        <div class="filter-group">
+            <button class="btn-filter active" data-filter="all">Tất cả dịch vụ</button>
+            @if (chuyenKhoas != null)
+            {
+                foreach (var ck in chuyenKhoas)
+                {
+                    <button class="btn-filter" data-filter=".ck-@ck.ChuyenKhoaId">@ck.TenChuyenKhoa</button>
+                }
+            }
+        </div>
+
+        <div class="row g-4" id="service-grid">
+            @foreach (var item in Model)
+            {
+                // SỬA LỖI TẠI ĐÂY: Lấy danh sách ID chuyên khoa từ bảng trung gian
+                var filterClasses = "";
+                if (item.ChuyenKhoaDichVus != null && item.ChuyenKhoaDichVus.Any())
+                {
+                    filterClasses = string.Join(" ", item.ChuyenKhoaDichVus.Select(x => "ck-" + x.ChuyenKhoaId));
+                }
+
+                <div class="col-md-4 col-lg-3 service-box filter-item @filterClasses">
+                    <div class="text-center">
+                        <a asp-action="Details" asp-route-id="@item.DichVuId" class="service-card-modern shadow-sm">
+                            @if (item.IsHot)
+                            {
+                                <span class="hot-label">TRENDING</span>
+                            }
+                            <img src="@item.AnhDichVuUrl" alt="@item.TenDichVu">
+                        </a>
+                        <h6 class="service-info-name">@item.TenDichVu</h6>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@* ==========================================================================
+   PHẦN 3: JAVASCRIPT - Logic lọc không cần load trang
+   ========================================================================== *@
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('.btn-filter').on('click', function () {
+                $('.btn-filter').removeClass('active');
+                $(this).addClass('active');
+
+                var selector = $(this).attr('data-filter');
+
+                if (selector === 'all') {
+                    $('.service-box').fadeIn(400);
+                } else {
+                    $('.service-box').hide();
+                    $(selector).fadeIn(400); // Sẽ hiện tất cả card có class tương ứng
+                }
+            });
+        });
+    </script>
+}

@@ -18,23 +18,39 @@ namespace Hospital.Controllers
         }
 
         // ==========================================================================
-        // 1. TRANG CHỦ (Cập nhật để lấy danh sách Bác sĩ)
+        // 1. TRANG CHỦ: Lấy dữ liệu Bác sĩ, Dịch vụ và Tin tức
         // ==========================================================================
         public async Task<IActionResult> Index()
         {
-            // Truy vấn lấy danh sách bác sĩ đang hoạt động
-            // .Include(b => b.ChuyenKhoa) để lấy được tên Chuyên khoa từ bảng liên kết
+            // Bước A: Lấy danh sách bác sĩ đang hoạt động làm Model chính
             var doctors = await _context.BacSi
                 .Include(b => b.ChuyenKhoa)
                 .Where(b => b.IsActive)
                 .ToListAsync();
 
-            // Trả về View kèm theo danh sách dữ liệu bác sĩ
+            // Bước B: Lấy danh sách dịch vụ đang hoạt động bỏ vào ViewBag
+            // Sắp xếp ưu tiên các dịch vụ nổi bật (IsHot) lên đầu
+            ViewBag.DanhSachDichVu = await _context.DichVu
+                .Where(s => s.IsActive)
+                .OrderByDescending(s => s.IsHot)
+                .ThenByDescending(s => s.DichVuId)
+                .Take(8) // Chỉ lấy 8 dịch vụ tiêu biểu cho trang chủ
+                .ToListAsync();
+
+            // Bước C: Lấy 3 tin tức mới nhất nạp vào ViewBag để hiển thị Section Tin tức
+            // Phần này sẽ sửa lỗi "listTinTuc does not exist" ở ngoài View
+            ViewBag.ListTinTuc = await _context.TinTuc
+                .Where(t => t.IsPublished)
+                .OrderByDescending(t => t.NgayDang)
+                .Take(10)
+                .ToListAsync();
+
+            // Trả về View Index kèm danh sách bác sĩ
             return View(doctors);
         }
 
         // ==========================================================================
-        // 2. ACTION TÌM KIẾM THÔNG MINH (Giữ nguyên code cũ của bạn)
+        // 2. ACTION TÌM KIẾM THÔNG MINH (AJAX)
         // ==========================================================================
         [HttpGet]
         public async Task<IActionResult> GetSearchSuggestions(string term)
@@ -72,14 +88,19 @@ namespace Hospital.Controllers
                 })
                 .Take(3).ToListAsync();
 
+            // Hợp nhất kết quả
             var results = doctors.Cast<object>()
-                .Concat(services).Concat(diseases).Concat(news)
+                .Concat(services.Cast<object>())
+                .Concat(diseases.Cast<object>())
+                .Concat(news.Cast<object>())
                 .ToList();
 
             return Json(results);
         }
 
-        // Các Action mặc định khác (Giữ nguyên)
+        // ==========================================================================
+        // 3. CÁC ACTION MẶC ĐỊNH KHÁC
+        // ==========================================================================
         public IActionResult Privacy() => View();
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

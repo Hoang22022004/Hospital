@@ -266,15 +266,17 @@
 
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
+        // Logic đóng mở menu sidebar của bạn
         $("#menu-toggle").click(function(e) {
             e.preventDefault();
             $("#wrapper").toggleClass("toggled");
         });
 
         $(document).ready(function() {
+            // Logic Active Menu của bạn
             var currentPath = window.location.pathname;
             $(".list-group-item").each(function() {
                 var href = $(this).attr("href");
@@ -283,6 +285,33 @@
                     $(this).closest(".collapse").addClass("show");
                 }
             });
+
+            // --- ĐOẠN MÃ HIỂN THỊ THÔNG BÁO CHO TOÀN BỘ ADMIN ---
+            var successMessage = '@Html.Raw(TempData["success"])';
+            var errorMessage = '@Html.Raw(TempData["error"])';
+
+            if (successMessage && successMessage.trim() !== "") {
+                Swal.fire({
+                    title: 'Thành công!',
+                    text: successMessage,
+                    icon: 'success',
+                    timer: 3000,
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timerProgressBar: true
+                });
+            }
+
+            if (errorMessage && errorMessage.trim() !== "") {
+                Swal.fire({
+                    title: 'Thông báo lỗi!',
+                    text: errorMessage,
+                    icon: 'error',
+                    confirmButtonColor: '#6366f1', // Màu accent-color của bạn
+                    confirmButtonText: 'Đóng'
+                });
+            }
         });
     </script>
 

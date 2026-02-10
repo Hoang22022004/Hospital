@@ -2,7 +2,6 @@
 @using Microsoft.AspNetCore.Mvc.Rendering
 @{
     ViewData["Title"] = "Thêm Dịch vụ mới";
-    // Lấy danh sách Chuyên khoa đã được Controller chuẩn bị
     var chuyenKhoaList = (List<SelectListItem>)ViewData["ChuyenKhoaList"];
 }
 
@@ -15,10 +14,7 @@
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
         <div class="row">
-
-
             <div class="col-md-7">
-
                 <div class="mb-3">
                     <label asp-for="TenDichVu"></label>
                     <input asp-for="TenDichVu" class="form-control" />
@@ -38,19 +34,16 @@
 
                 <div class="mb-3">
                     <label asp-for="MoTaChiTiet"></label>
-                    <textarea asp-for="MoTaChiTiet" id="MoTaChiTiet" rows="5" class="form-control"></textarea>
+                    <textarea asp-for="MoTaChiTiet" id="tiny-editor" rows="5" class="form-control"></textarea>
                 </div>
-
             </div>
 
             <div class="col-md-5">
-
                 <div class="card p-3 mb-4 shadow-sm border-info">
                     <h5 class="card-title text-info mb-3"><i class="bi bi-tags"></i> Liên kết Chuyên khoa</h5>
                     @if (chuyenKhoaList != null && chuyenKhoaList.Any())
                     {
                         <div class="d-flex flex-column" style="max-height: 200px; overflow-y: auto;">
-                            
                             @foreach (var item in chuyenKhoaList)
                             {
                                 <div class="form-check">
@@ -72,7 +65,6 @@
                     <small class="text-muted">Chỉ chọn file ảnh khi tạo mới hoặc muốn thay đổi.</small>
                 </div>
 
-         
                 <div class="form-check form-switch mb-3 p-3 border rounded d-flex justify-content-between align-items-center">
                     <label class="form-check-label" asp-for="IsHot">@Html.DisplayNameFor(m => m.IsHot)</label>
                     <input class="form-check-input" type="checkbox" role="switch" asp-for="IsHot">
@@ -82,9 +74,7 @@
                     <label class="form-check-label" asp-for="IsActive">@Html.DisplayNameFor(m => m.IsActive)</label>
                     <input class="form-check-input" type="checkbox" role="switch" asp-for="IsActive">
                 </div>
-
             </div>
-
         </div>
 
         <div class="mt-4 pt-3 border-top text-end">
@@ -99,16 +89,25 @@
 </form>
 
 @section Scripts {
-    @{
-        <partial name="_ValidationScriptsPartial" />
-    }
+    <script src="https://cdn.tiny.cloud/1/vy399c75h6gyw1xkemhoj245q01aqnsusy14yaiket9jmz1h/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+
+    <partial name="_ValidationScriptsPartial" />
+
     <script>
-        // Kích hoạt TinyMCE cho Mô tả Chi tiết
         tinymce.init({
-            selector: 'textarea#MoTaChiTiet',
-            plugins: 'lists link image code help wordcount table',
-            toolbar: 'undo redo | formatselect | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image table | code',
-            height: 300
+            selector: '#tiny-editor',
+            height: 450,
+            plugins: 'advlist autolink lists link image charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime media table help wordcount',
+            toolbar: 'undo redo | blocks | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | image media table | removeformat | help',
+
+            // Link xử lý upload ảnh trong nội dung
+            images_upload_url: '/Admin/DichVu/UploadImageTiny',
+            automatic_uploads: true,
+            file_picker_types: 'image',
+
+            language: 'vi',
+            branding: false,
+            placeholder: 'Nhập nội dung chi tiết dịch vụ tại đây...'
         });
     </script>
 }

@@ -1,0 +1,111 @@
+﻿/* --- 1. Màu nền và Bố cục Section --- */
+#why-choose-paris {
+    background-color: #DCE7F0; /* Màu Xanh Dương Khói sang trọng */
+    padding-top: 5rem;
+    padding-bottom: 5rem;
+}
+
+/* --- 2. Carousel Ảnh: Bo góc cực mạnh và Làm tối --- */
+.whyChooseSwiper {
+    border-radius: 30px !important; /* Bo góc tròn trịa, hiện đại */
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+}
+
+.img-fit {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Đảm bảo ảnh luôn cân xứng với phần chữ bên cạnh */
+    transition: transform 1.2s cubic-bezier(0.25, 0.45, 0.45, 0.95);
+    display: block;
+}
+
+/* Hiệu ứng Zoom khi đè chuột */
+.whyChooseSwiper:hover .img-fit {
+    transform: scale(1.15);
+}
+
+/* Lớp phủ làm tối ảnh (Dark Overlay) giúp nút bấm nổi bật hơn */
+.dark-overlay .swiper-slide::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.35); /* Làm tối hơn (35%) để nút bấm trắng hiện rõ */
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* --- 3. Nút điều hướng (Fix lỗi không bấm được) --- */
+.hp-nav-btn {
+    width: 45px !important;
+    height: 45px !important;
+    background-color: rgba(255, 255, 255, 0.25) !important; /* Nền trắng mờ */
+    backdrop-filter: blur(6px);
+    border-radius: 50%;
+    color: #fff !important; /* Mũi tên màu trắng tinh */
+    z-index: 10 !important; /* Đảm bảo luôn nằm trên lớp phủ tối để bấm được */
+    transition: all 0.3s ease;
+}
+
+    .hp-nav-btn:after {
+        font-size: 1.1rem !important;
+        font-weight: bold;
+    }
+
+    .hp-nav-btn:hover {
+        background-color: #45c3d2 !important; /* Đổi màu xanh thương hiệu khi hover */
+        transform: scale(1.1);
+    }
+
+/* --- 4. Typography: Font chữ to và sang trọng --- */
+.section-title {
+    font-size: 2.8rem; /* Tăng kích thước tiêu đề chính */
+    color: #2c3e50;
+    line-height: 1.2;
+}
+
+.hp-intro-text {
+    font-size: 1.2rem; /* Tăng cỡ chữ giới thiệu */
+    line-height: 1.7;
+    border-left: 4px solid #45c3d2;
+    padding-left: 1.5rem;
+}
+
+/* --- 5. Một khung viền duy nhất bao quanh 4 khối (Không nền) --- */
+.big-border-container {
+    border: 1px solid rgba(69, 195, 210, 0.6); /* Đường kẻ xanh mảnh, tinh tế */
+    border-radius: 25px;
+    background: transparent !important; /* Loại bỏ hoàn toàn nền trắng */
+}
+
+/* Xóa bỏ mọi viền và đổ bóng của từng khối nhỏ bên trong */
+.hp-card-simple {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 1rem;
+}
+
+    .hp-card-simple h6 {
+        font-weight: 800;
+        font-size: 1.3rem; /* Tiêu đề khối to hơn */
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+
+    .hp-card-simple p {
+        font-size: 1rem;
+        line-height: 1.5;
+    }
+
+/* Icon đồng nhất màu xanh dương */
+.hp-icon {
+    font-size: 2rem;
+    color: #45c3d2;
+    margin-bottom: 1rem;
+    display: inline-block;
+}

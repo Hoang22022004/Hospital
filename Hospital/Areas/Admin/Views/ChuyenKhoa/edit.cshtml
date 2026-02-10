@@ -15,14 +15,13 @@
 
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-        {{-- TRƯỜNG 1: Tên Chuyên khoa (BẮT BUỘC) --}}
+   
         <div class="mb-3">
             <label asp-for="TenChuyenKhoa" class="form-label"></label>
             <input asp-for="TenChuyenKhoa" class="form-control" />
             <span asp-validation-for="TenChuyenKhoa" class="text-danger"></span>
         </div>
 
-        {{-- TRƯỜNG 2: Mô tả (Tùy chọn) --}}
         <div class="mb-3">
             <label asp-for="MoTa" class="form-label"></label>
             <textarea asp-for="MoTa" rows="3" class="form-control"></textarea>
