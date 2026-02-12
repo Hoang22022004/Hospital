@@ -13,7 +13,7 @@ namespace Hospital.Models
         // Khóa ngoại liên kết với bảng BenhLy (One-to-Many)
         // *************************************************************
         [Required]
-        public int BenhLyId { get; set; }
+        public string  BenhLyId { get; set; }
 
         // Navigation Property: Bệnh lý liên quan
         [ForeignKey("BenhLyId")]

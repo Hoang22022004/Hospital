@@ -1,0 +1,126 @@
+﻿@model Hospital.Models.BenhLy
+@{
+    ViewData["Title"] = "Thêm bệnh lý mới";
+}
+
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-white py-3">
+        <h5 class="mb-0 fw-bold text-primary">
+            <i class="bi bi-clipboard2-pulse me-2"></i>THÊM HỒ SƠ BỆNH LÝ MỚI
+        </h5>
+    </div>
+    <div class="card-body p-4">
+        <form asp-action="Create" method="post" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            @* Tự động gán ngày cập nhật hiện tại *@
+            <input type="hidden" asp-for="NgayCapNhat" value="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" />
+
+            <div class="row">
+                @* CỘT TRÁI: NỘI DUNG CHÍNH *@
+                <div class="col-md-9">
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label asp-for="BenhLyId" class="form-label fw-bold">Mã ICD-10</label>
+                            <input asp-for="BenhLyId" class="form-control" placeholder="Ví dụ: L70.0" />
+                            <span asp-validation-for="BenhLyId" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-8">
+                            <label asp-for="TenBenhLy" class="form-label fw-bold">Tên bệnh lý</label>
+                            <input asp-for="TenBenhLy" class="form-control" placeholder="Nhập tên bệnh lý..." />
+                            <span asp-validation-for="TenBenhLy" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="MoTaTongQuan" class="form-label fw-bold text-primary">1. Tổng quan bài viết</label>
+                        <textarea asp-for="MoTaTongQuan" class="tiny-editor"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="TrieuChung" class="form-label fw-bold text-primary">2. Triệu chứng lâm sàng</label>
+                        <textarea asp-for="TrieuChung" class="tiny-editor"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="PhuongPhapDieuTri" class="form-label fw-bold text-primary">3. Phác đồ điều trị</label>
+                        <textarea asp-for="PhuongPhapDieuTri" class="tiny-editor"></textarea>
+                    </div>
+                </div>
+
+                @* CỘT PHẢI: THIẾT LẬP & ẢNH (Sticky Sidebar) *@
+                <div class="col-md-3">
+                    <div class="card bg-light border-0 p-3 sticky-top" style="top: 85px; z-index: 100;">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Ảnh đại diện</label>
+                            <input type="file" name="imageFile" class="form-control mb-2" accept="image/*" onchange="previewImage(this)" />
+                            <div class="text-center bg-white p-2 rounded border">
+                                <img id="preview" src="/images/no-image.png" class="img-fluid rounded" style="max-height: 200px;" />
+                            </div>
+                            <small class="text-muted d-block mt-1">Lưu ý: Chọn ảnh vuông hoặc chữ nhật ngang.</small>
+                        </div>
+
+                        <div class="form-check form-switch mb-4">
+                            <input class="form-check-input" type="checkbox" asp-for="IsPublished" checked>
+                            <label class="form-check-label fw-bold" for="IsPublished">Công khai bài viết</label>
+                        </div>
+
+                        <hr />
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary shadow-sm">
+                                <i class="bi bi-save me-2"></i>LƯU HỒ SƠ
+                            </button>
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle me-2"></i>HỦY BỎ
+                            </a>
+                        </div>
+
+                        <div class="mt-3 small text-muted">
+                            <i class="bi bi-info-circle me-1"></i> Ngày tạo: @DateTime.Now.ToString("dd/MM/yyyy")
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @* Thư viện soạn thảo TinyMCE *@
+    <script src="https://cdn.tiny.cloud/1/vy399c75h6gyw1xkemhoj245q01aqnsusy14yaiket9jmz1h/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+
+    <script>
+        // Khởi tạo trình soạn thảo cho tất cả class .tiny-editor
+        tinymce.init({
+            selector: '.tiny-editor',
+            height: 350,
+            plugins: 'advlist autolink lists link image charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime media table help wordcount',
+            toolbar: 'undo redo | blocks | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | image media table | removeformat | help',
+
+            // Cấu hình upload ảnh trực tiếp vào nội dung bài viết
+            images_upload_url: '/Admin/BenhLy/UploadImageTiny',
+            automatic_uploads: true,
+
+            language: 'vi',
+            branding: false,
+            placeholder: 'Nhập nội dung chuyên môn tại đây...'
+        });
+
+        // Hàm xem trước ảnh khi chọn file
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    document.getElementById('preview').src = e.target.result;
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    </script>
+
+    @* Scripts kiểm tra dữ liệu đầu vào *@
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

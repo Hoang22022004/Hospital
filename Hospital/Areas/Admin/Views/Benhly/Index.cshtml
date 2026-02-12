@@ -1,0 +1,147 @@
+﻿@model IEnumerable<Hospital.Models.BenhLy>
+
+@{
+    ViewData["Title"] = "Quản lý Bệnh lý (ICD-10)";
+}
+
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 fw-bold text-primary">
+            <i class="bi bi-clipboard2-pulse me-2"></i>DANH MỤC BỆNH LÝ (ICD-10)
+        </h5>
+        <a asp-action="Create" class="btn btn-primary btn-sm shadow-sm">
+            <i class="bi bi-plus-circle me-1"></i> Thêm bệnh lý mới
+        </a>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4" style="width: 100px;">Ảnh</th>
+                        <th style="width: 150px;">Mã ICD-10</th>
+                        <th>Tên bệnh lý</th>
+                        <th>Cập nhật cuối</th>
+                        <th class="text-center">Trạng thái</th>
+                        <th class="text-end pe-4" style="width: 150px;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="ps-4">
+                                    <img src="@(string.IsNullOrEmpty(item.HinhAnhUrl) ? "/images/no-image.png" : item.HinhAnhUrl)"
+                                         class="rounded border shadow-sm" style="width: 50px; height: 50px; object-fit: cover;" />
+                                </td>
+                                <td><span class="badge bg-light text-primary border px-3">@item.BenhLyId</span></td>
+                                <td>
+                                    <div class="fw-bold text-dark">@item.TenBenhLy</div>
+                                    <small class="text-muted">ID Hệ thống: #@item.BenhLyId</small>
+                                </td>
+                                <td>@item.NgayCapNhat.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td class="text-center">
+                                    @if (item.IsPublished)
+                                    {
+                                        <span class="badge bg-success-subtle text-success border border-success px-3">
+                                            <i class="bi bi-check-circle me-1"></i> Hiển thị
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary-subtle text-secondary border border-secondary px-3">
+                                            <i class="bi bi-eye-slash me-1"></i> Đang ẩn
+                                        </span>
+                                    }
+                                </td>
+                                <td class="text-end pe-4">
+                                    <div class="btn-group shadow-sm">
+                                        <a asp-action="Edit" asp-route-id="@item.BenhLyId" class="btn btn-white text-warning btn-sm border" title="Chỉnh sửa">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </a>
+                                        <a asp-action="Delete" asp-route-id="@item.BenhLyId" class="btn btn-white text-danger btn-sm border" title="Xóa hồ sơ">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                                Chưa có dữ liệu bệnh lý nào trong danh mục.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @* PHẦN PHÂN TRANG *@
+        @if (ViewBag.TotalPages > 1)
+        {
+            <div class="card-footer bg-white border-top-0 py-3">
+                <nav aria-label="Page navigation">
+                    <ul class="pagination pagination-sm justify-content-center mb-0">
+                        @* Nút Trang trước *@
+                        <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
+                            <a class="page-link shadow-none" asp-action="Index" asp-route-page="@(ViewBag.CurrentPage - 1)">
+                                <i class="bi bi-chevron-left small"></i>
+                            </a>
+                        </li>
+
+                        @* Các số trang *@
+                        @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                        {
+                            <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                                <a class="page-link shadow-none @(i == ViewBag.CurrentPage ? "bg-primary border-primary" : "")"
+                                   asp-action="Index" asp-route-page="@i">@i</a>
+                            </li>
+                        }
+
+                        @* Nút Trang sau *@
+                        <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
+                            <a class="page-link shadow-none" asp-action="Index" asp-route-page="@(ViewBag.CurrentPage + 1)">
+                                <i class="bi bi-chevron-right small"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+                <div class="text-center mt-2">
+                    <span class="text-muted" style="font-size: 0.75rem;">
+                        Hiển thị trang <strong>@ViewBag.CurrentPage</strong> trên tổng số <strong>@ViewBag.TotalPages</strong> trang (Tổng <strong>@ViewBag.TotalItems</strong> bệnh lý)
+                    </span>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    /* Tùy chỉnh màu sắc nhẹ nhàng cho bảng chuyên môn */
+    .table thead th {
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        color: #64748b;
+    }
+
+    .btn-white {
+        background: #fff;
+    }
+
+        .btn-white:hover {
+            background: #f8fafc;
+        }
+
+    .pagination .page-link {
+        color: #475569;
+        border-radius: 6px;
+        margin: 0 3px;
+    }
+</style>

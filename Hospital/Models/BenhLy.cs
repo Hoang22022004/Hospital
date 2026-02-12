@@ -1,34 +1,27 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Hospital.Models
 {
     public class BenhLy
     {
-        // Khóa chính
         [Key]
-        public int BenhLyId { get; set; }
+        [DatabaseGenerated(DatabaseGeneratedOption.None)]
+        [Required]
+        [StringLength(10)]
+        public string BenhLyId { get; set; } // Khóa chính không được null
 
-        // Tên bệnh lý (Ví dụ: Mụn trứng cá, Viêm da cơ địa, Nám da)
         [Required(ErrorMessage = "Tên bệnh lý là bắt buộc.")]
         [StringLength(200)]
-        public string TenBenhLy { get; set; }
+        public string TenBenhLy { get; set; } // Tên bệnh cũng thường bắt buộc
 
-        // Mô tả tổng quan về bệnh lý
-        public string MoTaTongQuan { get; set; }
+        // THÊM DẤU ? ĐỂ CHO PHÉP NULL TRONG C#
+        public string? MoTaTongQuan { get; set; }
+        public string? TrieuChung { get; set; }
+        public string? PhuongPhapDieuTri { get; set; }
+        public string? HinhAnhUrl { get; set; }
 
-        // Triệu chứng nhận biết
-        public string TrieuChung { get; set; }
-
-        // Phương pháp điều trị chung
-        public string PhuongPhapDieuTri { get; set; }
-
-        // Đường dẫn ảnh minh họa bệnh lý
-        public string HinhAnhUrl { get; set; }
-
-        // *************************************************************
-        // Mối quan hệ Navigation Property (One-to-Many)
-        // Một Bệnh lý có thể có nhiều Phác đồ Điều trị liên quan
-        // *************************************************************
-        public virtual ICollection<PhacDoDieuTri> PhacDoDieuTris { get; set; }
+        public bool IsPublished { get; set; } = true;
+        public DateTime NgayCapNhat { get; set; } = DateTime.Now;
     }
 }

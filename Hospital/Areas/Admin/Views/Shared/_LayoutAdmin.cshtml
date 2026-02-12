@@ -191,9 +191,17 @@
                 @if (User.IsInRole("Admin") || User.IsInRole("Receptionist"))
                 {
                     <div class="menu-label">Truyền thông & Nội dung</div>
+
+                    @* Menu Tin tức *@
                     <a asp-area="Admin" asp-controller="TinTuc" asp-action="Index"
                        class="list-group-item list-group-item-action @(ViewContext.RouteData.Values["Controller"]?.ToString() == "TinTuc" ? "active" : "")">
                         <i class="bi bi-newspaper"></i> Quản lý Tin tức
+                    </a>
+
+                    @* Menu Bệnh lý - Đặt ngay sau Tin tức *@
+                    <a asp-area="Admin" asp-controller="BenhLy" asp-action="Index"
+                       class="list-group-item list-group-item-action @(ViewContext.RouteData.Values["Controller"]?.ToString() == "BenhLy" ? "active" : "")">
+                        <i class="bi bi-clipboard2-pulse"></i> Danh mục Bệnh lý
                     </a>
                 }
 

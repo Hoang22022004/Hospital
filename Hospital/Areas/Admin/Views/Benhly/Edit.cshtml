@@ -1,0 +1,89 @@
+﻿@model Hospital.Models.BenhLy
+@{
+    ViewData["Title"] = "Chỉnh sửa bệnh lý";
+}
+
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-white py-3">
+        <h5 class="mb-0 fw-bold text-warning"><i class="bi bi-pencil-square me-2"></i>CẬP NHẬT HỒ SƠ: @Model.TenBenhLy</h5>
+    </div>
+    <div class="card-body p-4">
+        <form asp-action="Edit" method="post" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            @* Giữ lại các giá trị quan trọng *@
+            <input type="hidden" asp-for="BenhLyId" />
+            <input type="hidden" asp-for="HinhAnhUrl" />
+            <input type="hidden" asp-for="NgayCapNhat" value="@DateTime.Now" />
+
+            <div class="row">
+                <div class="col-md-9">
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Mã ICD-10 (Không thể sửa)</label>
+                            <input class="form-control bg-light" value="@Model.BenhLyId" readonly />
+                        </div>
+                        <div class="col-md-8">
+                            <label asp-for="TenBenhLy" class="form-label fw-bold">Tên bệnh lý</label>
+                            <input asp-for="TenBenhLy" class="form-control" />
+                            <span asp-validation-for="TenBenhLy" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="MoTaTongQuan" class="form-label fw-bold">1. Tổng quan bài viết</label>
+                        <textarea asp-for="MoTaTongQuan" class="tiny-editor"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="TrieuChung" class="form-label fw-bold">2. Triệu chứng lâm sàng</label>
+                        <textarea asp-for="TrieuChung" class="tiny-editor"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="PhuongPhapDieuTri" class="form-label fw-bold">3. Phác đồ điều trị</label>
+                        <textarea asp-for="PhuongPhapDieuTri" class="tiny-editor"></textarea>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="card bg-light border-0 p-3 sticky-top" style="top: 20px;">
+                        <label class="form-label fw-bold">Ảnh hiện tại</label>
+                        <input type="file" name="imageFile" class="form-control mb-2" onchange="previewImage(this)" />
+                        <img id="preview" src="@(string.IsNullOrEmpty(Model.HinhAnhUrl) ? "/images/no-image.png" : Model.HinhAnhUrl)" class="img-thumbnail mb-3" />
+
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" asp-for="IsPublished">
+                            <label class="form-check-label fw-bold">Hiển thị bài viết</label>
+                        </div>
+
+                        <p class="small text-muted"><i class="bi bi-clock-history"></i> Cập nhật cuối: <br> @Model.NgayCapNhat.ToString("dd/MM/yyyy HH:mm")</p>
+
+                        <button type="submit" class="btn btn-warning w-100 mb-2">CẬP NHẬT</button>
+                        <a asp-action="Index" class="btn btn-outline-secondary w-100">HUỶ BỎ</a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.tiny.cloud/1/vy399c75h6gyw1xkemhoj245q01aqnsusy14yaiket9jmz1h/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+    <script>
+        tinymce.init({
+            selector: '.tiny-editor',
+            height: 350,
+            plugins: 'advlist autolink lists link image charmap preview anchor code fullscreen table wordcount',
+            toolbar: 'undo redo | bold italic | alignleft aligncenter alignright | bullist numlist | table code',
+            images_upload_url: '/Admin/BenhLy/UploadImageTiny',
+            language: 'vi',
+            branding: false
+        });
+
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = e => document.getElementById('preview').src = e.target.result;
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    </script>
+}
