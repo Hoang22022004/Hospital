@@ -191,14 +191,10 @@
                 @if (User.IsInRole("Admin") || User.IsInRole("Receptionist"))
                 {
                     <div class="menu-label">Truyền thông & Nội dung</div>
-
-                    @* Menu Tin tức *@
                     <a asp-area="Admin" asp-controller="TinTuc" asp-action="Index"
                        class="list-group-item list-group-item-action @(ViewContext.RouteData.Values["Controller"]?.ToString() == "TinTuc" ? "active" : "")">
                         <i class="bi bi-newspaper"></i> Quản lý Tin tức
                     </a>
-
-                    @* Menu Bệnh lý - Đặt ngay sau Tin tức *@
                     <a asp-area="Admin" asp-controller="BenhLy" asp-action="Index"
                        class="list-group-item list-group-item-action @(ViewContext.RouteData.Values["Controller"]?.ToString() == "BenhLy" ? "active" : "")">
                         <i class="bi bi-clipboard2-pulse"></i> Danh mục Bệnh lý
@@ -271,20 +267,21 @@
     </div>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
-
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        // Logic đóng mở menu sidebar của bạn
+        // Logic đóng mở menu sidebar
         $("#menu-toggle").click(function(e) {
             e.preventDefault();
             $("#wrapper").toggleClass("toggled");
         });
 
         $(document).ready(function() {
-            // Logic Active Menu của bạn
+            // Logic Active Menu
             var currentPath = window.location.pathname;
             $(".list-group-item").each(function() {
                 var href = $(this).attr("href");
@@ -294,7 +291,15 @@
                 }
             });
 
-            // --- ĐOẠN MÃ HIỂN THỊ THÔNG BÁO CHO TOÀN BỘ ADMIN ---
+            // Sửa lỗi Select2 không focus được ô nhập liệu trên một số trình duyệt
+            $(document).on('select2:open', () => {
+                let allSearchFields = document.querySelectorAll('.select2-container--open .select2-search__field');
+                if (allSearchFields.length > 0) {
+                    allSearchFields[allSearchFields.length - 1].focus();
+                }
+            });
+
+            // Hiển thị thông báo TempData
             var successMessage = '@Html.Raw(TempData["success"])';
             var errorMessage = '@Html.Raw(TempData["error"])';
 
@@ -316,7 +321,7 @@
                     title: 'Thông báo lỗi!',
                     text: errorMessage,
                     icon: 'error',
-                    confirmButtonColor: '#6366f1', // Màu accent-color của bạn
+                    confirmButtonColor: '#6366f1',
                     confirmButtonText: 'Đóng'
                 });
             }

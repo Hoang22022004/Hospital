@@ -28,7 +28,6 @@
         max-height: 800px;
         overflow-y: auto;
         overflow-x: hidden;
-        /* Tăng padding-left từ 0 lên 20px để không bị cắt dấu chấm */
         padding: 10px 10px 10px 20px;
     }
 
@@ -36,13 +35,12 @@
         position: relative;
         padding-left: 30px;
         margin-bottom: 25px;
-        border-left: 2px solid #e2e8f0; /* Đường kẻ dọc */
+        border-left: 2px solid #e2e8f0;
     }
 
         .timeline-item::before {
             content: '';
             position: absolute;
-            /* Dấu chấm nằm đè lên đường kẻ */
             left: -9px;
             top: 0;
             width: 16px;
@@ -50,7 +48,7 @@
             border-radius: 50%;
             background: white;
             border: 3px solid var(--clinic-primary);
-            z-index: 5; /* Đảm bảo luôn nằm trên cùng */
+            z-index: 5;
         }
 
     .timeline-content {
@@ -96,7 +94,6 @@
         z-index: 5;
     }
 
-    /* Image Preview */
     .preview-main-box {
         border: 2px dashed #cbd5e1;
         border-radius: 12px;
@@ -160,6 +157,11 @@
         cursor: pointer;
         z-index: 10;
     }
+
+    /* CSS mới cho phần Phác đồ */
+    #box-phac-do {
+        border-left: 4px solid var(--clinic-primary);
+    }
 </style>
 
 <div class="container-fluid py-4">
@@ -202,9 +204,29 @@
                                 <label class="form-label">Triệu chứng lâm sàng</label>
                                 <textarea asp-for="TrieuChung" class="form-control shadow-sm" rows="2"></textarea>
                             </div>
+
+                            @* PHẦN NÂNG CẤP: CHẨN ĐOÁN ICD-10 GỢI Ý *@
                             <div class="col-md-12">
-                                <label class="form-label text-danger">Chẩn đoán xác định *</label>
-                                <textarea asp-for="ChanDoan" class="form-control border-danger-subtle shadow-sm" rows="2" required></textarea>
+                                <label class="form-label text-danger">Chẩn đoán xác định (ICD-10) *</label>
+                                <select id="select-benhly" name="ChanDoan" class="form-control" required>
+                                    @if (!string.IsNullOrEmpty(Model.ChanDoan))
+                                    {
+                                        <option value="@Model.ChanDoan" selected>@Model.ChanDoan</option>
+                                    }
+                                </select>
+                            </div>
+
+                            @* PHẦN NÂNG CẤP: HIỂN THỊ PHÁC ĐỒ *@
+                            <div class="col-md-12 mt-2">
+                                <div id="box-phac-do" class="alert alert-light border shadow-sm d-none">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h6 class="mb-0 fw-bold text-primary"><i class="bi bi-journal-check me-2"></i>Phác đồ điều trị gợi ý</h6>
+                                        <button type="button" class="btn btn-sm btn-outline-primary rounded-pill" onclick="copyToLoiDan()">
+                                            <i class="bi bi-clipboard-plus me-1"></i>Chép vào Lời dặn
+                                        </button>
+                                    </div>
+                                    <div id="noidung-phacdo" class="small text-dark border-top pt-2"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -258,7 +280,7 @@
                         </div>
                         <div class="mt-4">
                             <label class="form-label small fw-bold">Lời dặn bác sĩ</label>
-                            <textarea asp-for="LoiDan" class="form-control" rows="2"></textarea>
+                            <textarea asp-for="LoiDan" id="LoiDan" class="form-control" rows="4"></textarea>
                         </div>
                         <button type="submit" class="btn btn-primary w-100 py-3 fw-bold rounded-pill shadow mt-4">
                             <i class="bi bi-check-circle-fill me-2"></i> HOÀN TẤT & LƯU HỒ SƠ KHÁM
@@ -284,6 +306,7 @@
     </div>
 </div>
 
+@* Modal So sánh ảnh *@
 <div class="modal fade" id="compareModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
@@ -321,6 +344,33 @@
             addMedicine();
             loadTimeline();
 
+            // --- KHỞI TẠO SELECT2 GỢI Ý BỆNH LÝ ---
+            $('#select-benhly').select2({
+                theme: 'bootstrap-5',
+                placeholder: 'Gõ mã bệnh hoặc tên bệnh để tìm...',
+                ajax: {
+                    url: '/Admin/HoSoBenhAn/GetBenhLySuggestions', // API bạn đã thêm
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) { return { term: params.term }; },
+                    processResults: function (data) { return { results: data }; }
+                },
+                minimumInputLength: 1
+            });
+
+            // Sự kiện khi chọn bệnh -> Hiện phác đồ
+            $('#select-benhly').on('select2:select', function (e) {
+                var benhId = e.params.data.id;
+                $.get('/Admin/HoSoBenhAn/GetPhacDoBenh', { id: benhId }, function (data) {
+                    if (data && data.phacDo) {
+                        $('#box-phac-do').removeClass('d-none');
+                        $('#noidung-phacdo').html(data.phacDo);
+                    } else {
+                        $('#box-phac-do').addClass('d-none');
+                    }
+                });
+            });
+
             $(document).on('change', 'select[name="selectedDichVu"]', function() {
                 var price = $(this).find(':selected').data('price');
                 $(this).closest('tr').find('.price-display').val(price ? price + 'đ' : '0đ');
@@ -333,11 +383,21 @@
             });
         });
 
-        // 1. AJAX Nạp Timeline
+        // Hàm copy phác đồ vào Lời dặn
+        function copyToLoiDan() {
+            var rawText = document.getElementById('noidung-phacdo').innerText;
+            var currentVal = $('#LoiDan').val();
+            $('#LoiDan').val(currentVal + "\n--- GỢI Ý ĐIỀU TRỊ ---\n" + rawText);
+
+            Swal.fire({
+                icon: 'success', title: 'Đã chép phác đồ!',
+                toast: true, position: 'top-end', showConfirmButton: false, timer: 2000
+            });
+        }
+
         function loadTimeline() {
             var patientId = '@Model.BenhNhanId';
             var currentId = '@Model.Id';
-
             $.get('@Url.Action("GetPatientTimeline", "HoSoBenhAn")',
                 { benhNhanId: patientId, currentHoSoId: currentId },
                 function(data) {
@@ -352,30 +412,22 @@
                 });
         }
 
-        // 2. Logic So sánh: Chọn ảnh cũ (Before)
         function setBeforeImage(url, date) {
             $('#before-img').attr('src', url);
             $('#before-date').text('Trước: ' + date);
-
             if ($('#after-img').attr('src')) {
                 new bootstrap.Modal(document.getElementById('compareModal')).show();
             } else {
-                alert("Đã chọn ảnh cũ. Hãy click vào 'Ảnh tổng quan' hoặc 'Ảnh chi tiết' bên trái để so sánh.");
+                alert("Đã chọn ảnh cũ. Hãy chọn ảnh hiện tại để so sánh.");
             }
         }
 
-        // 3. Logic So sánh: Chọn ảnh mới (After)
         function setCompareImage(url, date, type) {
-            if (url.includes("no-image.png")) {
-                alert("Vui lòng chọn file ảnh trước!");
-                return;
-            }
-
+            if (url.includes("no-image.png")) { alert("Vui lòng chọn file ảnh!"); return; }
             if (type === 'after') {
                 $('#after-img').attr('src', url);
                 $('#after-date').text('Sau: ' + date);
             }
-
             if ($('#before-img').attr('src') && $('#after-img').attr('src')) {
                 new bootstrap.Modal(document.getElementById('compareModal')).show();
             }
@@ -390,8 +442,7 @@
         }
 
         function renderSubPreviews() {
-            const container = $('#sub-grid');
-            container.empty();
+            const container = $('#sub-grid'); container.empty();
             Array.from(subFilesDataTransfer.files).forEach((file, index) => {
                 const reader = new FileReader();
                 reader.onload = function(e) {
@@ -407,8 +458,7 @@
         }
 
         function removeSubFile(index) {
-            const dt = new DataTransfer();
-            const { files } = subFilesDataTransfer;
+            const dt = new DataTransfer(); const { files } = subFilesDataTransfer;
             for (let i = 0; i < files.length; i++) { if (i !== index) dt.items.add(files[i]); }
             subFilesDataTransfer = dt;
             document.getElementById('subFiles').files = subFilesDataTransfer.files;

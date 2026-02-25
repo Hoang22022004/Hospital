@@ -530,5 +530,44 @@ namespace Hospital.Areas.Admin.Controllers
 
             return Json(new { services, bookedSlots = allBookedSlots, shiftInfo = shift != null ? new { id = shift.LichLamViecId, start = shift.GioBatDau.ToString(@"hh\:mm"), end = shift.GioKetThuc.ToString(@"hh\:mm"), duration = shift.ThoiLuongKhungGioPhut } : null });
         }
-    }
-}
+        // ... (Các hàm AJAX cũ của bạn: GetPatientTimeline, GetDoctorShiftData...)
+
+        // ===============================================================
+        // 8. BỔ SUNG: GỢI Ý BỆNH LÝ & PHÁC ĐỒ (DÁN VÀO ĐÂY)
+        // ===============================================================
+
+        [HttpGet]
+        public async Task<IActionResult> GetBenhLySuggestions(string term)
+        {
+            if (string.IsNullOrEmpty(term)) return Json(new List<object>());
+
+            var results = await _context.BenhLy
+                .Where(b => b.BenhLyId.Contains(term) || b.TenBenhLy.Contains(term))
+                .Select(b => new {
+                    id = b.BenhLyId,
+                    text = "[" + b.BenhLyId + "] " + b.TenBenhLy
+                })
+                .Take(15)
+                .ToListAsync();
+
+            return Json(results);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetPhacDoBenh(string id)
+        {
+            var benh = await _context.BenhLy
+                .Where(b => b.BenhLyId == id)
+                .Select(b => new {
+                    ten = b.TenBenhLy,
+                    phacDo = b.PhuongPhapDieuTri,
+                    trieuChung = b.TrieuChung
+                })
+                .FirstOrDefaultAsync();
+
+            if (benh == null) return NotFound();
+            return Json(benh);
+        }
+    } // Dấu đóng ngoặc cuối cùng của Class HoSoBenhAnController
+} // Dấu đóng ngoặc cuối cùng của Namespace
+ 

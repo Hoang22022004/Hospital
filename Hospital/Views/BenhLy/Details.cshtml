@@ -1,0 +1,73 @@
+﻿@model Hospital.Models.BenhLy
+
+@* Thêm pt-5 và mt-5 để đẩy nội dung xuống dưới Navbar cố định *@
+<div class="container py-5 mt-5 pt-4">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/" class="text-decoration-none">Trang chủ</a></li>
+            <li class="breadcrumb-item"><a asp-action="Index" class="text-decoration-none">Kiến thức da liễu</a></li>
+            <li class="breadcrumb-item active">@Model.TenBenhLy</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <h1 class="fw-bold text-primary mb-2">@Model.TenBenhLy</h1>
+            <p class="text-muted mb-4">
+                <i class="bi bi-calendar-event me-2"></i>Cập nhật: @Model.NgayCapNhat.ToString("dd/MM/yyyy") |
+                <i class="bi bi-bookmark-plus me-1"></i> Mã ICD-10: @Model.BenhLyId
+            </p>
+
+            <div class="disease-content">
+                <div class="mb-5">
+                    <h4 class="fw-bold text-dark border-start border-primary border-4 ps-3 mb-3 text-uppercase">Tổng quan</h4>
+                    <div class="text-justify">@Html.Raw(Model.MoTaTongQuan)</div>
+                </div>
+
+                <div class="mb-5 bg-light p-4 rounded-4 shadow-sm border-0">
+                    <h4 class="fw-bold text-success border-start border-success border-4 ps-3 mb-3 text-uppercase">Triệu chứng nhận biết</h4>
+                    <div>@Html.Raw(Model.TrieuChung)</div>
+                </div>
+
+                <div class="mb-5">
+                    <h4 class="fw-bold text-warning border-start border-warning border-4 ps-3 mb-3 text-uppercase">Phương pháp điều trị</h4>
+                    <div>@Html.Raw(Model.PhuongPhapDieuTri)</div>
+                </div>
+            </div>
+        </div>
+
+        @* Sidebar: Đã sửa lỗi đè lên Navbar *@
+        <div class="col-lg-4">
+            @* Sửa z-index xuống 1000 (Navbar thường là 1030) và tăng top lên 120px *@
+            <div class="sticky-top" style="top: 120px; z-index: 1000;">
+                <div class="card border-0 bg-primary text-white shadow-lg p-4 rounded-4 mb-4">
+                    <h5 class="fw-bold"><i class="bi bi-heart-pulse me-2"></i>Bạn đang lo lắng?</h5>
+                    <p class="small opacity-75">Đừng tự ý dùng thuốc. Hãy để bác sĩ tại Hello Paris thăm khám và đưa ra phác đồ điều trị an toàn nhất cho bạn.</p>
+                    <a href="/LichHen" class="btn btn-light text-primary fw-bold w-100 py-3 rounded-pill shadow-sm">
+                        ĐẶT LỊCH KHÁM NGAY
+                    </a>
+                </div>
+
+                <div class="rounded-4 overflow-hidden shadow-sm">
+                    <img src="@Model.HinhAnhUrl" class="img-fluid w-100" style="object-fit: cover; max-height: 350px;" alt="@Model.TenBenhLy">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .disease-content div {
+        line-height: 1.8;
+        color: #334155;
+        font-size: 1.05rem;
+    }
+
+    /* Căn chỉnh lại hình ảnh trong nội dung nếu bác sĩ chèn ảnh từ TinyMCE */
+    .disease-content img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 12px;
+        margin: 15px 0;
+    }
+</style>

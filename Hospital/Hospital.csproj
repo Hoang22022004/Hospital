@@ -11,6 +11,7 @@
     <Folder Include="ViewModels\" />
     <Folder Include="wwwroot\images\bacsi\" />
     <Folder Include="wwwroot\images\da-lieu\" />
+    <Folder Include="wwwroot\images\benhly\" />
     <Folder Include="wwwroot\images\tintuc\" />
     <Folder Include="wwwroot\images\thuoc\" />
   </ItemGroup>

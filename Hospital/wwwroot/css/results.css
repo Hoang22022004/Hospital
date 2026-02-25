@@ -1,0 +1,111 @@
+﻿/* ==========================================================================
+   CSS CHO PHẦN KẾT QUẢ ĐIỀU TRỊ (PREMIUM UI)
+   ========================================================================== */
+.results-section {
+    background-color: #ffffff;
+    padding: 80px 0;
+}
+
+/* Khung chứa slider thu gọn lại một chút cho cân đối */
+.result-nav-container {
+    position: relative;
+    max-width: 800px; /* Thu hẹp lại để mũi tên gần ảnh hơn */
+    margin: 0 auto;
+}
+
+/* Khung chứa ảnh */
+.result-card {
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 45, 91, 0.08);
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.05);
+}
+
+/* Ép khung ảnh hiển thị theo tỷ lệ chuẩn */
+.result-img-wrapper {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4/3; /* Đổi sang 4:3 phù hợp với ảnh Before/After hơn 16:9 */
+    overflow: hidden;
+    background-color: #f8fafc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* --- HIỆU ỨNG NỀN MỜ (MỚI) --- */
+.result-bg-blur {
+    position: absolute;
+    top: -10%;
+    left: -10%;
+    width: 120%;
+    height: 120%;
+    object-fit: cover;
+    filter: blur(25px) opacity(0.3); /* Làm mờ nhòe và làm sáng nền */
+    z-index: 1;
+}
+
+/* Ảnh chính (Giữ nguyên không cắt) */
+.result-img {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    object-fit: contain; /* KHÔNG BỊ CẮT */
+    z-index: 2;
+    filter: drop-shadow(0 0 15px rgba(0,0,0,0.15)); /* Thêm bóng đổ nhẹ để tách biệt ảnh với nền mờ */
+}
+
+/* Cặp nút mũi tên Bấm qua/về */
+.result-nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 50px;
+    height: 50px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #002d5b;
+    font-size: 1.2rem;
+    cursor: pointer;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+    .result-nav-btn:hover {
+        background: #002d5b;
+        color: #fff;
+    }
+
+.result-prev {
+    left: -25px;
+}
+
+.result-next {
+    right: -25px;
+}
+
+@media (max-width: 768px) {
+    .result-nav-container {
+        max-width: 90%;
+    }
+
+    .result-nav-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+    }
+
+    .result-prev {
+        left: -15px;
+    }
+
+    .result-next {
+        right: -15px;
+    }
+}

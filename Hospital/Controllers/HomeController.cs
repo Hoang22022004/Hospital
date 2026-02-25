@@ -45,6 +45,11 @@ namespace Hospital.Controllers
                 .Take(10)
                 .ToListAsync();
 
+            ViewBag.ListBenhLy = await _context.BenhLy
+        .Where(b => b.IsPublished)
+        .OrderBy(b => b.TenBenhLy)
+        .Take(8)
+        .ToListAsync();
             // Trả về View Index kèm danh sách bác sĩ
             return View(doctors);
         }

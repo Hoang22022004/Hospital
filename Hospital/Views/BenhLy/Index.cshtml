@@ -1,0 +1,40 @@
+﻿@model IEnumerable<Hospital.Models.BenhLy>
+
+<section class="py-5 bg-light">
+    <div class="container mt-5">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold text-uppercase color-primary">Kiến thức Da liễu</h2>
+            <p class="text-muted">Tra cứu thông tin và phác đồ điều trị chuẩn y khoa</p>
+            <div class="mx-auto bg-primary" style="height: 3px; width: 60px;"></div>
+        </div>
+
+        @* Ô tìm kiếm nhanh *@
+        <div class="row justify-content-center mb-5">
+            <div class="col-md-6">
+                <form asp-action="Index" method="get" class="d-flex shadow-sm rounded-pill overflow-hidden bg-white">
+                    <input type="text" name="searchString" class="form-control border-0 ps-4 py-3" placeholder="Tìm tên bệnh hoặc mã ICD-10...">
+                    <button type="submit" class="btn btn-primary px-4"><i class="bi bi-search"></i></button>
+                </form>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            @foreach (var item in Model)
+            {
+                <div class="col-lg-3 col-md-6">
+                    <div class="card h-100 border-0 shadow-sm hover-top overflow-hidden">
+                        <img src="@(string.IsNullOrEmpty(item.HinhAnhUrl) ? "/images/no-image.png" : item.HinhAnhUrl)"
+                             class="card-img-top" style="height: 200px; object-fit: cover;">
+                        <div class="card-body">
+                            <h6 class="fw-bold text-dark mb-2">@item.TenBenhLy.ToUpper()</h6>
+                            <span class="badge bg-light text-primary border mb-3">Mã: @item.BenhLyId</span>
+                            <div class="d-grid">
+                                <a asp-action="Details" asp-route-id="@item.BenhLyId" class="btn btn-outline-primary btn-sm rounded-pill">Xem chi tiết</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>

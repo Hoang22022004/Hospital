@@ -1,37 +1,74 @@
-﻿<section class="quick-search-section">
+﻿<style>
+    /* BỘ CSS MỚI: XỬ LÝ TRIỆT ĐỂ LỖI KHOẢNG TRẮNG */
+    .quick-search-section {
+        height: 0; /* Ép chiều cao khu vực này về 0 để section banner và section dưới dính chặt vào nhau */
+        position: relative;
+        z-index: 10;
+    }
+
+    .search-wrapper-overlap {
+        transform: translateY(-50%); /* Tự động kéo form lên chính giữa đường cắt, không cần biết form cao bao nhiêu */
+        background-color: #ffffff;
+        border-radius: 50px;
+    }
+
+    .btn-search-submit {
+        background-color: #45c3d2 !important;
+        color: #ffffff !important;
+        border-radius: 50px;
+        transition: all 0.3s ease;
+    }
+
+        .btn-search-submit:hover {
+            background-color: #38a8b6 !important;
+            box-shadow: 0 4px 10px rgba(69, 195, 210, 0.4);
+        }
+
+    #liveResults {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        display: none;
+        background: #fff;
+        border-radius: 15px;
+        z-index: 1000;
+        overflow: hidden;
+        margin-top: 15px; /* Cách thanh tìm kiếm 1 chút */
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+</style>
+
+<section class="quick-search-section">
     <div class="container">
-        <div class="search-wrapper shadow-lg">
+        @* Đổi tên class ở đây thành search-wrapper-overlap *@
+        <div class="search-wrapper-overlap shadow-lg">
             <form action="/Search" method="GET" class="row g-0 align-items-center position-relative">
+
+                @* Ô Nhập Từ Khóa *@
                 <div class="col-lg-7 border-end">
                     <div class="input-group">
                         <span class="input-group-text bg-transparent border-0 ps-4">
-                            <i class="bi bi-search text-primary"></i>
+                            <i class="bi bi-search" style="color: #45c3d2;"></i>
                         </span>
-                        <input type="text" id="mainSearchInput" name="query" class="form-control border-0 py-4 shadow-none"
+                        <input type="text" id="mainSearchInput" name="query" class="form-control border-0 py-4 shadow-none bg-transparent"
                                placeholder="Tìm bác sĩ, chuyên khoa, bệnh lý, thuốc..." autocomplete="off">
                     </div>
                 </div>
 
-                <div class="col-lg-2 border-end d-none d-lg-block">
-                    <div class="input-group">
-                        <select class="form-select border-0 py-4 shadow-none cursor-pointer text-muted" style="font-size: 0.85rem;">
-                            <option value="" selected>Tất cả dịch vụ</option>
-                            <option value="1">Trị mụn y khoa</option>
-                            <option value="2">Trị nám & Tàn nhang</option>
-                        </select>
-                    </div>
-                </div>
-
+                @* Nút Tìm Kiếm *@
                 <div class="col-lg-3 p-2">
                     <button type="submit" class="btn btn-search-submit w-100 py-3 text-uppercase fw-bold">
                         <i class="bi bi-search me-2"></i>Tìm kiếm
                     </button>
                 </div>
 
-                <div id="liveResults" class="live-results-box shadow-lg">
-                    <div class="p-3 border-bottom fw-bold small text-primary bg-light">KẾT QUẢ GỢI Ý</div>
+                @* Khung Kết Quả Gợi Ý *@
+                <div id="liveResults" class="live-results-box">
+                    <div class="p-3 border-bottom fw-bold small bg-light" style="color: #002d5b;">KẾT QUẢ GỢI Ý</div>
                     <ul class="list-unstyled mb-0" id="resultsList"></ul>
                 </div>
+
             </form>
         </div>
     </div>

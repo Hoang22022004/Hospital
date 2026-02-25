@@ -1,57 +1,73 @@
 ﻿@model IEnumerable<Hospital.Models.BacSi>
 @using Hospital.Models
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
 
 @{
-    ViewData["Title"] = "Trang chủ";
+    ViewData["Title"] = "Trang chủ - Hello Paris Clinic";
 
-    // Ép kiểu từ ViewBag sang List để C# nhận diện được tên 'listTinTuc'
+    // Ép kiểu dữ liệu từ ViewBag để truyền vào các Partial View
     var listTinTuc = ViewBag.ListTinTuc as IEnumerable<Hospital.Models.TinTuc>;
+    var listBenhLy = ViewBag.ListBenhLy as IEnumerable<Hospital.Models.BenhLy>;
 }
 
 @section Styles {
-    @* Gọi các tệp CSS đồng bộ cho Hello Paris *@
+    @* Các tệp CSS đồng bộ cho hệ thống Hello Paris *@
     <link rel="stylesheet" href="~/css/home_hero.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/home_search.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/why-choose.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/home_doctors.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/services.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/process-tree.css" asp-append-version="true" />
-
-    @* CSS Tin tức mới *@
     <link rel="stylesheet" href="~/css/news.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/disease.css" asp-append-version="true" />
+
+    @* THÊM MỚI: CSS cho phần Kết quả sau điều trị *@
+    <link rel="stylesheet" href="~/css/results.css" asp-append-version="true" />
 
     @* Thư viện Swiper CSS *@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
 }
 
-@* 1. Phần Banner chính *@
+@* --- CẤU TRÚC GIAO DIỆN TRANG CHỦ --- *@
+
+@* 1. Banner chính *@
 <partial name="_HeroPartial" />
 
-@* 2. Thanh tìm kiếm thông minh *@
+@* 2. Thanh tìm kiếm thông minh (Bác sĩ, Dịch vụ, Bệnh lý, Tin tức) *@
 <partial name="_SearchPartial" />
 
-@* 3. Phần Tại sao nên chọn Hello Paris *@
+@* 3. Section: Tại sao nên chọn Hello Paris *@
 <partial name="_WhyChoosePartial" />
 
-@* 4. Phần Đội ngũ chuyên gia *@
+@* 4. Section: Đội ngũ chuyên gia *@
 <partial name="_DoctorsPartial" model="Model" />
 
-@* 5. Phần Dịch vụ nổi bật *@
+@* 5. Section: Gói Dịch vụ nổi bật *@
 <partial name="~/Views/DichVu/_ServicePartial.cshtml" />
 
-@* 6. Phần Quy trình thăm khám *@
+@* 6. Section: Danh mục Bệnh lý (Tra cứu ICD-10) *@
+<partial name="~/Views/BenhLy/_BenhLyPartial.cshtml" model="listBenhLy" />
+
+@* 7. Section: Quy trình thăm khám *@
 <partial name="_ProcessTree" />
 
-@* 7. Phần Tin tức & Kiến thức *@
+@* 8. THÊM MỚI: Section Kết quả sau điều trị *@
+<partial name="_KetQuaDieuTriPartial" />
+
+@* 9. Section: Tin tức & Kiến thức y khoa *@
 <partial name="~/Views/TinTuc/_NewsPartial.cshtml" model="listTinTuc" />
 
 @section Scripts {
-@* Thêm Swiper JS *@
+@* Swiper JS Core *@
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
     <script>
         $(document).ready(function () {
-            // A. Slide "Tại sao chọn"
+            // --- KHỞI TẠO CÁC SLIDER (SWIPER) ---
+
+            // A. Slide Banner "Tại sao chọn"
             new Swiper(".whyChooseSwiper", {
                 loop: true,
                 autoplay: { delay: 4000 },
@@ -59,51 +75,67 @@
                 effect: "fade"
             });
 
-            // B. Slide "Ảnh phòng khám"
+            // B. Slide Hình ảnh phòng khám
             new Swiper(".leftImageSwiper", {
                 loop: true,
                 speed: 1000,
-                navigation: {
-                    nextEl: ".srv-left-arrow",
-                    prevEl: ".srv-left-arrow"
-                },
+                navigation: { nextEl: ".srv-right-arrow", prevEl: ".srv-left-arrow" },
                 pagination: { el: ".swiper-pagination", clickable: true },
             });
 
-            // C. Slide "Dịch vụ nổi bật"
+            // C. Slide Dịch vụ nổi bật
             new Swiper(".rightServiceSwiper", {
                 slidesPerView: 1.5,
                 spaceBetween: 25,
                 grabCursor: true,
                 autoplay: { delay: 3500, disableOnInteraction: false },
-                pagination: {
-                    el: ".srv-pagination-pill",
-                    clickable: true
-                },
+                pagination: { el: ".srv-pagination-pill", clickable: true },
                 breakpoints: {
                     768: { slidesPerView: 2.5 },
                     1024: { slidesPerView: 3 }
                 }
             });
 
-            // --- ĐÂY LÀ PHẦN THÊM MỚI ---
-            // D. Slide "Tin tức & Kiến thức" (Lướt qua bằng di chuột)
+            // D. Slide Danh mục Bệnh lý
+            new Swiper(".diseaseSwiper", {
+                slidesPerView: 1.2,
+                spaceBetween: 20,
+                grabCursor: true,
+                autoplay: { delay: 4500, disableOnInteraction: false },
+                pagination: { el: ".disease-pagination-pill", clickable: true },
+                breakpoints: {
+                    768: { slidesPerView: 2.5 },
+                    1024: { slidesPerView: 4 }
+                }
+            });
+
+            // E. Slide Tin tức & Kiến thức
             new Swiper(".newsSwiper", {
                 slidesPerView: 1.2,
                 spaceBetween: 25,
-                grabCursor: true,   // Hiệu ứng bàn tay khi di chuột lướt qua
+                grabCursor: true,
                 autoplay: { delay: 5000, disableOnInteraction: false },
-                pagination: {
-                    el: ".news-pagination-pill",
-                    clickable: true,
-                },
+                pagination: { el: ".news-pagination-pill", clickable: true },
                 breakpoints: {
                     768: { slidesPerView: 2.2 },
                     1024: { slidesPerView: 3.2 }
                 }
             });
 
-            // Logic xử lý tìm kiếm
+            // F. THÊM MỚI: Slide Kết quả điều trị (Chỉ bấm nút, không kéo chuột)
+            new Swiper(".resultsSwiper", {
+                slidesPerView: 1,
+                spaceBetween: 30,
+                loop: true,
+                allowTouchMove: false, // Tắt chức năng vuốt bằng chuột/tay
+                autoplay: { delay: 5000, disableOnInteraction: false },
+                navigation: {
+                    nextEl: ".result-next", // Nút tới
+                    prevEl: ".result-prev"  // Nút lùi
+                }
+            });
+
+            // --- LOGIC XỬ LÝ TÌM KIẾM THÔNG MINH (AJAX) ---
             const $searchInput = $('#mainSearchInput');
             const $liveResults = $('#liveResults');
             const $resultsList = $('#resultsList');
@@ -120,16 +152,37 @@
                             if (data.length > 0) {
                                 $liveResults.show();
                                 data.forEach(item => {
-                                    let mediaHtml = item.img ? `<img src="${item.img}" class="search-result-img">` : `<div class="search-result-icon-placeholder"><i class="bi bi-search"></i></div>`;
-                                    $resultsList.append(`<li><a href="${item.url}" class="d-flex align-items-center p-3 text-decoration-none border-bottom"><div class="me-3">${mediaHtml}</div><div><span class="d-block fw-bold text-dark">${item.title}</span><small class="text-muted">${item.desc || 'Hello Paris Clinic'}</small></div></a></li>`);
+                                    let mediaHtml = item.img
+                                        ? `<img src="${item.img}" class="search-result-img" style="width:40px; height:40px; object-fit:cover; border-radius:8px;">`
+                                        : `<div class="search-result-icon-placeholder" style="width:40px; height:40px; display:flex; align-items:center; justify-content:center; background:#f1f5f9; border-radius:8px;"><i class="bi bi-search"></i></div>`;
+
+                                    $resultsList.append(`
+                                        <li>
+                                            <a href="${item.url}" class="d-flex align-items-center p-3 text-decoration-none border-bottom hover-bg-light">
+                                                <div class="me-3">${mediaHtml}</div>
+                                                <div>
+                                                    <span class="d-block fw-bold text-dark">${item.title}</span>
+                                                    <small class="text-muted">${item.desc || 'Hello Paris Clinic'}</small>
+                                                </div>
+                                            </a>
+                                        </li>`);
                                 });
                             } else {
-                                $resultsList.html('<li class="p-4 text-center text-muted small">Không tìm thấy kết quả...</li>');
+                                $resultsList.html('<li class="p-4 text-center text-muted small">Không tìm thấy kết quả phù hợp...</li>');
                                 $liveResults.show();
                             }
                         }
                     });
-                } else { $liveResults.hide(); }
+                } else {
+                    $liveResults.hide();
+                }
+            });
+
+            // Ẩn kết quả khi bấm ra ngoài vùng tìm kiếm
+            $(document).on('click', function(e) {
+                if (!$(e.target).closest('.search-container').length) {
+                    $liveResults.hide();
+                }
             });
         });
     </script>

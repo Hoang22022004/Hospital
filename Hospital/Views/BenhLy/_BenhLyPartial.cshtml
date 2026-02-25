@@ -1,0 +1,75 @@
+﻿@model IEnumerable<Hospital.Models.BenhLy>
+@using System.Net
+
+<section class="disease-section overflow-hidden">
+    <div class="container">
+        @* PHẦN TIÊU ĐỀ *@
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-5 text-center text-md-start">
+            <div>
+                <span class="text-teal fw-bold text-uppercase ls-2 small">Cẩm nang y khoa</span>
+                <h2 class="fw-bold text-navy mt-2 mb-0">DANH MỤC BỆNH LÝ</h2>
+                <div class="title-line-disease mx-auto mx-md-0"></div>
+            </div>
+            <div class="mt-4 mt-md-0">
+                <a asp-controller="BenhLy" asp-action="Index" class="btn btn-outline-navy rounded-pill px-4 shadow-sm">
+                    XEM TẤT CẢ <i class="bi bi-arrow-right ms-2"></i>
+                </a>
+            </div>
+        </div>
+
+        @* SLIDER DANH SÁCH *@
+        <div class="swiper diseaseSwiper pb-5">
+            <div class="swiper-wrapper">
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var item in Model)
+                    {
+                        <div class="swiper-slide h-auto">
+                            <div class="disease-card shadow-sm border-0">
+                                <div class="disease-img-wrapper">
+                                    <span class="disease-badge">@item.BenhLyId</span>
+
+                                    <img src="@(string.IsNullOrEmpty(item.HinhAnhUrl) ? "/images/no-image.png" : item.HinhAnhUrl)"
+                                         alt="@item.TenBenhLy" class="disease-img"
+                                         onerror="this.src='/images/no-image.png';">
+
+                                    <div class="disease-overlay">
+                                        <a asp-controller="BenhLy" asp-action="Details" asp-route-id="@item.BenhLyId"
+                                           class="btn btn-light btn-sm rounded-pill px-4 fw-bold shadow">
+                                            CHI TIẾT
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <div class="disease-body p-4">
+                                    <div class="mb-2">
+                                        <small class="text-muted small">
+                                            <i class="bi bi-clock-history me-1"></i> Cập nhật: @item.NgayCapNhat.ToString("dd/MM/yyyy")
+                                        </small>
+                                    </div>
+
+                                    <h5 class="disease-title">
+                                        <a asp-controller="BenhLy" asp-action="Details" asp-route-id="@item.BenhLyId">
+                                            @item.TenBenhLy
+                                        </a>
+                                    </h5>
+
+                                    <p class="disease-excerpt mb-0">
+                                        @{
+                                            var plainText = System.Text.RegularExpressions.Regex.Replace(item.MoTaTongQuan ?? "", "<.*?>", string.Empty);
+                                            var decodedText = WebUtility.HtmlDecode(plainText);
+                                            var summary = decodedText.Length > 95 ? decodedText.Substring(0, 92) + "..." : decodedText;
+                                        }
+                                        @summary
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+            @* Dấu chấm phân trang *@
+            <div class="swiper-pagination disease-pagination-pill"></div>
+        </div>
+    </div>
+</section>

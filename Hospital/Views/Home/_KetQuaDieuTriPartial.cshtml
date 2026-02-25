@@ -1,0 +1,59 @@
+﻿<section class="results-section overflow-hidden">
+    <div class="container">
+
+        @* 1. TIÊU ĐỀ ĐỒNG BỘ *@
+        <div class="text-center mb-5">
+            <span class="text-teal fw-bold text-uppercase ls-2 small">Minh chứng lâm sàng</span>
+            <h2 class="fw-bold text-navy Montserrat mt-2 mb-0">KẾT QUẢ SAU ĐIỀU TRỊ</h2>
+            <div class="title-line-news mx-auto"></div>
+            <p class="text-muted mt-4 mx-auto" style="max-width: 800px; line-height: 1.8;">
+                Mỗi khách hàng đều được bác sĩ tại phòng khám đưa ra phác đồ điều trị riêng biệt phù hợp với tình trạng da và cơ thể. Quy trình điều trị được thực hiện bởi các công nghệ tiên tiến hàng đầu với kết quả lâm sàng vượt trội.
+            </p>
+        </div>
+
+        @* 2. KHU VỰC SLIDER ẢNH VÀ NÚT BẤM *@
+        <div class="result-nav-container">
+            <div class="swiper resultsSwiper">
+                <div class="swiper-wrapper">
+
+                    @* Vòng lặp lấy 10 ảnh *@
+                    @for (int i = 1; i <= 10; i++)
+                    {
+                        <div class="swiper-slide">
+                            <div class="result-card">
+                                <div class="result-img-wrapper">
+                                    @* ẢNH 1: Làm nền mờ (Background Blur) *@
+                                    <img src="/images/ket-qua/@(i).png" class="result-bg-blur" alt="" aria-hidden="true">
+
+                                    @* ẢNH 2: Ảnh chính hiển thị full không cắt *@
+                                    <img src="/images/ket-qua/@(i).png"
+                                         class="result-img"
+                                         alt="Kết quả điều trị tại Hello Paris @i"
+                                         onerror="this.src='/images/no-image.png';">
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                </div>
+            </div>
+
+            @* 3. CẶP NÚT BẤM (MŨI TÊN) *@
+            <div class="result-nav-btn result-prev">
+                <i class="bi bi-chevron-left"></i>
+            </div>
+            <div class="result-nav-btn result-next">
+                <i class="bi bi-chevron-right"></i>
+            </div>
+        </div>
+
+        @* 4. NÚT LIÊN HỆ NGAY *@
+        <div class="text-center mt-5 pt-3">
+            <p class="text-muted small mb-3">Bạn muốn đạt được kết quả tương tự?</p>
+            <a asp-controller="LienHe" asp-action="Index" class="btn btn-teal rounded-pill px-5 py-3 fw-bold shadow-sm text-uppercase ls-1 text-white">
+                Liên hệ tư vấn ngay <i class="bi bi-headset ms-2"></i>
+            </a>
+        </div>
+
+    </div>
+</section>

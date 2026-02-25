@@ -1,0 +1,91 @@
+﻿@{
+    ViewData["Title"] = "Gửi thành công - Hello Paris";
+}
+
+@section Styles {
+    <style>
+        .thankyou-section {
+            background-color: #f8fafc;
+            padding: 80px 0;
+            min-height: 70vh;
+            display: flex;
+            align-items: center;
+        }
+
+        .btn-teal {
+            background-color: #45c3d2 !important;
+            color: #ffffff !important;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+            .btn-teal:hover {
+                background-color: #38a8b6 !important;
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(69, 195, 210, 0.4);
+                color: white !important;
+            }
+
+        .success-icon-wrapper {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 90px;
+            height: 90px;
+            background-color: rgba(69, 195, 210, 0.1);
+            border-radius: 50%;
+            margin-bottom: 20px;
+        }
+    </style>
+}
+
+<div class="thankyou-section">
+    <div class="container animate__animated animate__zoomIn animate__faster">
+        <div class="row justify-content-center">
+            <div class="col-lg-9 col-xl-8">
+
+                @* Khung Card nổi bật *@
+                <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                    <div class="row g-0">
+
+                        @* Nửa Trái: Ảnh Bác Sĩ Tư Vấn *@
+                        <div class="col-md-5 d-none d-md-block bg-light">
+                            <img src="~/images/Layout/bac-si-tu-van.png"
+                                 alt="Bác sĩ Hello Paris tư vấn"
+                                 class="img-fluid h-100 w-100"
+                                 style="object-fit: cover; object-position: center;"
+                                 onerror="this.src='/images/no-image.png';">
+                        </div>
+
+                        @* Nửa Phải: Lời Cảm Ơn *@
+                        <div class="col-md-7 d-flex align-items-center p-4 p-md-5">
+                            <div class="text-center text-md-start w-100">
+
+                                <div class="success-icon-wrapper mx-auto mx-md-0">
+                                    <i class="bi bi-check-lg" style="font-size: 3rem; color: #45c3d2;"></i>
+                                </div>
+
+                                <h2 class="fw-bold text-navy mb-3 Montserrat">GỬI THÀNH CÔNG!</h2>
+
+                                <p class="text-muted mb-4" style="line-height: 1.7;">
+                                    Cảm ơn bạn đã tin tưởng và để lại thông tin. Đội ngũ bác sĩ chuyên khoa của <strong>Hello Paris</strong> sẽ xem xét tình trạng và liên hệ lại với bạn qua số điện thoại trong thời gian sớm nhất để tư vấn chi tiết.
+                                </p>
+
+                                <hr class="opacity-25 mb-4">
+
+                                <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center justify-content-md-start">
+                                    <a asp-controller="Home" asp-action="Index" class="btn btn-teal rounded-pill px-4 py-3 fw-bold shadow-sm text-uppercase ls-1">
+                                        <i class="bi bi-house-door me-2"></i> Trở về Trang chủ
+                                    </a>
+                                </div>
+
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
