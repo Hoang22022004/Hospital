@@ -2,8 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Hospital.Data;
 using Hospital.Models;
-// 1. Thêm directive này
-
+using Microsoft.Extensions.Options; // Thêm để dùng IOptions
 
 namespace Hospital
 {
@@ -42,14 +41,19 @@ namespace Hospital
             builder.Services.AddScoped<DbInitializer>();
 
             // *****************************************************************************
-            // 3c. CẤU HÌNH DỊCH VỤ THANH TOÁN (ĐÃ SỬA LỖI XUNG ĐỘT)
+            // 3c. CẤU HÌNH DỊCH VỤ THANH TOÁN
             // *****************************************************************************
 
-            // Đổi tên biến thành payOSClient để không trùng với tên namespace Net.payOS
-
+            // Đăng ký cấu hình VNPAY từ appsettings.json
+            builder.Services.Configure<VnpayConfig>(builder.Configuration.GetSection("Vnpay"));
 
             // Đăng ký HttpContextAccessor: Bắt buộc để VNPAY lấy địa chỉ IP khách hàng
             builder.Services.AddHttpContextAccessor();
+
+            // Nếu sau này bạn có VnPayService, bạn sẽ đăng ký ở đây:
+            // builder.Services.AddScoped<IVnPayService, VnPayService>();
+
+            // *****************************************************************************
 
             // Thêm các dịch vụ cho Controller và View
             builder.Services.AddControllersWithViews();

@@ -1,7 +1,9 @@
-﻿using System.Net;
+﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Net;
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.RegularExpressions;
 
 namespace Hospital.Helpers
 {
@@ -10,9 +12,26 @@ namespace Hospital.Helpers
         private readonly SortedList<string, string> _requestData = new SortedList<string, string>(new VnPayComparer());
         private readonly SortedList<string, string> _responseData = new SortedList<string, string>(new VnPayComparer());
 
-        public void AddRequestData(string key, string value) => _requestData.Add(key, value);
-        public void AddResponseData(string key, string value) => _responseData.Add(key, value);
-        public string GetResponseData(string key) => _responseData.TryGetValue(key, out var val) ? val : "";
+        public void AddRequestData(string key, string value)
+        {
+            if (!string.IsNullOrEmpty(value))
+            {
+                _requestData.Add(key, value);
+            }
+        }
+
+        public void AddResponseData(string key, string value)
+        {
+            if (!string.IsNullOrEmpty(value))
+            {
+                _responseData.Add(key, value);
+            }
+        }
+
+        public string GetResponseData(string key)
+        {
+            return _responseData.TryGetValue(key, out var value) ? value : string.Empty;
+        }
 
         public string CreateRequestUrl(string baseUrl, string vnp_HashSecret)
         {
@@ -21,17 +40,17 @@ namespace Hospital.Helpers
             {
                 if (!string.IsNullOrEmpty(kv.Value))
                 {
-                    // CHUẨN 2.1.0: Chỉ Encode Value, viết HOA mã Hex (%3A thay vì %3a)
-                    data.Append(kv.Key + "=" + CustomUrlEncode(kv.Value) + "&");
+                    data.Append(WebUtility.UrlEncode(kv.Key) + "=" + WebUtility.UrlEncode(kv.Value) + "&");
                 }
             }
 
             string queryString = data.ToString();
-            if (queryString.EndsWith("&")) queryString = queryString.Remove(queryString.Length - 1);
+            baseUrl += "?" + queryString;
+            string rawData = queryString.Remove(queryString.Length - 1);
+            string vnp_SecureHash = HmacSHA512(vnp_HashSecret, rawData);
+            baseUrl += "vnp_SecureHash=" + vnp_SecureHash;
 
-            // SỬA: Sử dụng vnp_HashSecret truyền từ Controller vào, KHÔNG hardcode mã cũ
-            string vnp_SecureHash = HmacSHA512(vnp_HashSecret.Trim(), queryString);
-            return baseUrl + "?" + queryString + "&vnp_SecureHash=" + vnp_SecureHash;
+            return baseUrl;
         }
 
         public bool ValidateSignature(string inputHash, string secretKey)
@@ -39,23 +58,15 @@ namespace Hospital.Helpers
             StringBuilder data = new StringBuilder();
             foreach (KeyValuePair<string, string> kv in _responseData)
             {
-                if (!string.IsNullOrEmpty(kv.Value) && kv.Key != "vnp_SecureHash" && kv.Key != "vnp_SecureHashType")
+                if (!string.IsNullOrEmpty(kv.Value) && kv.Key.StartsWith("vnp_"))
                 {
-                    data.Append(kv.Key + "=" + CustomUrlEncode(kv.Value) + "&");
+                    data.Append(WebUtility.UrlEncode(kv.Key) + "=" + WebUtility.UrlEncode(kv.Value) + "&");
                 }
             }
-            string rawData = data.ToString();
-            if (rawData.EndsWith("&")) rawData = rawData.Remove(rawData.Length - 1);
 
-            return HmacSHA512(secretKey.Trim(), rawData).Equals(inputHash, StringComparison.InvariantCultureIgnoreCase);
-        }
-
-        // Hàm ép mã hóa URL sang chữ HOA theo chuẩn VNPAY
-        private string CustomUrlEncode(string input)
-        {
-            if (string.IsNullOrEmpty(input)) return "";
-            string encoded = WebUtility.UrlEncode(input).Replace("+", "%20");
-            return Regex.Replace(encoded, "(%[0-9a-f]{2})", m => m.Value.ToUpper());
+            string rawData = data.ToString().Remove(data.Length - 1);
+            string checkHash = HmacSHA512(secretKey, rawData);
+            return checkHash.Equals(inputHash, StringComparison.InvariantCultureIgnoreCase);
         }
 
         private string HmacSHA512(string key, string inputData)
@@ -66,14 +77,34 @@ namespace Hospital.Helpers
             using (var hmac = new HMACSHA512(keyBytes))
             {
                 byte[] hashValue = hmac.ComputeHash(inputBytes);
-                foreach (var theByte in hashValue) hash.Append(theByte.ToString("X2")); // Viết HOA mã băm
+                foreach (var theByte in hashValue)
+                {
+                    hash.Append(theByte.ToString("x2"));
+                }
             }
             return hash.ToString();
+        }
+
+        public string GetIpAddress(HttpContext context)
+        {
+            var ipAddress = context.Connection.RemoteIpAddress?.ToString();
+            if (string.IsNullOrEmpty(ipAddress) || ipAddress == "::1")
+            {
+                ipAddress = "127.0.0.1";
+            }
+            return ipAddress;
         }
     }
 
     public class VnPayComparer : IComparer<string>
     {
-        public int Compare(string x, string y) => string.CompareOrdinal(x, y); // Sắp xếp chuẩn Binary
+        public int Compare(string x, string y)
+        {
+            if (x == y) return 0;
+            if (x == null) return -1;
+            if (y == null) return 1;
+            var vnpCompare = CompareInfo.GetCompareInfo("en-US");
+            return vnpCompare.Compare(x, y, CompareOptions.Ordinal);
+        }
     }
 }

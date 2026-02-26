@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using Hospital.Helpers;
+using Microsoft.Extensions.Options;
 
 namespace Hospital.Areas.Admin.Controllers
 {
@@ -18,12 +19,13 @@ namespace Hospital.Areas.Admin.Controllers
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _hostEnvironment;
         private readonly IConfiguration _configuration; // <--- THÊM DÒNG NÀY
-
-        public HoSoBenhAnController(ApplicationDbContext context, IWebHostEnvironment hostEnvironment, IConfiguration configuration) // <--- THÊM THAM SỐ NÀY
+        private readonly VnpayConfig _vnpayConfig;
+        public HoSoBenhAnController(ApplicationDbContext context, IWebHostEnvironment hostEnvironment, IConfiguration configuration, IOptions<VnpayConfig> vnpayOptions) // <--- THÊM THAM SỐ NÀY
         {
             _context = context;
             _hostEnvironment = hostEnvironment;
             _configuration = configuration; // <--- THÊM DÒNG NÀY
+            _vnpayConfig = vnpayOptions.Value;
         }
 
         // --- HÀM HELPER: Lấy ID Bác sĩ từ tài khoản đang đăng nhập ---
@@ -325,92 +327,109 @@ namespace Hospital.Areas.Admin.Controllers
         [Authorize(Roles = "Admin,Receptionist,Customer")]
         public async Task<IActionResult> ThanhToanVnpay(int id)
         {
-            // 1. Lấy thông tin hồ sơ bệnh án và các chi phí liên quan
             var hoSo = await _context.HoSoBenhAn
-                .Include(h => h.BenhNhan)
                 .Include(h => h.ChiTietDichVus).ThenInclude(d => d.DichVu)
                 .Include(h => h.ChiTietDonThuocs).ThenInclude(t => t.Thuoc)
                 .FirstOrDefaultAsync(h => h.Id == id);
 
             if (hoSo == null) return NotFound();
 
-            // 2. Tính tổng tiền và ép kiểu long để tránh sai số khi nhân 100
-            long tongTien = (long)((hoSo.ChiTietDichVus?.Sum(d => d.DichVu.Gia) ?? 0) +
-                                   (hoSo.ChiTietDonThuocs?.Sum(t => t.SoLuong * t.Thuoc.GiaBan) ?? 0));
+            // Bảo mật cho khách hàng
+            if (User.IsInRole("Customer"))
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var benhNhan = await _context.BenhNhan.FirstOrDefaultAsync(b => b.IdentityUserId == userId);
+                if (hoSo.BenhNhanId != benhNhan?.BenhNhanId) return Forbid();
+            }
+
+            decimal total = (hoSo.ChiTietDichVus?.Sum(d => d.DichVu.Gia) ?? 0) +
+                            (hoSo.ChiTietDonThuocs?.Sum(t => t.SoLuong * t.Thuoc.GiaBan) ?? 0);
 
             var vnpay = new VnPayLibrary();
-
-            // 3. Thiết lập các tham số chuẩn VNPAY 2.1.0
             vnpay.AddRequestData("vnp_Version", "2.1.0");
             vnpay.AddRequestData("vnp_Command", "pay");
-            vnpay.AddRequestData("vnp_TmnCode", _configuration["Vnpay:TmnCode"]); // Lấy 9TXCP1FE từ config
-            vnpay.AddRequestData("vnp_Amount", (tongTien * 100).ToString());
+            vnpay.AddRequestData("vnp_TmnCode", _vnpayConfig.TmnCode);
+            vnpay.AddRequestData("vnp_Amount", ((long)(total * 100)).ToString());
             vnpay.AddRequestData("vnp_CreateDate", DateTime.Now.ToString("yyyyMMddHHmmss"));
             vnpay.AddRequestData("vnp_CurrCode", "VND");
-            vnpay.AddRequestData("vnp_IpAddr", "127.0.0.1");
+            vnpay.AddRequestData("vnp_IpAddr", vnpay.GetIpAddress(HttpContext));
             vnpay.AddRequestData("vnp_Locale", "vn");
-            vnpay.AddRequestData("vnp_OrderInfo", "Thanh toan ho so " + id);
+            vnpay.AddRequestData("vnp_OrderInfo", "Thanh toan ho so benh an: " + id);
             vnpay.AddRequestData("vnp_OrderType", "other");
-            vnpay.AddRequestData("vnp_ReturnUrl", _configuration["Vnpay:ReturnUrl"]);
+            vnpay.AddRequestData("vnp_ReturnUrl", _vnpayConfig.ReturnUrl);
+            vnpay.AddRequestData("vnp_TxnRef", id.ToString() + "_" + DateTime.Now.Ticks);
 
-            // 4. Tạo mã đơn hàng duy nhất để không bị Sandbox từ chối (ID_ThờiGian)
-            string txnRef = id.ToString() + "_" + DateTime.Now.ToString("HHmmssfff");
-            vnpay.AddRequestData("vnp_TxnRef", txnRef);
-
-            // 5. Tạo URL thanh toán với mã bí mật mới
-            // Hàm CreateRequestUrl sẽ tự động gọi CustomUrlEncode để viết HOA các ký tự mã hóa URL
-            string paymentUrl = vnpay.CreateRequestUrl(_configuration["Vnpay:BaseUrl"], _configuration["Vnpay:HashSecret"]);
-
+            string paymentUrl = vnpay.CreateRequestUrl(_vnpayConfig.BaseUrl, _vnpayConfig.HashSecret);
             return Redirect(paymentUrl);
         }
-
         [HttpGet]
+        [AllowAnonymous] // Cho phép VNPay gọi về mà không bị chặn bởi phân quyền nếu cần
         public async Task<IActionResult> VnpayReturn()
         {
             var vnpayData = Request.Query;
             var vnpay = new VnPayLibrary();
 
+            // 1. Lấy toàn bộ dữ liệu trả về, LOẠI BỎ vnp_SecureHash ra khỏi danh sách băm
             foreach (var (key, value) in vnpayData)
             {
-                if (!string.IsNullOrEmpty(key) && key.StartsWith("vnp_"))
+                if (!string.IsNullOrEmpty(key) && key.StartsWith("vnp_") && key != "vnp_SecureHash")
                 {
                     vnpay.AddResponseData(key, value);
                 }
             }
 
+            // 2. Lấy các thông tin cần thiết
             string txnRef = vnpay.GetResponseData("vnp_TxnRef");
-
-            // Kiểm tra an toàn trước khi ép kiểu ID
-            if (string.IsNullOrEmpty(txnRef) || !txnRef.Contains("_")) return BadRequest("Tham số không lệ.");
-
-            int hoSoId = int.Parse(txnRef.Split('_')[0]);
             string vnp_ResponseCode = vnpay.GetResponseData("vnp_ResponseCode");
+            string vnp_TransactionStatus = vnpay.GetResponseData("vnp_TransactionStatus");
             string vnp_SecureHash = Request.Query["vnp_SecureHash"];
 
-            // Kiểm tra chữ ký trả về
-            bool checkSignature = vnpay.ValidateSignature(vnp_SecureHash, _configuration["Vnpay:HashSecret"]);
+            // Kiểm tra an toàn tham chiếu giao dịch
+            if (string.IsNullOrEmpty(txnRef) || !txnRef.Contains("_"))
+                return BadRequest("Tham số giao dịch không hợp lệ.");
 
-            if (checkSignature && vnp_ResponseCode == "00")
+            int hoSoId = int.Parse(txnRef.Split('_')[0]);
+
+            // 3. Kiểm tra chữ ký bảo mật (Validate Signature)
+            bool checkSignature = vnpay.ValidateSignature(vnp_SecureHash, _vnpayConfig.HashSecret);
+
+            if (checkSignature)
             {
-                var hoSo = await _context.HoSoBenhAn.Include(h => h.LichHen).FirstOrDefaultAsync(h => h.Id == hoSoId);
-                if (hoSo != null)
+                // Chữ ký đúng, kiểm tra tiếp mã phản hồi giao dịch (00 = Thành công)
+                if (vnp_ResponseCode == "00" && vnp_TransactionStatus == "00")
                 {
-                    hoSo.TrangThai = TrangThaiHoSo.HoanThanh;
-                    if (hoSo.LichHen != null) hoSo.LichHen.TrangThai = TrangThaiLichHen.HoanThanh;
-                    await _context.SaveChangesAsync();
-                    TempData["success"] = "Thanh toán thành công!";
+                    var hoSo = await _context.HoSoBenhAn
+                        .Include(h => h.LichHen)
+                        .FirstOrDefaultAsync(h => h.Id == hoSoId);
+
+                    if (hoSo != null)
+                    {
+                        hoSo.TrangThai = TrangThaiHoSo.HoanThanh;
+                        if (hoSo.LichHen != null)
+                            hoSo.LichHen.TrangThai = TrangThaiLichHen.HoanThanh;
+
+                        await _context.SaveChangesAsync();
+                        TempData["success"] = "Thanh toán hồ sơ bệnh án thành công!";
+                    }
+                }
+                else
+                {
+                    // Lỗi từ phía ngân hàng hoặc người dùng hủy giao dịch
+                    TempData["error"] = $"Giao dịch thất bại. Mã lỗi ngân hàng: {vnp_ResponseCode}";
                 }
             }
             else
             {
-                TempData["error"] = "Thanh toán thất bại hoặc chữ ký không hợp lệ. Mã lỗi: " + vnp_ResponseCode;
+                // Lỗi bảo mật: Chữ ký không khớp (Có thể do sai HashSecret hoặc dữ liệu bị can thiệp)
+                TempData["error"] = "Có lỗi xảy ra trong quá trình xác thực chữ ký bảo mật.";
             }
 
+            // 4. Quay lại trang chi tiết hồ sơ
             return RedirectToAction("Details", new { id = hoSoId });
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin,Receptionist")]
+        [Authorize(Roles = "Admin,Receptionist,Customer")]
         public async Task<IActionResult> XacNhanThanhToan(int id)
         {
             var hoSo = await _context.HoSoBenhAn
