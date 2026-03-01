@@ -316,117 +316,117 @@ namespace Hospital.Areas.Admin.Controllers
         // ===============================================================
         // 5. THANH TOÁN (CHỈ ADMIN & RECEPTIONIST)
         // ===============================================================
-        [Authorize(Roles = "Admin,Receptionist,Customer")]
-        public async Task<IActionResult> ThanhToan(int id)
-        {
-            return await Details(id);
-        }
-        // ===============================================================
-        // CHIẾN LƯỢC THANH TOÁN VNPAY
-        // ===============================================================
-        [Authorize(Roles = "Admin,Receptionist,Customer")]
-        public async Task<IActionResult> ThanhToanVnpay(int id)
-        {
-            var hoSo = await _context.HoSoBenhAn
-                .Include(h => h.ChiTietDichVus).ThenInclude(d => d.DichVu)
-                .Include(h => h.ChiTietDonThuocs).ThenInclude(t => t.Thuoc)
-                .FirstOrDefaultAsync(h => h.Id == id);
+        //[Authorize(Roles = "Admin,Receptionist,Customer")]
+        //public async Task<IActionResult> ThanhToan(int id)
+        //{
+        //    return await Details(id);
+        //}
+        //// ===============================================================
+        //// CHIẾN LƯỢC THANH TOÁN VNPAY
+        //// ===============================================================
+        //[Authorize(Roles = "Admin,Receptionist,Customer")]
+        //public async Task<IActionResult> ThanhToanVnpay(int id)
+        //{
+        //    var hoSo = await _context.HoSoBenhAn
+        //        .Include(h => h.ChiTietDichVus).ThenInclude(d => d.DichVu)
+        //        .Include(h => h.ChiTietDonThuocs).ThenInclude(t => t.Thuoc)
+        //        .FirstOrDefaultAsync(h => h.Id == id);
 
-            if (hoSo == null) return NotFound();
+        //    if (hoSo == null) return NotFound();
 
-            // Bảo mật cho khách hàng
-            if (User.IsInRole("Customer"))
-            {
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                var benhNhan = await _context.BenhNhan.FirstOrDefaultAsync(b => b.IdentityUserId == userId);
-                if (hoSo.BenhNhanId != benhNhan?.BenhNhanId) return Forbid();
-            }
+        //    // Bảo mật cho khách hàng
+        //    if (User.IsInRole("Customer"))
+        //    {
+        //        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        //        var benhNhan = await _context.BenhNhan.FirstOrDefaultAsync(b => b.IdentityUserId == userId);
+        //        if (hoSo.BenhNhanId != benhNhan?.BenhNhanId) return Forbid();
+        //    }
 
-            decimal total = (hoSo.ChiTietDichVus?.Sum(d => d.DichVu.Gia) ?? 0) +
-                            (hoSo.ChiTietDonThuocs?.Sum(t => t.SoLuong * t.Thuoc.GiaBan) ?? 0);
+        //    decimal total = (hoSo.ChiTietDichVus?.Sum(d => d.DichVu.Gia) ?? 0) +
+        //                    (hoSo.ChiTietDonThuocs?.Sum(t => t.SoLuong * t.Thuoc.GiaBan) ?? 0);
 
-            var vnpay = new VnPayLibrary();
-            vnpay.AddRequestData("vnp_Version", "2.1.0");
-            vnpay.AddRequestData("vnp_Command", "pay");
-            vnpay.AddRequestData("vnp_TmnCode", _vnpayConfig.TmnCode);
-            vnpay.AddRequestData("vnp_Amount", ((long)(total * 100)).ToString());
-            vnpay.AddRequestData("vnp_CreateDate", DateTime.Now.ToString("yyyyMMddHHmmss"));
-            vnpay.AddRequestData("vnp_CurrCode", "VND");
-            vnpay.AddRequestData("vnp_IpAddr", vnpay.GetIpAddress(HttpContext));
-            vnpay.AddRequestData("vnp_Locale", "vn");
-            vnpay.AddRequestData("vnp_OrderInfo", "Thanh toan ho so benh an: " + id);
-            vnpay.AddRequestData("vnp_OrderType", "other");
-            vnpay.AddRequestData("vnp_ReturnUrl", _vnpayConfig.ReturnUrl);
-            vnpay.AddRequestData("vnp_TxnRef", id.ToString() + "_" + DateTime.Now.Ticks);
+        //    var vnpay = new VnPayLibrary();
+        //    vnpay.AddRequestData("vnp_Version", "2.1.0");
+        //    vnpay.AddRequestData("vnp_Command", "pay");
+        //    vnpay.AddRequestData("vnp_TmnCode", _vnpayConfig.TmnCode);
+        //    vnpay.AddRequestData("vnp_Amount", ((long)(total * 100)).ToString());
+        //    vnpay.AddRequestData("vnp_CreateDate", DateTime.Now.ToString("yyyyMMddHHmmss"));
+        //    vnpay.AddRequestData("vnp_CurrCode", "VND");
+        //    vnpay.AddRequestData("vnp_IpAddr", vnpay.GetIpAddress(HttpContext));
+        //    vnpay.AddRequestData("vnp_Locale", "vn");
+        //    vnpay.AddRequestData("vnp_OrderInfo", "Thanh toan ho so benh an: " + id);
+        //    vnpay.AddRequestData("vnp_OrderType", "other");
+        //    vnpay.AddRequestData("vnp_ReturnUrl", _vnpayConfig.ReturnUrl);
+        //    vnpay.AddRequestData("vnp_TxnRef", id.ToString() + "_" + DateTime.Now.Ticks);
 
-            string paymentUrl = vnpay.CreateRequestUrl(_vnpayConfig.BaseUrl, _vnpayConfig.HashSecret);
-            return Redirect(paymentUrl);
-        }
-        [HttpGet]
-        [AllowAnonymous] // Cho phép VNPay gọi về mà không bị chặn bởi phân quyền nếu cần
-        public async Task<IActionResult> VnpayReturn()
-        {
-            var vnpayData = Request.Query;
-            var vnpay = new VnPayLibrary();
+        //    string paymentUrl = vnpay.CreateRequestUrl(_vnpayConfig.BaseUrl, _vnpayConfig.HashSecret);
+        //    return Redirect(paymentUrl);
+        //}
+        //[HttpGet]
+        //[AllowAnonymous] // Cho phép VNPay gọi về mà không bị chặn bởi phân quyền nếu cần
+        //public async Task<IActionResult> VnpayReturn()
+        //{
+        //    var vnpayData = Request.Query;
+        //    var vnpay = new VnPayLibrary();
 
-            // 1. Lấy toàn bộ dữ liệu trả về, LOẠI BỎ vnp_SecureHash ra khỏi danh sách băm
-            foreach (var (key, value) in vnpayData)
-            {
-                if (!string.IsNullOrEmpty(key) && key.StartsWith("vnp_") && key != "vnp_SecureHash")
-                {
-                    vnpay.AddResponseData(key, value);
-                }
-            }
+        //    // 1. Lấy toàn bộ dữ liệu trả về, LOẠI BỎ vnp_SecureHash ra khỏi danh sách băm
+        //    foreach (var (key, value) in vnpayData)
+        //    {
+        //        if (!string.IsNullOrEmpty(key) && key.StartsWith("vnp_") && key != "vnp_SecureHash")
+        //        {
+        //            vnpay.AddResponseData(key, value);
+        //        }
+        //    }
 
-            // 2. Lấy các thông tin cần thiết
-            string txnRef = vnpay.GetResponseData("vnp_TxnRef");
-            string vnp_ResponseCode = vnpay.GetResponseData("vnp_ResponseCode");
-            string vnp_TransactionStatus = vnpay.GetResponseData("vnp_TransactionStatus");
-            string vnp_SecureHash = Request.Query["vnp_SecureHash"];
+        //    // 2. Lấy các thông tin cần thiết
+        //    string txnRef = vnpay.GetResponseData("vnp_TxnRef");
+        //    string vnp_ResponseCode = vnpay.GetResponseData("vnp_ResponseCode");
+        //    string vnp_TransactionStatus = vnpay.GetResponseData("vnp_TransactionStatus");
+        //    string vnp_SecureHash = Request.Query["vnp_SecureHash"];
 
-            // Kiểm tra an toàn tham chiếu giao dịch
-            if (string.IsNullOrEmpty(txnRef) || !txnRef.Contains("_"))
-                return BadRequest("Tham số giao dịch không hợp lệ.");
+        //    // Kiểm tra an toàn tham chiếu giao dịch
+        //    if (string.IsNullOrEmpty(txnRef) || !txnRef.Contains("_"))
+        //        return BadRequest("Tham số giao dịch không hợp lệ.");
 
-            int hoSoId = int.Parse(txnRef.Split('_')[0]);
+        //    int hoSoId = int.Parse(txnRef.Split('_')[0]);
 
-            // 3. Kiểm tra chữ ký bảo mật (Validate Signature)
-            bool checkSignature = vnpay.ValidateSignature(vnp_SecureHash, _vnpayConfig.HashSecret);
+        //    // 3. Kiểm tra chữ ký bảo mật (Validate Signature)
+        //    bool checkSignature = vnpay.ValidateSignature(vnp_SecureHash, _vnpayConfig.HashSecret);
 
-            if (checkSignature)
-            {
-                // Chữ ký đúng, kiểm tra tiếp mã phản hồi giao dịch (00 = Thành công)
-                if (vnp_ResponseCode == "00" && vnp_TransactionStatus == "00")
-                {
-                    var hoSo = await _context.HoSoBenhAn
-                        .Include(h => h.LichHen)
-                        .FirstOrDefaultAsync(h => h.Id == hoSoId);
+        //    if (checkSignature)
+        //    {
+        //        // Chữ ký đúng, kiểm tra tiếp mã phản hồi giao dịch (00 = Thành công)
+        //        if (vnp_ResponseCode == "00" && vnp_TransactionStatus == "00")
+        //        {
+        //            var hoSo = await _context.HoSoBenhAn
+        //                .Include(h => h.LichHen)
+        //                .FirstOrDefaultAsync(h => h.Id == hoSoId);
 
-                    if (hoSo != null)
-                    {
-                        hoSo.TrangThai = TrangThaiHoSo.HoanThanh;
-                        if (hoSo.LichHen != null)
-                            hoSo.LichHen.TrangThai = TrangThaiLichHen.HoanThanh;
+        //            if (hoSo != null)
+        //            {
+        //                hoSo.TrangThai = TrangThaiHoSo.HoanThanh;
+        //                if (hoSo.LichHen != null)
+        //                    hoSo.LichHen.TrangThai = TrangThaiLichHen.HoanThanh;
 
-                        await _context.SaveChangesAsync();
-                        TempData["success"] = "Thanh toán hồ sơ bệnh án thành công!";
-                    }
-                }
-                else
-                {
-                    // Lỗi từ phía ngân hàng hoặc người dùng hủy giao dịch
-                    TempData["error"] = $"Giao dịch thất bại. Mã lỗi ngân hàng: {vnp_ResponseCode}";
-                }
-            }
-            else
-            {
-                // Lỗi bảo mật: Chữ ký không khớp (Có thể do sai HashSecret hoặc dữ liệu bị can thiệp)
-                TempData["error"] = "Có lỗi xảy ra trong quá trình xác thực chữ ký bảo mật.";
-            }
+        //                await _context.SaveChangesAsync();
+        //                TempData["success"] = "Thanh toán hồ sơ bệnh án thành công!";
+        //            }
+        //        }
+        //        else
+        //        {
+        //            // Lỗi từ phía ngân hàng hoặc người dùng hủy giao dịch
+        //            TempData["error"] = $"Giao dịch thất bại. Mã lỗi ngân hàng: {vnp_ResponseCode}";
+        //        }
+        //    }
+        //    else
+        //    {
+        //        // Lỗi bảo mật: Chữ ký không khớp (Có thể do sai HashSecret hoặc dữ liệu bị can thiệp)
+        //        TempData["error"] = "Có lỗi xảy ra trong quá trình xác thực chữ ký bảo mật.";
+        //    }
 
-            // 4. Quay lại trang chi tiết hồ sơ
-            return RedirectToAction("Details", new { id = hoSoId });
-        }
+        //    // 4. Quay lại trang chi tiết hồ sơ
+        //    return RedirectToAction("Details", new { id = hoSoId });
+        //}
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin,Receptionist,Customer")]

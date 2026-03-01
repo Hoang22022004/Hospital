@@ -289,14 +289,15 @@
                                         {
                                             @if (item.TrangThai == TrangThaiHoSo.ChoThanhToan)
                                             {
-                                                <a asp-action="ThanhToan" asp-route-id="@item.Id" class="btn-action text-success" title="Thanh toán"><i class="fas fa-wallet"></i></a>
-                                            }
-
-                                            @if (item.TrangThai == TrangThaiHoSo.ChoKham || item.TrangThai == TrangThaiHoSo.DangKham)
-                                            {
-                                                <button type="button" class="btn-action text-danger" onclick="confirmHuyHoSo('@item.Id', '@item.BenhNhan?.HoTen')" title="Hủy hồ sơ">
-                                                    <i class="fas fa-times-circle"></i>
-                                                </button>
+                                                @* Sửa lại: Thoát khỏi Area Admin bằng asp-area="" và trỏ về PaymentController *@
+                                                <a asp-area=""
+                                                   asp-controller="Payment"
+                                                   asp-action="ThanhToanVnpay"
+                                                   asp-route-id="@item.Id"
+                                                   class="btn-action text-success"
+                                                   title="Thanh toán VNPay">
+                                                    <i class="fas fa-wallet"></i>
+                                                </a>
                                             }
                                         }
 

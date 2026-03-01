@@ -130,7 +130,28 @@
                                     </div>
                                     <div class="hp-user-meta d-none d-xl-block">
                                         <span class="d-block fw-bold text-navy" style="font-size: 0.75rem; line-height: 1;">CHÀO, @(User.Identity?.Name?.Split('@')[0].ToUpper())</span>
-                                        <span class="hp-role-text text-primary fw-bold" style="font-size: 0.55rem; letter-spacing: 0.5px;">@((User.IsInRole("Admin") ? "QUẢN TRỊ VIÊN" : "BÁC SĨ"))</span>
+                                        <span class="hp-role-text text-primary fw-bold" style="font-size: 0.55rem; letter-spacing: 0.5px;">
+                                            @if (User.IsInRole("Admin"))
+                                            {
+                                                <text>QUẢN TRỊ VIÊN</text>
+                                            }
+                                            else if (User.IsInRole("Doctor"))
+                                            {
+                                                <text>BÁC SĨ</text>
+                                            }
+                                            else if (User.IsInRole("Receptionist"))
+                                            {
+                                                <text>LỄ TÂN</text>
+                                            }
+                                            else if (User.IsInRole("Customer"))
+                                            {
+                                                <text>KHÁCH HÀNG</text>
+                                            }
+                                            else
+                                            {
+                                                <text>CHƯA CÓ TÀI KHOẢN</text>
+                                            }
+                                        </span>
                                     </div>
                                     <i class="bi bi-chevron-down ms-2 opacity-50" style="font-size: 0.7rem;"></i>
                                 </a>

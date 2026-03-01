@@ -8,7 +8,6 @@
     ViewData["ActivePage"] = "MedicalHistory";
 
     // Hàm hỗ trợ lấy nội dung trong [Display(Name = "...")]
-    // Đã thêm kiểm tra null để tránh lỗi khi chạy
     string GetDisplayName(Enum enumValue)
     {
         if (enumValue == null) return "";
@@ -110,7 +109,8 @@
 
                                         @if (item.TrangThai == TrangThaiHoSo.ChoThanhToan)
                                         {
-                                            <a asp-area="Admin" asp-controller="HoSoBenhAn" asp-action="ThanhToanVnpay" asp-route-id="@item.Id"
+                                            @* SỬA TẠI ĐÂY: Sử dụng href tuyệt đối thông qua Url.Action *@
+                                            <a href="@Url.Action("ThanhToanVnpay", "Payment", new { area = "", id = item.Id })"
                                                class="btn btn-success rounded-pill px-4 fw-bold small shadow-sm animate__animated animate__pulse animate__infinite">
                                                 <i class="bi bi-credit-card me-1"></i> THANH TOÁN
                                             </a>
@@ -144,6 +144,20 @@
         </div>
     }
 </div>
+
+@if (TempData["success"] != null)
+{
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        Swal.fire({
+            icon: 'success',
+            title: 'Thành công!',
+            text: '@TempData["success"]',
+            timer: 3000,
+            showConfirmButton: false
+        });
+    </script>
+}
 
 <style>
     .timeline-item {
