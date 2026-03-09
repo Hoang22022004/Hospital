@@ -1,95 +1,117 @@
-﻿/* --- Tiêu đề & Font --- */
-.text-teal {
-    color: #45c3d2;
-}
-
-.text-navy {
-    color: #002d5b;
-}
-
-.ls-2 {
-    letter-spacing: 2px;
-}
-
-.Montserrat {
-    font-family: 'Montserrat', sans-serif;
-}
-
-.title-line-news {
-    width: 60px;
-    height: 3px;
-    background: #45c3d2;
-    margin-top: 15px;
-}
-
-/* --- Nút XEM TẤT CẢ (Đồng bộ tuyệt đối) --- */
-.btn-view-all {
-    font-family: 'Montserrat', sans-serif;
-    font-weight: 700;
-    font-size: 0.85rem;
-    letter-spacing: 1px;
-    color: #002d5b;
-    border: 2px solid #002d5b;
-    background: transparent;
-    transition: all 0.3s ease;
-    display: inline-flex;
-    align-items: center;
-}
-
-    .btn-view-all:hover {
-        background-color: #002d5b;
-        color: #fff !important;
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(0, 45, 91, 0.2);
+﻿    /* --- 1. TIÊU ĐỀ & FONT --- */
+    .text-teal {
+        color: #45c3d2;
     }
 
-    .btn-view-all i {
-        transition: transform 0.3s ease;
+    .text-navy {
+        color: #002d5b;
     }
 
-    .btn-view-all:hover i {
-        transform: translateX(5px);
+    .ls-2 {
+        letter-spacing: 2px;
     }
 
-/* --- Layout Dịch vụ --- */
-.img-square-2048 {
-    width: 100%;
-    aspect-ratio: 1/1;
-    object-fit: cover;
-}
-
-.service-card-square {
-    aspect-ratio: 1/1;
-    overflow: hidden;
-    transition: transform 0.3s ease;
-}
-
-    .service-card-square:hover {
-        transform: translateY(-5px);
+    .Montserrat {
+        font-family: 'Montserrat', sans-serif;
     }
 
-.service-name-label {
-    color: #002d5b;
-    margin-top: 12px;
-    transition: color 0.3s ease;
-}
+    .title-line-news {
+        width: 60px;
+        height: 3px;
+        background: #45c3d2;
+        margin-top: 15px;
+    }
 
-.service-item-box:hover .service-name-label {
-    color: #45c3d2;
-}
+    /* --- 2. MÀU NỀN SECTION (QUAN TRỌNG) --- */
+    /* Cập nhật class .hp-section để đổi màu nền toàn bộ khối */
+    .hp-section, .disease-section, .service-section {
+        background-color: #F0F7FF !important; /* Màu xanh Alice Blue nhạt */
+        padding: 80px 0;
+        transition: background-color 0.3s ease;
+    }
 
-/* Pagination viên thuốc */
-.srv-pagination-pill .swiper-pagination-bullet {
-    width: 10px;
-    height: 10px;
-    background: #002d5b !important;
-    opacity: 0.2;
-    border-radius: 5px;
-    transition: all 0.3s ease;
-}
+    /* --- 3. NÚT XEM TẤT CẢ --- */
+    .btn-view-all {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 700;
+        font-size: 0.85rem;
+        letter-spacing: 1px;
+        color: #002d5b;
+        border: 2px solid #002d5b;
+        background: #ffffff;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        padding: 10px 25px;
+        border-radius: 50px;
+    }
 
-.srv-pagination-pill .swiper-pagination-bullet-active {
-    width: 30px;
-    background: #45c3d2 !important;
-    opacity: 1;
-}
+        .btn-view-all:hover {
+            background-color: #002d5b;
+            color: #fff !important;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 45, 91, 0.2);
+        }
+
+            .btn-view-all:hover i {
+                transform: translateX(5px);
+            }
+
+    /* --- 4. LAYOUT DỊCH VỤ --- */
+    .img-square-2048 {
+        width: 100%;
+        aspect-ratio: 1/1;
+        object-fit: cover;
+    }
+
+    /* Thẻ chứa ảnh dịch vụ */
+    .service-card-square {
+        display: block;
+        aspect-ratio: 1/1;
+        overflow: hidden;
+        background: #ffffff;
+        transition: all 0.4s ease;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05); /* Đổ bóng nhẹ để nổi bật trên nền xanh nhạt */
+    }
+
+        .service-card-square:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(69, 195, 210, 0.2);
+        }
+
+        .service-card-square img {
+            transition: transform 0.5s ease;
+        }
+
+        .service-card-square:hover img {
+            transform: scale(1.1);
+        }
+
+    /* Nhãn tên dịch vụ */
+    .service-name-label {
+        color: #002d5b;
+        margin-top: 15px;
+        font-weight: 700;
+        transition: color 0.3s ease;
+        text-align: center;
+    }
+
+    .service-item-box:hover .service-name-label {
+        color: #45c3d2;
+    }
+
+    /* --- 5. PAGINATION SWIPER --- */
+    .srv-pagination-pill .swiper-pagination-bullet {
+        width: 10px;
+        height: 10px;
+        background: #002d5b !important;
+        opacity: 0.2;
+        transition: all 0.3s ease;
+    }
+
+    .srv-pagination-pill .swiper-pagination-bullet-active {
+        width: 30px;
+        background: #45c3d2 !important;
+        opacity: 1;
+        border-radius: 5px;
+    }

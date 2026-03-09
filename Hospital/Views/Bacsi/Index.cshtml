@@ -1,0 +1,240 @@
+﻿@model IEnumerable<Hospital.Models.BacSi>
+@{
+    ViewData["Title"] = "Đội ngũ chuyên gia - Hello Paris";
+    var chuyenKhoas = Model.Select(b => b.ChuyenKhoa).Where(ck => ck != null).GroupBy(ck => ck.ChuyenKhoaId).Select(g => g.First()).ToList();
+}
+
+<style>
+    /* --- 1. Header Trang Hiện Đại (Loại bỏ màu xanh đậm) --- */
+    .page-header-bacsi {
+        background-color: #ffffff;
+        padding: 80px 0 40px;
+        text-align: center;
+        position: relative;
+    }
+
+    .header-subtitle {
+        color: #45c3d2;
+        font-weight: 700;
+        text-uppercase;
+        letter-spacing: 3px;
+        font-size: 0.85rem;
+        display: block;
+        margin-bottom: 10px;
+    }
+
+    .header-title {
+        font-family: 'Montserrat', sans-serif;
+        color: #002d5b;
+        font-weight: 800;
+        font-size: 2.5rem;
+        margin-bottom: 20px;
+    }
+
+    .header-line {
+        width: 50px;
+        height: 3px;
+        background: #45c3d2;
+        margin: 0 auto;
+    }
+
+    /* --- 2. Bộ lọc chuyên khoa (Minimalist) --- */
+    .filter-container {
+        margin-bottom: 60px;
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .filter-btn {
+        padding: 8px 24px;
+        border-radius: 50px;
+        border: 1px solid #e2e8f0;
+        background: #fff;
+        color: #64748b;
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+        .filter-btn:hover {
+            border-color: #45c3d2;
+            color: #45c3d2;
+            background: #f0fdfa;
+        }
+
+        .filter-btn.active {
+            background: #45c3d2;
+            color: #fff;
+            border-color: #45c3d2;
+            box-shadow: 0 10px 20px rgba(69, 195, 210, 0.2);
+        }
+
+    /* --- 3. Card Bác sĩ (Premium Shadow) --- */
+    .dr-card-modern {
+        background: #ffffff;
+        border-radius: 24px;
+        overflow: hidden;
+        transition: all 0.4s ease;
+        border: 1px solid rgba(0,0,0,0.03);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+        .dr-card-modern:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 30px 60px rgba(0, 45, 91, 0.08) !important;
+        }
+
+    .dr-card-img-wrapper {
+        position: relative;
+        aspect-ratio: 1/1; /* Ảnh vuông hiện đại hơn */
+        overflow: hidden;
+        margin: 15px; /* Tạo khoảng trống xung quanh ảnh bên trong card */
+        border-radius: 20px;
+    }
+
+        .dr-card-img-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.8s cubic-bezier(0.2, 1, 0.3, 1);
+        }
+
+    .dr-card-modern:hover .dr-card-img-wrapper img {
+        transform: scale(1.08);
+    }
+
+    /* --- 4. Nội dung & Nút bấm --- */
+    .dr-name {
+        font-family: 'Montserrat', sans-serif;
+        color: #002d5b;
+        font-weight: 700;
+        font-size: 1.15rem;
+        margin-bottom: 4px;
+    }
+
+    .dr-degree {
+        color: #64748b;
+        font-size: 0.85rem;
+        margin-bottom: 20px;
+    }
+
+    .btn-action-group {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        padding: 0 20px 25px;
+    }
+
+    .btn-minimal {
+        padding: 10px 5px;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        text-align: center;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+
+    .btn-details {
+        border: 1px solid #e2e8f0;
+        color: #002d5b;
+        background: #fff;
+    }
+
+        .btn-details:hover {
+            background: #f8fafc;
+            border-color: #002d5b;
+        }
+
+    .btn-booking {
+        background: #002d5b;
+        color: #fff;
+    }
+
+        .btn-booking:hover {
+            background: #001a35;
+            box-shadow: 0 8px 15px rgba(0, 45, 91, 0.2);
+        }
+</style>
+
+<section class="page-header-bacsi">
+    <div class="container">
+        <span class="header-subtitle">HELLO PARIS CLINIC</span>
+        <h1 class="header-title">Đội ngũ chuyên gia</h1>
+        <div class="header-line"></div>
+    </div>
+</section>
+
+<section class="pb-5" style="background-color: #fcfcfd;">
+    <div class="container">
+
+        @* --- BỘ LỌC CHUYÊN KHOA --- *@
+        <div class="filter-container">
+            <button class="filter-btn active" onclick="filterSelection(this, 'all')">Tất cả</button>
+            @foreach (var ck in chuyenKhoas)
+            {
+                <button class="filter-btn" onclick="filterSelection(this, 'ck-@ck.ChuyenKhoaId')">@ck.TenChuyenKhoa</button>
+            }
+        </div>
+
+        @* --- DANH SÁCH BÁC SĨ --- *@
+        <div class="row g-4" id="doctorGrid">
+            @foreach (var dr in Model)
+            {
+                <div class="col-sm-6 col-lg-4 col-xl-3 doctor-item ck-@(dr.ChuyenKhoaId)">
+                    <div class="dr-card-modern shadow-sm">
+                        <div class="dr-card-img-wrapper">
+                            <img src="@(string.IsNullOrEmpty(dr.HinhAnhUrl) ? "/images/default-doctor.jpg" : dr.HinhAnhUrl)" alt="@dr.HoTen">
+                        </div>
+                        <div class="p-3 text-center d-flex flex-grow-1 flex-column">
+                            <h5 class="dr-name">Bác sĩ @dr.HoTen</h5>
+                            <p class="dr-degree">@dr.BangCap</p>
+
+                            <div class="mt-auto btn-action-group">
+                                <a asp-controller="Bacsi" asp-action="Details" asp-route-id="@dr.BacSiId"
+                                   class="btn-minimal btn-details">
+                                    Chi tiết
+                                </a>
+                                <a href="/DatLich?bacSiId=@dr.BacSiId" class="btn-minimal btn-booking">
+                                    Đặt lịch
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        function filterSelection(btn, c) {
+            var x, i;
+            x = document.getElementsByClassName("doctor-item");
+            if (c == "all") c = "";
+
+            // Hiệu ứng ẩn/hiện
+            for (i = 0; i < x.length; i++) {
+                x[i].style.display = "none";
+                if (x[i].className.indexOf(c) > -1) {
+                    x[i].style.display = "block";
+                }
+            }
+
+            // Đổi trạng thái active cho nút bấm
+            var btns = document.getElementsByClassName("filter-btn");
+            for (i = 0; i < btns.length; i++) {
+                btns[i].classList.remove("active");
+            }
+            btn.classList.add("active");
+        }
+    </script>
+}

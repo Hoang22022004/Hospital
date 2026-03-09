@@ -22,52 +22,51 @@
     <link rel="stylesheet" href="~/css/process-tree.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/news.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/disease.css" asp-append-version="true" />
-
-    @* THÊM MỚI: CSS cho phần Kết quả sau điều trị *@
     <link rel="stylesheet" href="~/css/results.css" asp-append-version="true" />
 
     @* Thư viện Swiper CSS *@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
 }
 
-@* --- CẤU TRÚC GIAO DIỆN TRANG CHỦ --- *@
+@* --- CẤU TRÚC GIAO DIỆN TRANG CHỦ (ĐÃ SẮP XẾP LẠI) --- *@
 
 @* 1. Banner chính *@
 <partial name="_HeroPartial" />
 
-@* 2. Thanh tìm kiếm thông minh (Bác sĩ, Dịch vụ, Bệnh lý, Tin tức) *@
+@* 2. Thanh tìm kiếm thông minh *@
 <partial name="_SearchPartial" />
 
 @* 3. Section: Tại sao nên chọn Hello Paris *@
 <partial name="_WhyChoosePartial" />
 
 @* 4. Section: Đội ngũ chuyên gia *@
-<partial name="_DoctorsPartial" model="Model" />
+<partial name="~/Views/Bacsi/_DoctorsPartial.cshtml" model="Model" />
 
 @* 5. Section: Gói Dịch vụ nổi bật *@
 <partial name="~/Views/DichVu/_ServicePartial.cshtml" />
 
-@* 6. Section: Danh mục Bệnh lý (Tra cứu ICD-10) *@
-<partial name="~/Views/BenhLy/_BenhLyPartial.cshtml" model="listBenhLy" />
-
-@* 7. Section: Quy trình thăm khám *@
+@* 6. Section: Quy trình thăm khám *@
 <partial name="_ProcessTree" />
 
-@* 8. THÊM MỚI: Section Kết quả sau điều trị *@
-<partial name="_KetQuaDieuTriPartial" />
+@* 7. Section: Danh mục Bệnh lý (Tra cứu ICD-10) *@
+<partial name="~/Views/BenhLy/_BenhLyPartial.cshtml" model="listBenhLy" />
 
-@* 9. Section: Tin tức & Kiến thức y khoa *@
+@* --- THAY ĐỔI VỊ TRÍ TẠI ĐÂY --- *@
+
+@* 8. Section: Tin tức & Kiến thức y khoa (Đưa lên trên Kết quả) *@
 <partial name="~/Views/TinTuc/_NewsPartial.cshtml" model="listTinTuc" />
 
+@* 9. Section: Kết quả sau điều trị (Đưa xuống sau Tin tức) *@
+<partial name="_KetQuaDieuTriPartial" />
+
+@* ------------------------------ *@
+
 @section Scripts {
-@* Swiper JS Core *@
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
     <script>
         $(document).ready(function () {
-            // --- KHỞI TẠO CÁC SLIDER (SWIPER) ---
-
-            // A. Slide Banner "Tại sao chọn"
+            // --- KHỞI TẠO CÁC SLIDER (GIỮ NGUYÊN) ---
             new Swiper(".whyChooseSwiper", {
                 loop: true,
                 autoplay: { delay: 4000 },
@@ -75,7 +74,6 @@
                 effect: "fade"
             });
 
-            // B. Slide Hình ảnh phòng khám
             new Swiper(".leftImageSwiper", {
                 loop: true,
                 speed: 1000,
@@ -83,7 +81,6 @@
                 pagination: { el: ".swiper-pagination", clickable: true },
             });
 
-            // C. Slide Dịch vụ nổi bật
             new Swiper(".rightServiceSwiper", {
                 slidesPerView: 1.5,
                 spaceBetween: 25,
@@ -96,7 +93,6 @@
                 }
             });
 
-            // D. Slide Danh mục Bệnh lý
             new Swiper(".diseaseSwiper", {
                 slidesPerView: 1.2,
                 spaceBetween: 20,
@@ -109,7 +105,6 @@
                 }
             });
 
-            // E. Slide Tin tức & Kiến thức
             new Swiper(".newsSwiper", {
                 slidesPerView: 1.2,
                 spaceBetween: 25,
@@ -122,20 +117,19 @@
                 }
             });
 
-            // F. THÊM MỚI: Slide Kết quả điều trị (Chỉ bấm nút, không kéo chuột)
             new Swiper(".resultsSwiper", {
                 slidesPerView: 1,
                 spaceBetween: 30,
                 loop: true,
-                allowTouchMove: false, // Tắt chức năng vuốt bằng chuột/tay
+                allowTouchMove: false,
                 autoplay: { delay: 5000, disableOnInteraction: false },
                 navigation: {
-                    nextEl: ".result-next", // Nút tới
-                    prevEl: ".result-prev"  // Nút lùi
+                    nextEl: ".result-next",
+                    prevEl: ".result-prev"
                 }
             });
 
-            // --- LOGIC XỬ LÝ TÌM KIẾM THÔNG MINH (AJAX) ---
+            // --- LOGIC XỬ LÝ TÌM KIẾM GIỮ NGUYÊN ---
             const $searchInput = $('#mainSearchInput');
             const $liveResults = $('#liveResults');
             const $resultsList = $('#resultsList');
@@ -178,7 +172,6 @@
                 }
             });
 
-            // Ẩn kết quả khi bấm ra ngoài vùng tìm kiếm
             $(document).on('click', function(e) {
                 if (!$(e.target).closest('.search-container').length) {
                     $liveResults.hide();

@@ -152,7 +152,7 @@
         Swal.fire({
             icon: 'success',
             title: 'Thành công!',
-            text: '@TempData["success"]',
+            text: '@Html.Raw(TempData["success"])',
             timer: 3000,
             showConfirmButton: false
         });
