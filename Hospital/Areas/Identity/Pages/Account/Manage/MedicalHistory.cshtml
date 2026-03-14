@@ -109,11 +109,25 @@
 
                                         @if (item.TrangThai == TrangThaiHoSo.ChoThanhToan)
                                         {
-                                            @* SỬA TẠI ĐÂY: Sử dụng href tuyệt đối thông qua Url.Action *@
-                                            <a href="@Url.Action("ThanhToanVnpay", "Payment", new { area = "", id = item.Id })"
-                                               class="btn btn-success rounded-pill px-4 fw-bold small shadow-sm animate__animated animate__pulse animate__infinite">
-                                                <i class="bi bi-credit-card me-1"></i> THANH TOÁN
-                                            </a>
+                                            <div class="d-flex flex-column gap-2">
+                                                @* Nút Online luôn hiện *@
+                                                <a href="@Url.Action("ThanhToanVnpay", "Payment", new { area = "", id = item.Id })"
+                                                   class="btn btn-success rounded-pill px-4 fw-bold small shadow-sm animate__animated animate__pulse animate__infinite">
+                                                    <i class="bi bi-credit-card me-1"></i> THANH TOÁN ONLINE
+                                                </a>
+
+                                                @* Nút Tiền mặt chỉ hiện cho Lễ tân/Admin *@
+                                                @if (User.IsInRole("Receptionist") || User.IsInRole("Admin"))
+                                                {
+                                                    <form asp-controller="Payment" asp-action="ThanhToanTienMat" method="post"
+                                                          onsubmit="return confirm('Xác nhận đã thu tiền mặt')">
+                                                        <input type="hidden" name="id" value="@item.Id" />
+                                                        <button type="submit" class="btn btn-warning rounded-pill px-4 fw-bold small shadow-sm w-100 mt-1">
+                                                            <i class="bi bi-cash-stack me-1"></i> THANH TOÁN TIỀN MẶT
+                                                        </button>
+                                                    </form>
+                                                }
+                                            </div>
                                         }
 
                                         @if (item.TrangThai != TrangThaiHoSo.DaHuy && item.TrangThai != TrangThaiHoSo.ChoKham)

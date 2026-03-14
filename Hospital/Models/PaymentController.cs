@@ -21,8 +21,9 @@ namespace Hospital.Controllers
             _vnpayConfig = vnpayOptions.Value;
         }
 
-        // 1. Action tạo đường dẫn thanh toán
-        // Sửa: Thêm nhiều biến thể Role để tránh lỗi phân biệt hoa thường
+        // ==========================================
+        // 1. THANH TOÁN TRỰC TUYẾN (VNPAY)
+        // ==========================================
         [Authorize(Roles = "Admin,Receptionist,Customer,customer,Khách hàng")]
         public async Task<IActionResult> ThanhToanVnpay(int id)
         {
@@ -33,22 +34,7 @@ namespace Hospital.Controllers
 
             if (hoSo == null) return NotFound();
 
-            // SỬA QUAN TRỌNG: Tạm thời khóa kiểm tra Forbid() 
-            // Lỗi "Dừng lại một chút" thường do hoSo.BenhNhanId không khớp với IdentityUserId trong bảng BenhNhan
-            /*
-            if (User.IsInRole("Customer") || User.IsInRole("customer"))
-            {
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                var benhNhan = await _context.BenhNhan.FirstOrDefaultAsync(b => b.IdentityUserId == userId);
-                
-                // Nếu dữ liệu bảng BenhNhan chưa chuẩn, dòng này sẽ chặn bạn
-                if (benhNhan == null || hoSo.BenhNhanId != benhNhan.BenhNhanId) 
-                {
-                    // return Forbid(); // Tạm khóa để test
-                }
-            }
-            */
-
+            // Tính tổng tiền
             decimal total = (hoSo.ChiTietDichVus?.Sum(d => d.DichVu.Gia) ?? 0) +
                             (hoSo.ChiTietDonThuocs?.Sum(t => t.SoLuong * t.Thuoc.GiaBan) ?? 0);
 
@@ -70,7 +56,9 @@ namespace Hospital.Controllers
             return Redirect(paymentUrl);
         }
 
-        // 2. Action nhận kết quả trả về từ VNPay
+        // ==========================================
+        // 2. NHẬN KẾT QUẢ TỪ VNPAY
+        // ==========================================
         [AllowAnonymous]
         public async Task<IActionResult> VnpayReturn()
         {
@@ -96,26 +84,56 @@ namespace Hospital.Controllers
 
             if (checkSignature && vnp_ResponseCode == "00")
             {
-                var hoSo = await _context.HoSoBenhAn.Include(h => h.LichHen).FirstOrDefaultAsync(h => h.Id == hoSoId);
-                if (hoSo != null)
-                {
-                    hoSo.TrangThai = TrangThaiHoSo.HoanThanh;
-                    if (hoSo.LichHen != null) hoSo.LichHen.TrangThai = TrangThaiLichHen.HoanThanh;
-                    await _context.SaveChangesAsync();
-                    TempData["success"] = "Thanh toán thành công!";
-                }
+                await CapNhatThanhCong(hoSoId);
+                TempData["success"] = "Thanh toán trực tuyến thành công!";
             }
             else
             {
                 TempData["error"] = "Thanh toán thất bại hoặc chữ ký không hợp lệ.";
             }
 
-            // Chuyển hướng thông minh dựa trên Role
+            return RedirectToSmartPage();
+        }
+
+        // ==========================================
+        // 3. THANH TOÁN TIỀN MẶT (CHỈ LỄ TÂN/ADMIN)
+        // ==========================================
+        [Authorize(Roles = "Admin,Receptionist")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ThanhToanTienMat(int id)
+        {
+            var hoSo = await _context.HoSoBenhAn.AnyAsync(h => h.Id == id);
+            if (!hoSo) return NotFound();
+
+            await CapNhatThanhCong(id);
+
+            TempData["success"] = "Đã xác nhận thanh toán tiền mặt thành công!";
+            return RedirectToAction("Index", "HoSoBenhAn", new { area = "Admin" });
+        }
+
+        // Hàm hỗ trợ cập nhật Database
+        private async Task CapNhatThanhCong(int id)
+        {
+            var hoSo = await _context.HoSoBenhAn.Include(h => h.LichHen).FirstOrDefaultAsync(h => h.Id == id);
+            if (hoSo != null)
+            {
+                hoSo.TrangThai = TrangThaiHoSo.HoanThanh;
+                if (hoSo.LichHen != null)
+                {
+                    hoSo.LichHen.TrangThai = TrangThaiLichHen.HoanThanh;
+                }
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        // Hàm hỗ trợ điều hướng sau khi thanh toán
+        private IActionResult RedirectToSmartPage()
+        {
             if (User.Identity.IsAuthenticated && (User.IsInRole("Admin") || User.IsInRole("Receptionist")))
             {
                 return RedirectToAction("Index", "HoSoBenhAn", new { area = "Admin" });
             }
-
             return RedirectToPage("/Account/Manage/MedicalHistory", new { area = "Identity" });
         }
     }

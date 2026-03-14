@@ -12,7 +12,8 @@
         <div class="row justify-content-center mb-5">
             <div class="col-md-6">
                 <form asp-action="Index" method="get" class="d-flex shadow-sm rounded-pill overflow-hidden bg-white">
-                    <input type="text" name="searchString" class="form-control border-0 ps-4 py-3" placeholder="Tìm tên bệnh hoặc mã ICD-10...">
+                    @* Thêm value để giữ lại từ khóa tìm kiếm khi chuyển trang *@
+                    <input type="text" name="searchString" value="@ViewBag.CurrentSearch" class="form-control border-0 ps-4 py-3" placeholder="Tìm tên bệnh hoặc mã ICD-10...">
                     <button type="submit" class="btn btn-primary px-4"><i class="bi bi-search"></i></button>
                 </form>
             </div>
@@ -36,5 +37,48 @@
                 </div>
             }
         </div>
+
+        @* ================= PHẦN PHÂN TRANG (MỚI THÊM) ================= *@
+        @if (ViewBag.TotalPages != null && ViewBag.TotalPages > 1)
+        {
+            int currentPage = ViewBag.CurrentPage;
+            int totalPages = ViewBag.TotalPages;
+            string searchString = ViewBag.CurrentSearch;
+
+            <div class="row mt-5">
+                <div class="col-12 d-flex justify-content-center">
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination pagination-lg shadow-sm rounded-pill overflow-hidden">
+
+                            @* Nút Previous (Trang trước) *@
+                            <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                                <a class="page-link border-0" href="@Url.Action("Index", new { page = currentPage - 1, searchString = searchString })">
+                                    <i class="bi bi-chevron-left"></i>
+                                </a>
+                            </li>
+
+                            @* Các số trang (1, 2, 3...) *@
+                            @for (int i = 1; i <= totalPages; i++)
+                            {
+                                <li class="page-item @(currentPage == i ? "active" : "")">
+                                    <a class="page-link border-0 @(currentPage == i ? "bg-primary text-white" : "text-dark")"
+                                       href="@Url.Action("Index", new { page = i, searchString = searchString })">@i</a>
+                                </li>
+                            }
+
+                            @* Nút Next (Trang tiếp) *@
+                            <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                                <a class="page-link border-0" href="@Url.Action("Index", new { page = currentPage + 1, searchString = searchString })">
+                                    <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        }
+        @* ================= KẾT THÚC PHẦN PHÂN TRANG ================= *@
+
     </div>
 </section>

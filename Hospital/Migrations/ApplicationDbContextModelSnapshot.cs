@@ -241,21 +241,18 @@ namespace Hospital.Migrations
                         .HasColumnType("nvarchar(10)");
 
                     b.Property<string>("HinhAnhUrl")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsPublished")
                         .HasColumnType("bit");
 
                     b.Property<string>("MoTaTongQuan")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("NgayCapNhat")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("PhuongPhapDieuTri")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("TenBenhLy")
@@ -264,7 +261,6 @@ namespace Hospital.Migrations
                         .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("TrieuChung")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("BenhLyId");

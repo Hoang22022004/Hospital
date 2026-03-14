@@ -133,12 +133,6 @@
             color: white;
             border-color: var(--clinic-blue);
         }
-
-        .btn-action.text-danger:hover {
-            background: #dc2626;
-            color: white;
-            border-color: #dc2626;
-        }
 </style>
 
 <div class="container-fluid py-4 px-lg-5">
@@ -148,7 +142,6 @@
             <p class="text-muted mb-0 small"><i class="far fa-calendar-check me-1"></i> Hôm nay: @DateTime.Now.ToString("dddd, dd/MM/yyyy")</p>
         </div>
 
-        @* PHÂN QUYỀN: CHỈ ADMIN VÀ LỄ TÂN THẤY NÚT TIẾP NHẬN *@
         @if (User.IsInRole("Admin") || User.IsInRole("Receptionist"))
         {
             <a asp-action="Create" class="btn btn-primary shadow-sm px-4 py-2 fw-bold" style="border-radius: 10px;">
@@ -274,36 +267,34 @@
                                 </td>
                                 <td class="text-center">
                                     <div class="d-flex justify-content-center">
-
-                                        @* PHÂN QUYỀN: CHỈ BÁC SĨ THẤY NÚT KHÁM BỆNH *@
-                                        @if (User.IsInRole("Doctor"))
+                                        @if (User.IsInRole("Doctor") && (item.TrangThai == TrangThaiHoSo.ChoKham || item.TrangThai == TrangThaiHoSo.DangKham))
                                         {
-                                            @if (item.TrangThai == TrangThaiHoSo.ChoKham || item.TrangThai == TrangThaiHoSo.DangKham)
-                                            {
-                                                <a asp-action="KhamBenh" asp-route-id="@item.Id" class="btn-action text-primary" title="Khám bệnh"><i class="fas fa-stethoscope"></i></a>
-                                            }
+                                            <a asp-action="KhamBenh" asp-route-id="@item.Id" class="btn-action text-primary" title="Khám bệnh"><i class="fas fa-stethoscope"></i></a>
                                         }
 
-                                        @* PHÂN QUYỀN: CHỈ ADMIN VÀ LỄ TÂN THẤY THANH TOÁN & HỦY *@
                                         @if (User.IsInRole("Admin") || User.IsInRole("Receptionist"))
                                         {
-                                            @if (item.TrangThai == TrangThaiHoSo.ChoThanhToan)
+                                            if (item.TrangThai == TrangThaiHoSo.ChoThanhToan)
                                             {
-                                                @* Sửa lại: Thoát khỏi Area Admin bằng asp-area="" và trỏ về PaymentController *@
-                                                <a asp-area=""
-                                                   asp-controller="Payment"
-                                                   asp-action="ThanhToanVnpay"
-                                                   asp-route-id="@item.Id"
-                                                   class="btn-action text-success"
-                                                   title="Thanh toán VNPay">
-                                                    <i class="fas fa-wallet"></i>
-                                                </a>
+                                                <div class="d-flex gap-1">
+                                                    @* Online *@
+                                                    <a asp-area="" asp-controller="Payment" asp-action="ThanhToanVnpay" asp-route-id="@item.Id"
+                                                       class="btn-action text-success" title="Thanh toán VNPay">
+                                                        <i class="fas fa-credit-card"></i>
+                                                    </a>
+                                                    @* Tiền mặt với SweetAlert2 *@
+                                                    <form asp-area="" asp-controller="Payment" asp-action="ThanhToanTienMat" method="post">
+                                                        <input type="hidden" name="id" value="@item.Id" />
+                                                        <button type="button" class="btn-action text-warning border-0 bg-transparent btn-confirm-cash"
+                                                                data-name="@item.BenhNhan?.HoTen" title="Thanh toán tiền mặt">
+                                                            <i class="fas fa-money-bill-wave"></i>
+                                                        </button>
+                                                    </form>
+                                                </div>
                                             }
                                         }
 
-                                        @* CHI TIẾT VÀ LỊCH SỬ THÌ AI CŨNG CẦN XEM *@
                                         <a asp-action="Details" asp-route-id="@item.Id" class="btn-action text-info" title="Chi tiết"><i class="fas fa-eye"></i></a>
-
                                         <button type="button" class="btn-action text-secondary" onclick="showQuickHistory('@item.BenhNhanId', '@item.BenhNhan?.HoTen')" title="Lịch sử khám">
                                             <i class="fas fa-history"></i>
                                         </button>
@@ -318,7 +309,7 @@
     </div>
 </div>
 
-@* MODAL & SCRIPTS GIỮ NGUYÊN CODE CỦA HUY *@
+@* MODAL *@
 <div class="modal fade" id="historyModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
@@ -333,13 +324,33 @@
     </div>
 </div>
 
-<form id="formHuyHoSo" asp-action="HuyHoSo" method="post">
-    @Html.AntiForgeryToken()
-    <input type="hidden" name="id" id="inputHuyId" />
-</form>
-
 @section Scripts {
     <script>
+        $(document).ready(function () {
+            // Xử lý xác nhận thanh toán tiền mặt bằng SweetAlert2
+            $('.btn-confirm-cash').on('click', function () {
+                var $button = $(this);
+                var patientName = $button.data('name');
+                var $form = $button.closest('form');
+
+                Swal.fire({
+                    title: 'Xác nhận thu tiền?',
+                    text: 'Xác nhận bệnh nhân "' + patientName + '" đã thanh toán TIỀN MẶT tại quầy?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ffc107',
+                    cancelButtonColor: '#6e7881',
+                    confirmButtonText: 'Xác nhận thu tiền',
+                    cancelButtonText: 'Hủy bỏ',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $form.submit();
+                    }
+                });
+            });
+        });
+
         function showQuickHistory(patientId, patientName) {
             $('#historyPatientName').text(patientName);
             $('#quickHistoryArea').html('<div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div></div>');
@@ -350,26 +361,17 @@
             });
         }
 
-        function confirmHuyHoSo(id, name) {
-            Swal.fire({
-                title: 'Xác nhận hủy?',
-                text: 'Bạn có chắc muốn HỦY hồ sơ của bệnh nhân "' + name + '" không?',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                confirmButtonText: 'Đồng ý hủy',
-                cancelButtonText: 'Quay lại'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    $('#inputHuyId').val(id);
-                    $('#formHuyHoSo').submit();
-                }
-            });
-        }
-
         @if (TempData["success"] != null)
         {
-            <text>Swal.fire({ icon: 'success', title: 'Thành công', text: '@TempData["success"]', timer: 2000, showConfirmButton: false });</text>
+            <text>
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Thành công',
+                    text: '@TempData["success"]',
+                    timer: 2500,
+                    showConfirmButton: false
+                });
+            </text>
         }
     </script>
 }

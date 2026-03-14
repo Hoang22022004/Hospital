@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Hospital.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251216043111_AddBenhNhan")]
-    partial class AddBenhNhan
+    [Migration("20260310144425_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,92 @@ namespace Hospital.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("ChiTietDichVu", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("DichVuId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("DonGiaTaiThoiDiemKham")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("HoSoBenhAnId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SoLuong")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DichVuId");
+
+                    b.HasIndex("HoSoBenhAnId");
+
+                    b.ToTable("ChiTietDichVu");
+                });
+
+            modelBuilder.Entity("ChiTietDonThuoc", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("HoSoBenhAnId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("LieuDung")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("SoLuong")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ThuocId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HoSoBenhAnId");
+
+                    b.HasIndex("ThuocId");
+
+                    b.ToTable("ChiTietDonThuoc");
+                });
+
+            modelBuilder.Entity("HinhAnhBenhAn", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("DuongDan")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("GhiChu")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("HoSoBenhAnId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("LaAnhChinh")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HoSoBenhAnId");
+
+                    b.ToTable("HinhAnhBenhAn");
+                });
 
             modelBuilder.Entity("Hospital.Models.ApplicationUser", b =>
                 {
@@ -153,22 +239,23 @@ namespace Hospital.Migrations
 
             modelBuilder.Entity("Hospital.Models.BenhLy", b =>
                 {
-                    b.Property<int>("BenhLyId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BenhLyId"));
+                    b.Property<string>("BenhLyId")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
 
                     b.Property<string>("HinhAnhUrl")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsPublished")
+                        .HasColumnType("bit");
 
                     b.Property<string>("MoTaTongQuan")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime>("NgayCapNhat")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("PhuongPhapDieuTri")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("TenBenhLy")
@@ -177,7 +264,6 @@ namespace Hospital.Migrations
                         .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("TrieuChung")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("BenhLyId");
@@ -209,6 +295,9 @@ namespace Hospital.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("IdentityUserId")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("NgaySinh")
                         .HasColumnType("datetime2");
@@ -305,6 +394,69 @@ namespace Hospital.Migrations
                     b.ToTable("DichVu");
                 });
 
+            modelBuilder.Entity("Hospital.Models.HoSoBenhAn", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BacSiId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("BenhNhanId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ChanDoan")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<TimeSpan?>("KhungGioBatDau")
+                        .HasColumnType("time");
+
+                    b.Property<int?>("LichHenId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("LichLamViecId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("LoiDan")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("MucDo")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("NgayKham")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("NgayTaiKham")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("TinhTrangDa")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("TrangThai")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TrieuChung")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ViTriTonThuong")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BacSiId");
+
+                    b.HasIndex("BenhNhanId");
+
+                    b.HasIndex("LichHenId");
+
+                    b.HasIndex("LichLamViecId");
+
+                    b.ToTable("HoSoBenhAn");
+                });
+
             modelBuilder.Entity("Hospital.Models.LichHen", b =>
                 {
                     b.Property<int>("LichHenId")
@@ -399,8 +551,9 @@ namespace Hospital.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PhacDoId"));
 
-                    b.Property<int>("BenhLyId")
-                        .HasColumnType("int");
+                    b.Property<string>("BenhLyId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(10)");
 
                     b.Property<string>("GhiChu")
                         .IsRequired()
@@ -477,6 +630,42 @@ namespace Hospital.Migrations
                     b.HasKey("ThuocId");
 
                     b.ToTable("Thuoc");
+                });
+
+            modelBuilder.Entity("Hospital.Models.TinTuc", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("DanhMuc")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("HinhAnhUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsPublished")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("NgayDang")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("NoiDung")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TacGia")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TieuDe")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("TinTuc");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -616,6 +805,55 @@ namespace Hospital.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("ChiTietDichVu", b =>
+                {
+                    b.HasOne("Hospital.Models.DichVu", "DichVu")
+                        .WithMany()
+                        .HasForeignKey("DichVuId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Hospital.Models.HoSoBenhAn", "HoSoBenhAn")
+                        .WithMany("ChiTietDichVus")
+                        .HasForeignKey("HoSoBenhAnId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("DichVu");
+
+                    b.Navigation("HoSoBenhAn");
+                });
+
+            modelBuilder.Entity("ChiTietDonThuoc", b =>
+                {
+                    b.HasOne("Hospital.Models.HoSoBenhAn", "HoSoBenhAn")
+                        .WithMany("ChiTietDonThuocs")
+                        .HasForeignKey("HoSoBenhAnId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Hospital.Models.Thuoc", "Thuoc")
+                        .WithMany()
+                        .HasForeignKey("ThuocId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("HoSoBenhAn");
+
+                    b.Navigation("Thuoc");
+                });
+
+            modelBuilder.Entity("HinhAnhBenhAn", b =>
+                {
+                    b.HasOne("Hospital.Models.HoSoBenhAn", "HoSoBenhAn")
+                        .WithMany("HinhAnhBenhAns")
+                        .HasForeignKey("HoSoBenhAnId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("HoSoBenhAn");
+                });
+
             modelBuilder.Entity("Hospital.Models.BacSi", b =>
                 {
                     b.HasOne("Hospital.Models.ChuyenKhoa", "ChuyenKhoa")
@@ -652,6 +890,37 @@ namespace Hospital.Migrations
                     b.Navigation("ChuyenKhoa");
 
                     b.Navigation("DichVu");
+                });
+
+            modelBuilder.Entity("Hospital.Models.HoSoBenhAn", b =>
+                {
+                    b.HasOne("Hospital.Models.BacSi", "BacSi")
+                        .WithMany()
+                        .HasForeignKey("BacSiId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Hospital.Models.BenhNhan", "BenhNhan")
+                        .WithMany("HoSoBenhAns")
+                        .HasForeignKey("BenhNhanId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Hospital.Models.LichHen", "LichHen")
+                        .WithMany("HoSoBenhAns")
+                        .HasForeignKey("LichHenId");
+
+                    b.HasOne("Hospital.Models.LichLamViec", "LichLamViec")
+                        .WithMany("HoSoBenhAns")
+                        .HasForeignKey("LichLamViecId");
+
+                    b.Navigation("BacSi");
+
+                    b.Navigation("BenhNhan");
+
+                    b.Navigation("LichHen");
+
+                    b.Navigation("LichLamViec");
                 });
 
             modelBuilder.Entity("Hospital.Models.LichHen", b =>
@@ -695,7 +964,7 @@ namespace Hospital.Migrations
             modelBuilder.Entity("Hospital.Models.PhacDoDieuTri", b =>
                 {
                     b.HasOne("Hospital.Models.BenhLy", "BenhLy")
-                        .WithMany("PhacDoDieuTris")
+                        .WithMany()
                         .HasForeignKey("BenhLyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -764,9 +1033,9 @@ namespace Hospital.Migrations
                     b.Navigation("LichLamViecs");
                 });
 
-            modelBuilder.Entity("Hospital.Models.BenhLy", b =>
+            modelBuilder.Entity("Hospital.Models.BenhNhan", b =>
                 {
-                    b.Navigation("PhacDoDieuTris");
+                    b.Navigation("HoSoBenhAns");
                 });
 
             modelBuilder.Entity("Hospital.Models.ChuyenKhoa", b =>
@@ -781,8 +1050,24 @@ namespace Hospital.Migrations
                     b.Navigation("ChuyenKhoaDichVus");
                 });
 
+            modelBuilder.Entity("Hospital.Models.HoSoBenhAn", b =>
+                {
+                    b.Navigation("ChiTietDichVus");
+
+                    b.Navigation("ChiTietDonThuocs");
+
+                    b.Navigation("HinhAnhBenhAns");
+                });
+
+            modelBuilder.Entity("Hospital.Models.LichHen", b =>
+                {
+                    b.Navigation("HoSoBenhAns");
+                });
+
             modelBuilder.Entity("Hospital.Models.LichLamViec", b =>
                 {
+                    b.Navigation("HoSoBenhAns");
+
                     b.Navigation("LichHens");
                 });
 #pragma warning restore 612, 618
