@@ -35,11 +35,27 @@ namespace Hospital.Areas.Identity.Pages.Account.Manage
                 .Include(h => h.ChiTietDichVus).ThenInclude(s => s.DichVu)
                 .FirstOrDefaultAsync(m => m.Id == id);
 
-            if (HoSo == null || HoSo.BenhNhan.Email != user.Email) return RedirectToPage("./MedicalHistory");
+            // Kiểm tra quyền truy cập: Chỉ bệnh nhân sở hữu hồ sơ mới được xem
+            if (HoSo == null || HoSo.BenhNhan?.Email != user.Email)
+                return RedirectToPage("./MedicalHistory");
 
-            // Tính toán tổng tiền ngay trong Model
+            // --- TÍNH TOÁN TỔNG TIỀN ---
+
+            // 1. Tính tổng dịch vụ (Gia là decimal nên Sum trực tiếp được)
             TongDichVu = HoSo.ChiTietDichVus?.Sum(x => x.DichVu.Gia) ?? 0;
-            TongThuoc = HoSo.ChiTietDonThuocs?.Sum(x => x.SoLuong * x.Thuoc.GiaBan) ?? 0;
+
+            // 2. Tính tổng tiền thuốc
+            // Ép kiểu (decimal) SoLuong để nhân được với GiaBan (decimal)
+            TongThuoc = (decimal)(HoSo.ChiTietDonThuocs?.Sum(x =>
+                (double)(x.Thuoc?.GiaBan ?? 0) * x.SoLuong
+            ) ?? 0);
+
+            // Cách viết an toàn hơn để tránh lỗi biên dịch double/decimal:
+            if (HoSo.ChiTietDonThuocs != null)
+            {
+                TongThuoc = HoSo.ChiTietDonThuocs
+                    .Sum(x => (decimal)x.SoLuong * (x.Thuoc?.GiaBan ?? 0));
+            }
 
             return Page();
         }

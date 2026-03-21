@@ -58,15 +58,15 @@
                                 </tbody>
                                 <tfoot>
                                     <tr>
-                                        <td class="text-end text-muted">Cộng tiền dịch vụ:</td>
-                                        <td class="text-end fw-bold text-primary">@tongDichVu.ToString("N0") đ</td>
+                                        <td class="text-end text-muted border-0">Cộng tiền dịch vụ:</td>
+                                        <td class="text-end fw-bold text-primary border-0">@tongDichVu.ToString("N0") đ</td>
                                     </tr>
                                 </tfoot>
                             </table>
                         </div>
                     </div>
 
-                    @* Bảng Thuốc *@
+                    @* Bảng Thuốc - ĐÃ CẬP NHẬT CẤU TRÚC MỚI *@
                     @if (Model.ChiTietDonThuocs != null && Model.ChiTietDonThuocs.Any())
                     {
                         <div class="mb-4">
@@ -75,7 +75,7 @@
                                 <table class="table table-hover align-middle">
                                     <thead class="table-light">
                                         <tr class="small text-uppercase">
-                                            <th>Tên thuốc</th>
+                                            <th>Tên thuốc & Cách dùng</th>
                                             <th class="text-center">Số lượng</th>
                                             <th class="text-end">Thành tiền</th>
                                         </tr>
@@ -85,18 +85,31 @@
                                         {
                                             <tr>
                                                 <td>
-                                                    <span class="fw-bold">@t.Thuoc.TenThuoc</span>
-                                                    <div class="small text-muted italic">@t.LieuDung</div>
+                                                    <span class="fw-bold text-navy">@t.Thuoc.TenThuoc</span>
+                                                    <div class="small text-muted mt-1">
+                                                        <span>Sáng: @(t.LieuSang ?? "-") | Trưa: @(t.LieuTrua ?? "-") | Chiều: @(t.LieuChieu ?? "-") | Tối: @(t.LieuToi ?? "-")</span>
+                                                    </div>
+                                                    <div class="small mt-1 italic">
+                                                        <span class="text-primary">Dùng trong @t.SoNgayDung ngày</span>
+                                                        @if (!string.IsNullOrEmpty(t.GhiChu))
+                                                        {
+                                                            <span class="ms-2 text-danger">(@t.GhiChu)</span>
+                                                        }
+                                                    </div>
                                                 </td>
-                                                <td class="text-center">@t.SoLuong @t.Thuoc.DonViTinh</td>
-                                                <td class="text-end fw-bold">@((t.SoLuong * t.Thuoc.GiaBan).ToString("N0")) đ</td>
+                                                <td class="text-center">
+                                                    <span class="fw-bold">@t.SoLuong.ToString("G29")</span> @t.Thuoc.DonViTinh
+                                                </td>
+                                                <td class="text-end fw-bold">
+                                                    @(((decimal)t.SoLuong * t.Thuoc.GiaBan).ToString("N0")) đ
+                                                </td>
                                             </tr>
                                         }
                                     </tbody>
                                     <tfoot>
                                         <tr>
-                                            <td colspan="2" class="text-end text-muted">Cộng tiền thuốc:</td>
-                                            <td class="text-end fw-bold text-success">@tongThuoc.ToString("N0") đ</td>
+                                            <td colspan="2" class="text-end text-muted border-0">Cộng tiền thuốc:</td>
+                                            <td class="text-end fw-bold text-success border-0">@tongThuoc.ToString("N0") đ</td>
                                         </tr>
                                     </tfoot>
                                 </table>
@@ -112,7 +125,7 @@
                                 <small class="text-muted italic">Đã bao gồm VAT và các loại phí dịch vụ</small>
                             </div>
                             <div class="col-sm-6 text-sm-end">
-                                <h2 class="mb-0 fw-bold text-danger">@tongTien.ToString("N0") <small>VNĐ</small></h2>
+                                <h2 class="mb-0 fw-bold text-danger">@tongTien.ToString("N0") <small style="font-size: 1rem;">VNĐ</small></h2>
                             </div>
                         </div>
                     </div>
@@ -121,7 +134,6 @@
                     <div class="text-center mb-4">
                         <h6 class="text-muted fw-bold text-uppercase ls-1 mb-3">Vui lòng chọn phương thức thanh toán</h6>
                         <div class="row g-3">
-                            @* Nút Thanh toán Tiền mặt (Bản cũ của bạn) *@
                             <div class="col-md-6">
                                 <form asp-action="XacNhanThanhToan" method="post">
                                     <input type="hidden" name="id" value="@Model.Id" />
@@ -131,7 +143,6 @@
                                 </form>
                             </div>
 
-                            @* Nút Thanh toán VNPAY (Mới thêm vào) *@
                             <div class="col-md-6">
                                 <a asp-action="ThanhToanVnpay" asp-route-id="@Model.Id" class="btn btn-primary w-100 py-3 rounded-3 fw-bold shadow-sm transition-up" style="background-color: #005baa;">
                                     <i class="fas fa-credit-card me-2"></i>THANH TOÁN VNPAY (QR/ATM)
@@ -152,7 +163,6 @@
     </div>
 </div>
 
-@* Thêm CSS bổ trợ cho giao diện đẹp hơn *@
 <style>
     .bg-navy {
         background-color: #002d5b;
@@ -185,4 +195,8 @@
         .transition-up:hover {
             transform: translateY(-3px);
         }
+
+    .table tfoot td {
+        padding-top: 1rem;
+    }
 </style>

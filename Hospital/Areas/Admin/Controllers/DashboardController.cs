@@ -38,7 +38,7 @@ namespace Hospital.Areas.Admin.Controllers
 
             decimal GetTotal(HoSoBenhAn h) =>
                 (h.ChiTietDichVus?.Sum(d => d.DichVu.Gia) ?? 0) +
-                (h.ChiTietDonThuocs?.Sum(t => t.SoLuong * t.Thuoc.GiaBan) ?? 0);
+               h.ChiTietDonThuocs?.Sum(t => (decimal)(t.SoLuong) * (t.Thuoc?.GiaBan ?? 0)) ?? 0;
 
             // Doanh thu hôm nay
             ViewBag.RevDay = allRecords.Where(h => h.NgayKham.Date == today).Sum(GetTotal);

@@ -1,30 +1,36 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Hospital.Data;
+using Hospital.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Hospital.Data;
-using Hospital.Models;
 using Microsoft.AspNetCore.Hosting;
 using System.Linq;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using Hospital.Helpers;
 using Microsoft.Extensions.Options;
+using System.Collections.Generic;
+using System;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Http;
 
 namespace Hospital.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize(Roles = "Admin,Receptionist,Doctor,Customer")] // Cho phép cả 3 vào xem danh sách chung
+    [Authorize(Roles = "Admin,Receptionist,Doctor,Customer")]
     public class HoSoBenhAnController : Controller
     {
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _hostEnvironment;
-        private readonly IConfiguration _configuration; // <--- THÊM DÒNG NÀY
+        private readonly IConfiguration _configuration;
         private readonly VnpayConfig _vnpayConfig;
-        public HoSoBenhAnController(ApplicationDbContext context, IWebHostEnvironment hostEnvironment, IConfiguration configuration, IOptions<VnpayConfig> vnpayOptions) // <--- THÊM THAM SỐ NÀY
+
+        public HoSoBenhAnController(ApplicationDbContext context, IWebHostEnvironment hostEnvironment, IConfiguration configuration, IOptions<VnpayConfig> vnpayOptions)
         {
             _context = context;
             _hostEnvironment = hostEnvironment;
-            _configuration = configuration; // <--- THÊM DÒNG NÀY
+            _configuration = configuration;
             _vnpayConfig = vnpayOptions.Value;
         }
 
@@ -36,7 +42,7 @@ namespace Hospital.Areas.Admin.Controllers
         }
 
         // ===============================================================
-        // 1. DANH SÁCH HỒ SƠ & THỐNG KÊ (PHÂN QUYỀN LỌC DỮ LIỆU)
+        // 1. DANH SÁCH HỒ SƠ & THỐNG KÊ
         // ===============================================================
         public async Task<IActionResult> Index(DateTime? searchDate, string searchString, TrangThaiHoSo? status, int page = 1)
         {
@@ -49,8 +55,6 @@ namespace Hospital.Areas.Admin.Controllers
                 .Include(h => h.LichHen)
                 .AsQueryable();
 
-            // --- PHÂN QUYỀN LỌC DỮ LIỆU ---
-            // Nếu là Doctor: Chỉ thấy hồ sơ của chính mình
             if (User.IsInRole("Doctor"))
             {
                 var currentDoc = await GetCurrentBacSi();
@@ -59,18 +63,14 @@ namespace Hospital.Areas.Admin.Controllers
                     query = query.Where(h => h.BacSiId == currentDoc.BacSiId);
                 }
             }
-            // Admin và Receptionist mặc định thấy toàn bộ
 
-            // Lọc theo ngày khám đang chọn
             query = query.Where(h => h.NgayKham.Date == searchDate.Value.Date);
 
-            // --- THỐNG KÊ SỐ LƯỢNG (Dashboard Stats - Đã áp dụng lọc theo quyền) ---
             ViewBag.CountChoKham = await query.CountAsync(x => x.TrangThai == TrangThaiHoSo.ChoKham);
             ViewBag.CountDangKham = await query.CountAsync(x => x.TrangThai == TrangThaiHoSo.DangKham);
             ViewBag.CountChoThanhToan = await query.CountAsync(x => x.TrangThai == TrangThaiHoSo.ChoThanhToan);
             ViewBag.CountHoanThanh = await query.CountAsync(x => x.TrangThai == TrangThaiHoSo.HoanThanh);
 
-            // --- BỘ LỌC TÌM KIẾM ---
             if (!string.IsNullOrEmpty(searchString))
             {
                 searchString = searchString.Trim();
@@ -83,7 +83,6 @@ namespace Hospital.Areas.Admin.Controllers
                 query = query.Where(h => h.TrangThai == status.Value);
             }
 
-            // --- XỬ LÝ PHÂN TRANG ---
             int totalItems = await query.CountAsync();
             var records = await query
                 .OrderByDescending(h => h.NgayKham)
@@ -101,7 +100,7 @@ namespace Hospital.Areas.Admin.Controllers
         }
 
         // ===============================================================
-        // 2. CHI TIẾT BỆNH ÁN & TÍNH TIỀN (TẤT CẢ QUYỀN XEM ĐƯỢC)
+        // 2. CHI TIẾT BỆNH ÁN & TÍNH TIỀN
         // ===============================================================
         [Authorize(Roles = "Admin,Receptionist,Doctor,Customer")]
         public async Task<IActionResult> Details(int? id)
@@ -118,19 +117,18 @@ namespace Hospital.Areas.Admin.Controllers
 
             if (hoSo == null) return NotFound();
 
-            // Tính toán tổng tiền cho View
             decimal tongDichVu = hoSo.ChiTietDichVus?.Sum(d => d.DichVu.Gia) ?? 0;
-            decimal tongThuoc = hoSo.ChiTietDonThuocs?.Sum(t => t.SoLuong * t.Thuoc.GiaBan) ?? 0;
+            decimal tongThuoc = hoSo.ChiTietDonThuocs?.Sum(t => (decimal)(t.SoLuong) * (t.Thuoc?.GiaBan ?? 0)) ?? 0;
 
-            ViewBag.TongDichVu = (decimal)tongDichVu;
-            ViewBag.TongThuoc = (decimal)tongThuoc;
-            ViewBag.TongTien = (decimal)(tongDichVu + tongThuoc);
+            ViewBag.TongDichVu = tongDichVu;
+            ViewBag.TongThuoc = tongThuoc;
+            ViewBag.TongTien = tongDichVu + tongThuoc;
 
             return View(hoSo);
         }
 
         // ===============================================================
-        // 3. TIẾP NHẬN BỆNH NHÂN (CHỈ ADMIN & RECEPTIONIST)
+        // 3. TIẾP NHẬN BỆNH NHÂN (ADMIN & RECEPTIONIST)
         // ===============================================================
         [Authorize(Roles = "Admin,Receptionist")]
         public IActionResult Create(int? benhNhanId)
@@ -201,7 +199,7 @@ namespace Hospital.Areas.Admin.Controllers
         }
 
         // ===============================================================
-        // 4. BÁC SĨ KHÁM BỆNH (CHỈ DOCTOR)
+        // 4. BÁC SĨ KHÁM BỆNH (DOCTOR)
         // ===============================================================
         [Authorize(Roles = "Doctor")]
         public async Task<IActionResult> KhamBenh(int? id)
@@ -210,7 +208,6 @@ namespace Hospital.Areas.Admin.Controllers
             var hoSo = await _context.HoSoBenhAn.Include(h => h.BenhNhan).FirstOrDefaultAsync(m => m.Id == id);
             if (hoSo == null) return NotFound();
 
-            // KIỂM TRA BẢO MẬT: Bác sĩ không được khám bệnh án của đồng nghiệp
             var currentDoc = await GetCurrentBacSi();
             if (currentDoc == null || hoSo.BacSiId != currentDoc.BacSiId)
             {
@@ -223,8 +220,15 @@ namespace Hospital.Areas.Admin.Controllers
                 _context.Update(hoSo);
                 await _context.SaveChangesAsync();
             }
-            ViewBag.DichVuList = await _context.DichVu.ToListAsync();
-            ViewBag.ThuocList = await _context.Thuoc.ToListAsync();
+            ViewBag.DichVuList = await _context.DichVu.Where(d => d.IsActive).ToListAsync();
+            ViewBag.ThuocList = await _context.Thuoc.Select(t => new {
+                t.ThuocId,
+                t.TenThuoc,
+                PhanLoaiName = t.PhanLoai == PhanLoaiThuoc.ThuocUong ? "Thuốc uống" :
+                               t.PhanLoai == PhanLoaiThuoc.ThuocBoi ? "Thuốc bôi ngoài da" :
+                               t.PhanLoai == PhanLoaiThuoc.DuocMyPham ? "Dược mỹ phẩm" : "Vật tư y tế",
+                PhanLoaiEnum = t.PhanLoai.ToString()
+            }).ToListAsync();
             return View(hoSo);
         }
 
@@ -233,7 +237,10 @@ namespace Hospital.Areas.Admin.Controllers
         [Authorize(Roles = "Doctor")]
         public async Task<IActionResult> HoanTatKham(int id, HoSoBenhAn hoSoUpdate,
             IFormFile? anhChinh, List<IFormFile>? anhPhu,
-            int[] selectedDichVu, int[] selectedThuoc, int[] soLuong, string[] lieuDung)
+            int[] selectedDichVu, int[] selectedThuoc,
+            double[] soLuong,
+            string[] lieuSang, string[] lieuTrua, string[] lieuChieu, string[] lieuToi,
+            int[] soNgayDung, string[] ghiChuThuoc)
         {
             if (id != hoSoUpdate.Id) return NotFound();
 
@@ -244,7 +251,6 @@ namespace Hospital.Areas.Admin.Controllers
                     var record = await _context.HoSoBenhAn.FindAsync(id);
                     if (record == null) return NotFound();
 
-                    // Cập nhật lâm sàng
                     record.ChanDoan = hoSoUpdate.ChanDoan;
                     record.TrieuChung = hoSoUpdate.TrieuChung;
                     record.TinhTrangDa = hoSoUpdate.TinhTrangDa;
@@ -254,30 +260,36 @@ namespace Hospital.Areas.Admin.Controllers
                     record.NgayTaiKham = hoSoUpdate.NgayTaiKham;
                     record.TrangThai = TrangThaiHoSo.ChoThanhToan;
 
-                    // Lưu Dịch vụ
                     if (selectedDichVu != null)
                         foreach (var dvId in selectedDichVu)
                             _context.ChiTietDichVu.Add(new ChiTietDichVu { HoSoBenhAnId = id, DichVuId = dvId });
 
-                    // Lưu Đơn thuốc & Trừ tồn kho
                     if (selectedThuoc != null)
+                    {
                         for (int i = 0; i < selectedThuoc.Length; i++)
                         {
                             int tId = selectedThuoc[i];
-                            int qty = (soLuong != null && soLuong.Length > i) ? soLuong[i] : 1;
+                            double qty = (soLuong != null && soLuong.Length > i) ? soLuong[i] : 0;
+                            int days = (soNgayDung != null && soNgayDung.Length > i) ? soNgayDung[i] : 1;
+
                             var tStock = await _context.Thuoc.FindAsync(tId);
-                            if (tStock != null) tStock.SoLuongTon -= qty;
+                            if (tStock != null) tStock.SoLuongTon -= (int)qty;
 
                             _context.ChiTietDonThuoc.Add(new ChiTietDonThuoc
                             {
                                 HoSoBenhAnId = id,
                                 ThuocId = tId,
                                 SoLuong = qty,
-                                LieuDung = (lieuDung != null && lieuDung.Length > i) ? lieuDung[i] : ""
+                                LieuSang = (lieuSang != null && lieuSang.Length > i) ? lieuSang[i] : null,
+                                LieuTrua = (lieuTrua != null && lieuTrua.Length > i) ? lieuTrua[i] : null,
+                                LieuChieu = (lieuChieu != null && lieuChieu.Length > i) ? lieuChieu[i] : null,
+                                LieuToi = (lieuToi != null && lieuToi.Length > i) ? lieuToi[i] : null,
+                                SoNgayDung = days,
+                                GhiChu = (ghiChuThuoc != null && ghiChuThuoc.Length > i) ? ghiChuThuoc[i] : null
                             });
                         }
+                    }
 
-                    // Lưu File ảnh
                     string path = Path.Combine(_hostEnvironment.WebRootPath, @"images/da-lieu");
                     if (!Directory.Exists(path)) Directory.CreateDirectory(path);
 
@@ -304,129 +316,15 @@ namespace Hospital.Areas.Admin.Controllers
                     TempData["success"] = "Hoàn tất khám bệnh!";
                     return RedirectToAction(nameof(Index));
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
                     await transaction.RollbackAsync();
-                    TempData["error"] = "Lỗi khi lưu dữ liệu!";
+                    TempData["error"] = "Lỗi khi lưu dữ liệu: " + ex.Message;
                     return RedirectToAction("KhamBenh", new { id = id });
                 }
             }
         }
 
-        // ===============================================================
-        // 5. THANH TOÁN (CHỈ ADMIN & RECEPTIONIST)
-        // ===============================================================
-        //[Authorize(Roles = "Admin,Receptionist,Customer")]
-        //public async Task<IActionResult> ThanhToan(int id)
-        //{
-        //    return await Details(id);
-        //}
-        //// ===============================================================
-        //// CHIẾN LƯỢC THANH TOÁN VNPAY
-        //// ===============================================================
-        //[Authorize(Roles = "Admin,Receptionist,Customer")]
-        //public async Task<IActionResult> ThanhToanVnpay(int id)
-        //{
-        //    var hoSo = await _context.HoSoBenhAn
-        //        .Include(h => h.ChiTietDichVus).ThenInclude(d => d.DichVu)
-        //        .Include(h => h.ChiTietDonThuocs).ThenInclude(t => t.Thuoc)
-        //        .FirstOrDefaultAsync(h => h.Id == id);
-
-        //    if (hoSo == null) return NotFound();
-
-        //    // Bảo mật cho khách hàng
-        //    if (User.IsInRole("Customer"))
-        //    {
-        //        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        //        var benhNhan = await _context.BenhNhan.FirstOrDefaultAsync(b => b.IdentityUserId == userId);
-        //        if (hoSo.BenhNhanId != benhNhan?.BenhNhanId) return Forbid();
-        //    }
-
-        //    decimal total = (hoSo.ChiTietDichVus?.Sum(d => d.DichVu.Gia) ?? 0) +
-        //                    (hoSo.ChiTietDonThuocs?.Sum(t => t.SoLuong * t.Thuoc.GiaBan) ?? 0);
-
-        //    var vnpay = new VnPayLibrary();
-        //    vnpay.AddRequestData("vnp_Version", "2.1.0");
-        //    vnpay.AddRequestData("vnp_Command", "pay");
-        //    vnpay.AddRequestData("vnp_TmnCode", _vnpayConfig.TmnCode);
-        //    vnpay.AddRequestData("vnp_Amount", ((long)(total * 100)).ToString());
-        //    vnpay.AddRequestData("vnp_CreateDate", DateTime.Now.ToString("yyyyMMddHHmmss"));
-        //    vnpay.AddRequestData("vnp_CurrCode", "VND");
-        //    vnpay.AddRequestData("vnp_IpAddr", vnpay.GetIpAddress(HttpContext));
-        //    vnpay.AddRequestData("vnp_Locale", "vn");
-        //    vnpay.AddRequestData("vnp_OrderInfo", "Thanh toan ho so benh an: " + id);
-        //    vnpay.AddRequestData("vnp_OrderType", "other");
-        //    vnpay.AddRequestData("vnp_ReturnUrl", _vnpayConfig.ReturnUrl);
-        //    vnpay.AddRequestData("vnp_TxnRef", id.ToString() + "_" + DateTime.Now.Ticks);
-
-        //    string paymentUrl = vnpay.CreateRequestUrl(_vnpayConfig.BaseUrl, _vnpayConfig.HashSecret);
-        //    return Redirect(paymentUrl);
-        //}
-        //[HttpGet]
-        //[AllowAnonymous] // Cho phép VNPay gọi về mà không bị chặn bởi phân quyền nếu cần
-        //public async Task<IActionResult> VnpayReturn()
-        //{
-        //    var vnpayData = Request.Query;
-        //    var vnpay = new VnPayLibrary();
-
-        //    // 1. Lấy toàn bộ dữ liệu trả về, LOẠI BỎ vnp_SecureHash ra khỏi danh sách băm
-        //    foreach (var (key, value) in vnpayData)
-        //    {
-        //        if (!string.IsNullOrEmpty(key) && key.StartsWith("vnp_") && key != "vnp_SecureHash")
-        //        {
-        //            vnpay.AddResponseData(key, value);
-        //        }
-        //    }
-
-        //    // 2. Lấy các thông tin cần thiết
-        //    string txnRef = vnpay.GetResponseData("vnp_TxnRef");
-        //    string vnp_ResponseCode = vnpay.GetResponseData("vnp_ResponseCode");
-        //    string vnp_TransactionStatus = vnpay.GetResponseData("vnp_TransactionStatus");
-        //    string vnp_SecureHash = Request.Query["vnp_SecureHash"];
-
-        //    // Kiểm tra an toàn tham chiếu giao dịch
-        //    if (string.IsNullOrEmpty(txnRef) || !txnRef.Contains("_"))
-        //        return BadRequest("Tham số giao dịch không hợp lệ.");
-
-        //    int hoSoId = int.Parse(txnRef.Split('_')[0]);
-
-        //    // 3. Kiểm tra chữ ký bảo mật (Validate Signature)
-        //    bool checkSignature = vnpay.ValidateSignature(vnp_SecureHash, _vnpayConfig.HashSecret);
-
-        //    if (checkSignature)
-        //    {
-        //        // Chữ ký đúng, kiểm tra tiếp mã phản hồi giao dịch (00 = Thành công)
-        //        if (vnp_ResponseCode == "00" && vnp_TransactionStatus == "00")
-        //        {
-        //            var hoSo = await _context.HoSoBenhAn
-        //                .Include(h => h.LichHen)
-        //                .FirstOrDefaultAsync(h => h.Id == hoSoId);
-
-        //            if (hoSo != null)
-        //            {
-        //                hoSo.TrangThai = TrangThaiHoSo.HoanThanh;
-        //                if (hoSo.LichHen != null)
-        //                    hoSo.LichHen.TrangThai = TrangThaiLichHen.HoanThanh;
-
-        //                await _context.SaveChangesAsync();
-        //                TempData["success"] = "Thanh toán hồ sơ bệnh án thành công!";
-        //            }
-        //        }
-        //        else
-        //        {
-        //            // Lỗi từ phía ngân hàng hoặc người dùng hủy giao dịch
-        //            TempData["error"] = $"Giao dịch thất bại. Mã lỗi ngân hàng: {vnp_ResponseCode}";
-        //        }
-        //    }
-        //    else
-        //    {
-        //        // Lỗi bảo mật: Chữ ký không khớp (Có thể do sai HashSecret hoặc dữ liệu bị can thiệp)
-        //        TempData["error"] = "Có lỗi xảy ra trong quá trình xác thực chữ ký bảo mật.";
-        //    }
-
-        //    // 4. Quay lại trang chi tiết hồ sơ
-        //    return RedirectToAction("Details", new { id = hoSoId });
-        //}
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin,Receptionist,Customer")]
@@ -450,9 +348,6 @@ namespace Hospital.Areas.Admin.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // ===============================================================
-        // 6. XÓA & HỦY HỒ SƠ (CHỈ ADMIN & RECEPTIONIST)
-        // ===============================================================
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin,Receptionist")]
@@ -476,7 +371,7 @@ namespace Hospital.Areas.Admin.Controllers
             var hoSo = await _context.HoSoBenhAn.Include(h => h.LichHen).FirstOrDefaultAsync(h => h.Id == id);
             if (hoSo == null) return NotFound();
 
-            hoSo.TrangThai = (TrangThaiHoSo)99; // Trạng thái hủy
+            hoSo.TrangThai = (TrangThaiHoSo)99;
             if (hoSo.LichHen != null) hoSo.LichHen.TrangThai = TrangThaiLichHen.DaHuy;
 
             await _context.SaveChangesAsync();
@@ -485,17 +380,23 @@ namespace Hospital.Areas.Admin.Controllers
         }
 
         // ===============================================================
-        // 7. CÁC HÀM AJAX ĐỒNG BỘ DỮ LIỆU (TẤT CẢ GIỮ NGUYÊN CODE)
+        // 7. CÁC HÀM AJAX ĐỒNG BỘ DỮ LIỆU (ĐÃ THÊM ĐIỀU KIỆN CHUYÊN KHOA)
         // ===============================================================
+
         [HttpGet]
         public async Task<IActionResult> GetDoctorAdmissionData(int bacSiId)
         {
-            var bacSi = await _context.BacSi.FirstOrDefaultAsync(b => b.BacSiId == bacSiId);
+            var bacSi = await _context.BacSi.Include(b => b.ChuyenKhoa).FirstOrDefaultAsync(b => b.BacSiId == bacSiId);
             if (bacSi == null) return Json(new { services = new List<object>(), bookedSlots = new List<string>() });
 
+            // ĐIỀU KIỆN LẤY DỊCH VỤ THEO CHUYÊN KHOA CỦA BÁC SĨ
             var services = await _context.ChuyenKhoaDichVus
-                .Where(ck => ck.ChuyenKhoaId == bacSi.ChuyenKhoaId)
-                .Select(ck => new { value = ck.DichVu.DichVuId, text = ck.DichVu.TenDichVu, gia = ck.DichVu.Gia.ToString("N0") })
+                .Where(ck => ck.ChuyenKhoaId == bacSi.ChuyenKhoaId && ck.DichVu.IsActive)
+                .Select(ck => new {
+                    value = ck.DichVu.DichVuId,
+                    text = ck.DichVu.TenDichVu,
+                    gia = ck.DichVu.Gia.ToString("N0")
+                })
                 .ToListAsync();
 
             var bookedSlots = await _context.LichHen
@@ -512,7 +413,14 @@ namespace Hospital.Areas.Admin.Controllers
             var lichHen = await _context.LichHen.Include(l => l.BacSi).FirstOrDefaultAsync(l => l.LichHenId == id);
             if (lichHen == null) return NotFound();
             var benhNhan = await _context.BenhNhan.FirstOrDefaultAsync(b => b.SoDienThoai == lichHen.SoDienThoai);
-            return Json(new { benhNhanId = benhNhan?.BenhNhanId, bacSiId = lichHen.BacSiId, trieuChung = lichHen.TrieuChung, lichLamViecId = lichHen.LichLamViecId, khungGioStr = lichHen.KhungGioBatDau.ToString(@"hh\:mm") });
+            return Json(new
+            {
+                benhNhanId = benhNhan?.BenhNhanId,
+                bacSiId = lichHen.BacSiId,
+                trieuChung = lichHen.TrieuChung,
+                lichLamViecId = lichHen.LichLamViecId,
+                khungGioStr = lichHen.KhungGioBatDau.ToString(@"hh\:mm")
+            });
         }
 
         [HttpGet]
@@ -531,8 +439,11 @@ namespace Hospital.Areas.Admin.Controllers
             var bacSi = await _context.BacSi.FirstOrDefaultAsync(b => b.BacSiId == bacSiId);
             if (bacSi == null) return Json(new { services = new List<object>(), bookedSlots = new List<string>(), shiftInfo = (object)null });
 
-            var rawServices = await _context.ChuyenKhoaDichVus.Where(ck => ck.ChuyenKhoaId == bacSi.ChuyenKhoaId)
-                .Select(ck => new { ck.DichVu.DichVuId, ck.DichVu.TenDichVu, ck.DichVu.Gia }).ToListAsync();
+            // ĐIỀU KIỆN LẤY DỊCH VỤ THEO CHUYÊN KHOA CỦA BÁC SĨ (Giống LichHenController)
+            var rawServices = await _context.ChuyenKhoaDichVus
+                .Where(ck => ck.ChuyenKhoaId == bacSi.ChuyenKhoaId && ck.DichVu.IsActive)
+                .Select(ck => new { ck.DichVu.DichVuId, ck.DichVu.TenDichVu, ck.DichVu.Gia })
+                .ToListAsync();
 
             var services = rawServices.Select(s => new { value = s.DichVuId, text = s.TenDichVu, gia = s.Gia.ToString("N0") }).ToList();
 
@@ -547,14 +458,23 @@ namespace Hospital.Areas.Admin.Controllers
 
             var allBookedSlots = bookedHen.Union(bookedHoSo).Where(t => t.HasValue).Select(t => t.Value.ToString(@"hh\:mm")).Distinct().ToList();
 
-            return Json(new { services, bookedSlots = allBookedSlots, shiftInfo = shift != null ? new { id = shift.LichLamViecId, start = shift.GioBatDau.ToString(@"hh\:mm"), end = shift.GioKetThuc.ToString(@"hh\:mm"), duration = shift.ThoiLuongKhungGioPhut } : null });
+            return Json(new
+            {
+                services,
+                bookedSlots = allBookedSlots,
+                shiftInfo = shift != null ? new
+                {
+                    id = shift.LichLamViecId,
+                    start = shift.GioBatDau.ToString(@"hh\:mm"),
+                    end = shift.GioKetThuc.ToString(@"hh\:mm"),
+                    duration = shift.ThoiLuongKhungGioPhut
+                } : null
+            });
         }
-        // ... (Các hàm AJAX cũ của bạn: GetPatientTimeline, GetDoctorShiftData...)
 
         // ===============================================================
-        // 8. BỔ SUNG: GỢI Ý BỆNH LÝ & PHÁC ĐỒ (DÁN VÀO ĐÂY)
+        // 8. BỔ SUNG: GỢI Ý BỆNH LÝ & PHÁC ĐỒ
         // ===============================================================
-
         [HttpGet]
         public async Task<IActionResult> GetBenhLySuggestions(string term)
         {
@@ -587,6 +507,5 @@ namespace Hospital.Areas.Admin.Controllers
             if (benh == null) return NotFound();
             return Json(benh);
         }
-    } // Dấu đóng ngoặc cuối cùng của Class HoSoBenhAnController
-} // Dấu đóng ngoặc cuối cùng của Namespace
- 
+    }
+}

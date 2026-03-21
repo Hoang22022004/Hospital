@@ -151,7 +151,7 @@
                                 $notice.append(` <a href="/Account/Login" class="text-primary text-decoration-underline">Đăng nhập ngay</a> để xem lịch sử khám.`);
                             }
                         } else {
-                            $notice.show().html(`<span class="text-muted"><i class="bi bi-info-circle"></i> Đây là SDT mới. Bạn nên <a href="/Account/Register" class="text-primary">Đăng ký</a> để tối ưu đặt lịch.</span>`);
+                           $notice.show().html(`<span class="text-muted"><i class="bi bi-info-circle"></i> Đây là SDT mới. Bạn nên <a href="/Identity/Account/Register?returnUrl=%2F" class="text-primary">Đăng ký</a> để tối ưu đặt lịch.</span>`);
                         }
                     });
                 }

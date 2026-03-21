@@ -33,6 +33,10 @@
             border-style: dashed !important;
         }
 
+        .italic {
+            font-style: italic;
+        }
+
         /* --- CSS CHO IN ẤN (A4) --- */
         @@media print {
             @@page {
@@ -71,6 +75,12 @@
             p, span, td, th, small, div {
                 font-size: 10px !important;
                 line-height: 1.2 !important;
+            }
+
+            .badge {
+                border: 1px solid #ccc !important;
+                color: #000 !important;
+                background: none !important;
             }
 
             .bg-navy {
@@ -137,13 +147,13 @@
                         </tbody>
                     </table>
 
-                    @* Bảng Đơn thuốc *@
+                    @* Bảng Đơn thuốc (ĐÃ CẬP NHẬT GIAO DIỆN MỚI) *@
                     <h6 class="fw-bold small mb-2 text-success text-uppercase"><i class="bi bi-capsule me-1"></i> Đơn thuốc chỉ định</h6>
                     <table class="table table-sm align-middle mb-3 border-bottom">
                         <thead class="bg-light">
                             <tr style="font-size: 0.65rem;">
-                                <th>TÊN THUỐC</th>
-                                <th class="text-center">SL</th>
+                                <th>TÊN THUỐC & LIỀU DÙNG</th>
+                                <th class="text-center">SỐ LƯỢNG</th>
                                 <th class="text-end">THÀNH TIỀN</th>
                             </tr>
                         </thead>
@@ -153,16 +163,34 @@
                                 <tr>
                                     <td>
                                         <div class="fw-bold text-navy">@t.Thuoc.TenThuoc</div>
-                                        <small class="text-muted italic">@t.LieuDung</small>
+                                        @* Lộ trình uống thuốc *@
+                                        <div class="mt-1" style="font-size: 0.75rem;">
+                                            <span class="badge bg-light text-dark border-0 p-0 me-2">☀️ @(t.LieuSang ?? "-")</span>
+                                            <span class="badge bg-light text-dark border-0 p-0 me-2">🌤️ @(t.LieuTrua ?? "-")</span>
+                                            <span class="badge bg-light text-dark border-0 p-0 me-2">⛅ @(t.LieuChieu ?? "-")</span>
+                                            <span class="badge bg-light text-dark border-0 p-0 me-2">🌙 @(t.LieuToi ?? "-")</span>
+                                        </div>
+                                        @* Số ngày và ghi chú *@
+                                        <div class="small text-muted mt-1 italic">
+                                            <i class="bi bi-calendar-check"></i> Dùng trong: <strong>@t.SoNgayDung ngày</strong>
+                                            @if (!string.IsNullOrEmpty(t.GhiChu))
+                                            {
+                                                <span class="ms-2">| Lưu ý: <span class="text-danger">@t.GhiChu</span></span>
+                                            }
+                                        </div>
                                     </td>
-                                    <td class="text-center">@t.SoLuong @(t.Thuoc?.DonViTinh ?? "Viên")</td>
-                                    <td class="text-end fw-bold">@((t.SoLuong * t.Thuoc.GiaBan).ToString("N0")) đ</td>
+                                    <td class="text-center">
+                                        <span class="fw-bold">@t.SoLuong.ToString("G29")</span> @(t.Thuoc?.DonViTinh ?? "Viên")
+                                    </td>
+                                    <td class="text-end fw-bold">
+                                        @(((decimal)t.SoLuong * t.Thuoc.GiaBan).ToString("N0")) đ
+                                    </td>
                                 </tr>
                             }
                         </tbody>
                     </table>
 
-                    @* --- KHỐI TỔNG TIỀN: LUÔN HIỂN THỊ TRÊN MÀN HÌNH --- *@
+                    @* --- KHỐI TỔNG TIỀN --- *@
                     <div class="p-3 rounded-4 bg-navy text-white shadow-sm mt-4">
                         <div class="row align-items-center">
                             <div class="col-7">
@@ -207,7 +235,6 @@
                         </div>
                     }
 
-                    @* Chữ ký khi in *@
                     <div class="mt-auto pt-5 border-top text-center row">
                         <div class="col-6"><small class="text-muted d-block mb-5">Bệnh nhân</small><strong>@Model.HoSo.BenhNhan?.HoTen</strong></div>
                         <div class="col-6"><small class="text-muted d-block mb-5">Bác sĩ khám</small><strong class="text-primary">@Model.HoSo.BacSi?.HoTen</strong></div>

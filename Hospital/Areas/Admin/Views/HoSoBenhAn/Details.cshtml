@@ -9,7 +9,7 @@
     /* --- GIAO DIỆN WEB (Hiển thị đầy đủ ảnh, không bị cắt) --- */
     .img-main-web {
         width: 100%;
-        height: auto; /* Hiển thị toàn bộ tỷ lệ ảnh trên web */
+        height: auto;
         border-radius: 8px;
         box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         border: 1px solid #eee;
@@ -24,7 +24,7 @@
 
     .gallery-item-web img {
         width: 100%;
-        height: auto; /* Không cắt ảnh phụ trên web */
+        height: auto;
         border-radius: 6px;
         border: 1px solid #ddd;
         transition: transform 0.2s;
@@ -35,13 +35,21 @@
             transform: scale(1.02);
         }
 
+    .italic {
+        font-style: italic;
+    }
+
+    .uppercase {
+        text-transform: uppercase;
+    }
+
     /* --- GIAO DIỆN IN (Ép gọn 1 trang A4) --- */
     @@media print {
         @@page {
             size: A4;
             margin: 8mm;
         }
-        /* Ẩn Menu/Sidebar Admin hoàn toàn */
+
         .no-print, nav, aside, .main-header, .navbar, .footer, .btn, .navbar-toggler {
             display: none !important;
         }
@@ -55,7 +63,7 @@
             top: 0 !important;
             background: white !important;
         }
-        /* Ép 2 cột luôn nằm ngang khi in */
+
         .row {
             display: flex !important;
             flex-wrap: nowrap !important;
@@ -74,7 +82,7 @@
             border-left: 1px solid #eee !important;
             padding-left: 10px !important;
         }
-        /* Thu nhỏ ảnh khi in để không nhảy trang */
+
         .img-main-web {
             max-height: 130px !important;
             width: auto !important;
@@ -156,7 +164,6 @@
                                 foreach (var dv in Model.ChiTietDichVus)
                                 {
                                     <tr>
-                                        @* In đậm tên dịch vụ đồng bộ với thuốc *@
                                         <td><strong>@dv.DichVu.TenDichVu</strong></td>
                                         <td class="text-end fw-bold">@dv.DichVu.Gia.ToString("N0") đ</td>
                                     </tr>
@@ -173,7 +180,7 @@
                     <table class="table table-sm table-bordered mb-2" style="font-size: 11px;">
                         <thead class="bg-light text-uppercase">
                             <tr>
-                                <th>Tên thuốc & Liều dùng</th>
+                                <th>Tên thuốc & Liều dùng chi tiết</th>
                                 <th class="text-center" width="60">SL</th>
                                 <th class="text-end" width="100">Thành tiền</th>
                             </tr>
@@ -184,10 +191,18 @@
                                 foreach (var t in Model.ChiTietDonThuocs)
                                 {
                                     <tr>
-                                        @* Tên thuốc in đậm *@
-                                        <td><strong>@t.Thuoc.TenThuoc</strong> <br /> <small class="text-muted italic">@t.LieuDung</small></td>
-                                        <td class="text-center">@t.SoLuong</td>
-                                        <td class="text-end fw-bold">@((t.SoLuong * t.Thuoc.GiaBan).ToString("N0")) đ</td>
+                                        <td>
+                                            <strong>@t.Thuoc.TenThuoc</strong>
+                                            <div class="mt-1 small text-dark">
+                                                Lộ trình: ☀️ @(t.LieuSang ?? "-") | 🌤️ @(t.LieuTrua ?? "-") | ⛅ @(t.LieuChieu ?? "-") | 🌙 @(t.LieuToi ?? "-")
+                                            </div>
+                                            <div class="small italic text-muted">
+                                                Dùng trong <b>@t.SoNgayDung ngày</b> @(string.IsNullOrEmpty(t.GhiChu) ? "" : $"| Lưu ý: {t.GhiChu}")
+                                            </div>
+                                        </td>
+                                        <td class="text-center align-middle">@t.SoLuong.ToString("G29")</td>
+                                        @* Ép kiểu (decimal) để tránh lỗi Build Failed *@
+                                        <td class="text-end fw-bold align-middle">@(((decimal)t.SoLuong * t.Thuoc.GiaBan).ToString("N0")) đ</td>
                                     </tr>
                                 }
                             }
@@ -224,7 +239,6 @@
                         var mainImg = Model.HinhAnhBenhAns?.FirstOrDefault(a => a.LaAnhChinh);
                     }
                     <div class="text-center mb-2">
-                        @* Ảnh chính: Cao tự động trên web, giới hạn khi in *@
                         <img src="@(mainImg?.DuongDan ?? "/images/no-image.png")" class="img-main-web" />
                         <div class="small text-muted mt-1" style="font-size: 9px;">Ảnh tổng quát vùng tổn thương</div>
                     </div>
