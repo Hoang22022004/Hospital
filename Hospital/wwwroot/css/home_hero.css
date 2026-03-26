@@ -1,19 +1,19 @@
 ﻿/* ==========================================================================
-   PHẦN 1: HERO CAROUSEL (BANNER CHÍNH)
+   PHẦN 1: HERO CAROUSEL (MÁY TÍNH - GIỮ NGUYÊN GỐC)
    ========================================================================== */
 
 .hero-section {
     position: relative;
-    margin-top: 0 !important; /* Banner nằm ngay dưới Navbar */
+    margin-top: 0 !important;
     z-index: 1;
     width: 100%;
 }
 
 .hero-carousel .carousel-item {
-    height: calc(110vh - 120px); /* Full màn hình trừ chiều cao Header */
+    height: calc(110vh - 120px);
     min-height: 650px;
     background-repeat: no-repeat;
-    background-position: center top !important; /* Giữ phần đầu ảnh, mặt bác sĩ */
+    background-position: center top !important;
     background-size: cover;
     background-attachment: scroll;
 }
@@ -24,9 +24,7 @@
     left: 0;
     height: 100%;
     width: 100%;
-    /* TĂNG ĐỘ ĐẬM: Thay 0.7 thành 0.85 và 0.3 thành 0.6 */
     background: linear-gradient(to right, rgba(10, 29, 55, 0.85) 0%, rgba(10, 29, 55, 0.6) 100%);
-    /* Đảm bảo lớp phủ nằm trên ảnh nhưng dưới chữ */
     z-index: 1;
 }
 
@@ -66,6 +64,7 @@
     max-width: 600px;
 }
 
+/* STYLE NÚT GỐC */
 .btn-hero-primary {
     background-color: var(--hp-accent);
     color: var(--hp-text-dark);
@@ -75,6 +74,8 @@
     border: none;
     text-transform: uppercase;
     transition: 0.3s;
+    display: inline-block;
+    text-decoration: none;
 }
 
     .btn-hero-primary:hover {
@@ -93,6 +94,8 @@
     border: 2px solid rgba(255,255,255,0.5);
     text-transform: uppercase;
     transition: 0.3s;
+    display: inline-block;
+    text-decoration: none;
 }
 
     .btn-hero-outline:hover {
@@ -108,16 +111,94 @@
     border-radius: 50%;
 }
 
+/* ==========================================================================
+   PHẦN 2: TỐI ƯU GIAO DIỆN MOBILE (ĐIỆN THOẠI)
+   ========================================================================== */
 @media (max-width: 768px) {
+    /* Thu gọn chiều cao banner */
     .hero-carousel .carousel-item {
-        height: 70vh;
+        height: 65vh !important;
+        min-height: 450px !important;
+    }
+
+    /* Căn giữa chữ và thu nhỏ cỡ chữ */
+    .carousel-caption {
+        text-align: center !important;
+        top: 45% !important;
+        left: 0 !important;
+        right: 0 !important;
+        width: 100%;
+        padding: 0 20px;
+    }
+
+    .hero-subtitle {
+        font-size: 0.75rem !important;
+        letter-spacing: 2px !important;
+        margin-bottom: 10px !important;
     }
 
     .hero-title {
-        font-size: 2.2rem;
+        font-size: 1.7rem !important;
+        margin-bottom: 15px !important;
     }
 
     .hero-text {
-        font-size: 0.95rem;
+        font-size: 0.85rem !important;
+        margin-bottom: 25px !important;
+        padding: 0 10px;
+        max-width: 100%;
+    }
+
+    /* TỐI ƯU NÚT BẤM MOBILE - HÌNH CHỮ NHẬT BO GÓC */
+    .btn-hero-primary, .btn-hero-outline {
+        width: auto !important; /* Không ép chiều rộng cố định */
+        height: auto !important; /* Không ép chiều cao cố định */
+        min-width: 130px; /* Đảm bảo nút không quá ngắn */
+        padding: 10px 20px !important; /* Độ dày nút vừa phải cho Mobile */
+        font-size: 0.75rem !important; /* Chữ nhỏ hơn máy tính một chút */
+        border-radius: 30px !important; /* Bo góc dạng viên thuốc (không tròn xoe) */
+        margin: 5px 3px !important; /* Khoảng cách giữa các nút */
+        display: inline-inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        line-height: 1.2;
+    }
+
+    /* TỐI ƯU THANH TÌM KIẾM (SEARCH BOX) */
+    .search-section {
+        margin-top: -40px !important;
+        padding: 0 15px;
+        position: relative;
+        z-index: 10;
+    }
+
+    .search-box-container {
+        border-radius: 20px !important;
+        padding: 10px !important;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important;
+    }
+
+    .search-input-group {
+        padding: 6px 12px !important;
+        margin-bottom: 10px !important;
+    }
+
+        .search-input-group input {
+            font-size: 0.85rem !important;
+        }
+
+    .btn-search-main {
+        width: 100% !important;
+        padding: 12px !important;
+        font-size: 0.9rem !important;
+        border-radius: 15px !important;
+        height: auto !important;
+    }
+
+    /* Thu nhỏ nút điều hướng slide */
+    .carousel-control-prev-icon, .carousel-control-next-icon {
+        width: 2.2rem !important;
+        height: 2.2rem !important;
     }
 }

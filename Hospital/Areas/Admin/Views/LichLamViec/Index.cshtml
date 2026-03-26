@@ -5,12 +5,10 @@
     var bacSis = ViewBag.BacSis as SelectList;
 }
 
-@* Thêm link cho Select2 theme Bootstrap 5 nếu bạn đang dùng *@
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
 
 <style>
-    /* CSS Giữ nguyên */
     .status-changer {
         background-color: #f8f9fa;
     }
@@ -24,148 +22,196 @@
         display: none !important;
     }
 
-    /* Thêm CSS cho Tooltip trên nút disabled (Dù không dùng ở đây, giữ lại cho cấu trúc) */
-    .btn-group span.d-inline-block {
-        cursor: not-allowed;
+    /* --- MOBILE OPTIMIZATION: Làm thẻ to bằng màn hình --- */
+    @@media (max-width: 768px) {
+        /* 1. Loại bỏ khoảng cách dư thừa của container */
+        .container-fluid {
+            padding-left: 8px !important;
+            padding-right: 8px !important;
+        }
+
+        h2 {
+            font-size: 1.25rem;
+            padding-left: 5px;
+        }
+        /* 2. Ép bảng và tbody rộng hết cỡ */
+        #tblData, #tblData tbody, #tblData tr {
+            display: block !important;
+            width: 100% !important;
+        }
+
+            #tblData thead {
+                display: none;
+            }
+
+            #tblData tbody tr {
+                border: 1px solid #e2e8f0;
+                border-radius: 16px; /* Bo góc mượt hơn */
+                margin-bottom: 16px;
+                padding: 16px; /* Tăng khoảng cách bên trong thẻ */
+                background: #fff;
+                box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); /* Thêm đổ bóng nổi khối */
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+            }
+            /* 3. Ép các ô td rộng 100% */
+            #tblData tbody td {
+                display: flex !important;
+                justify-content: space-between;
+                align-items: center;
+                width: 100% !important;
+                padding: 10px 0 !important; /* Tăng khoảng cách giữa các dòng nội dung */
+                border: none !important;
+                text-align: right !important;
+                font-size: 0.95rem;
+            }
+                /* 4. Nhãn tiêu đề bên trái */
+                #tblData tbody td::before {
+                    content: attr(data-label);
+                    font-weight: 700;
+                    color: #64748b;
+                    text-transform: uppercase;
+                    font-size: 0.75rem;
+                    text-align: left;
+                    flex: 1;
+                }
+                /* 5. Căn chỉnh lại hàng nút bấm thao tác */
+                #tblData tbody td[data-label="Thao tác"] {
+                    border-top: 1px solid #f1f5f9 !important;
+                    margin-top: 8px;
+                    padding-top: 15px !important;
+                    justify-content: center !important;
+                }
+
+        .btn-group {
+            width: 100%;
+            display: flex;
+            gap: 10px;
+        }
+
+            .btn-group a {
+                flex: 1; /* Hai nút Sửa/Xóa chia đôi chiều rộng card */
+                padding: 10px !important;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
     }
 </style>
 
 <div class="container-fluid p-0">
-
-    <div class="row pt-4 align-items-center">
-        <div class="col-6">
-            <h2 class="text-primary mb-0">Lịch làm việc của Bác sĩ</h2>
+    <div class="row pt-4 px-3 align-items-center">
+        <div class="col-8">
+            <h2 class="text-primary fw-bold mb-0">Lịch làm việc Bác sĩ</h2>
         </div>
-        <div class="col-6 text-end">
-            <a asp-controller="LichLamViec" asp-action="Create" class="btn btn-primary shadow-sm">
-                <i class="bi bi-calendar-plus"></i> &nbsp; Thêm Ca làm việc
+        <div class="col-4 text-end">
+            <a asp-controller="LichLamViec" asp-action="Create" class="btn btn-primary btn-sm shadow-sm">
+                <i class="bi bi-plus-lg"></i> <span class="d-none d-md-inline">Thêm Ca</span>
             </a>
         </div>
     </div>
 
-    <hr class="mt-2 mb-4" />
+    <hr class="mt-2 mb-4 mx-3" />
 
-
-    <div class="row mb-3">
-        <div class="col-md-4">
+    @* BỘ LỌC *@
+    <div class="row mb-3 mx-2 filter-section">
+        <div class="col-md-4 col-12 mb-2">
             <div class="dropdown">
-                <button class="btn btn-outline-info dropdown-toggle w-100"
-                        type="button" data-bs-toggle="dropdown">
-                    <i class="bi bi-funnel"></i> Lọc theo
+                <button class="btn btn-outline-info dropdown-toggle w-100" type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-funnel"></i> Lọc dữ liệu
                 </button>
-
-                <ul class="dropdown-menu w-100">
-                    <li>
-                        <a class="dropdown-item filter-option" data-filter="bacsi">
-                            <i class="bi bi-person-badge"></i> Bác sĩ
-                        </a>
-                    </li>
-
-                    <li>
-                        <a class="dropdown-item filter-option" data-filter="ngay">
-                            <i class="bi bi-calendar-event"></i> Ngày làm việc
-                        </a>
-                    </li>
-
-                    <li>
-                        <a class="dropdown-item filter-option" data-filter="trangthai">
-                            <i class="bi bi-toggle2-on"></i> Trạng thái
-                        </a>
-                    </li>
+                <ul class="dropdown-menu w-100 shadow">
+                    <li><a class="dropdown-item filter-option" data-filter="bacsi"><i class="bi bi-person-badge"></i> Theo Bác sĩ</a></li>
+                    <li><a class="dropdown-item filter-option" data-filter="ngay"><i class="bi bi-calendar-event"></i> Theo Ngày làm việc</a></li>
+                    <li><a class="dropdown-item filter-option" data-filter="trangthai"><i class="bi bi-toggle2-on"></i> Theo Trạng thái</a></li>
                 </ul>
             </div>
         </div>
-
-        <div class="col-md-2">
+        <div class="col-md-2 col-12">
             <button id="resetFilter" class="btn btn-outline-secondary w-100">
-                <i class="bi bi-x-circle"></i> Đặt lại
+                <i class="bi bi-arrow-counterclockwise"></i> Đặt lại
             </button>
         </div>
     </div>
 
-
-    <div id="filterBacSi" class="mb-3 d-none">
-        <label class="form-label">Lọc theo Bác sĩ:</label>
-        <select id="bacSiFilter" class="form-select select2-dropdown">
-            <option value="">-- Tất cả --</option>
-            @if (bacSis != null)
-            {
-                @foreach (var item in bacSis)
+    @* KHỐI NHẬP LIỆU LỌC *@
+    <div class="px-3">
+        <div id="filterBacSi" class="mb-3 d-none animate__animated animate__fadeIn">
+            <label class="form-label small fw-bold">Chọn Bác sĩ:</label>
+            <select id="bacSiFilter" class="form-select select2-dropdown">
+                <option value="">-- Tất cả --</option>
+                @if (bacSis != null)
                 {
-                    <option value="@item.Text">@item.Text</option>
+                    foreach (var item in bacSis)
+                    {
+                        <option value="@item.Text">@item.Text</option>
+                    }
                 }
-            }
-        </select>
+            </select>
+        </div>
+
+        <div id="filterNgay" class="mb-3 d-none animate__animated animate__fadeIn">
+            <label class="form-label small fw-bold">Chọn Ngày:</label>
+            <input type="date" id="ngayFilter" class="form-control" />
+        </div>
+
+        <div id="filterTrangThai" class="mb-3 d-none animate__animated animate__fadeIn">
+            <label class="form-label small fw-bold">Trạng thái:</label>
+            <select id="trangThaiFilter" class="form-select">
+                <option value="">-- Tất cả --</option>
+                <option value="Hoạt động">Hoạt động</option>
+                <option value="Tạm dừng">Tạm dừng</option>
+            </select>
+        </div>
     </div>
 
-    @* KHU VỰC LỌC THEO NGÀY *@
-    <div id="filterNgay" class="mb-3 d-none">
-        <label class="form-label">Chọn Ngày:</label>
-        <input type="date" id="ngayFilter" class="form-control" />
-    </div>
-
-    <div id="filterTrangThai" class="mb-3 d-none">
-        <label class="form-label">Trạng thái:</label>
-        <select id="trangThaiFilter" class="form-select">
-            <option value="">-- Tất cả --</option>
-            <option value="Hoạt động">Hoạt động</option>
-            <option value="Tạm dừng">Tạm dừng</option>
-        </select>
-    </div>
-
-
-    <table id="tblData" class="table table-striped table-hover" style="width:100%">
-        <thead>
-            <tr>
-                <th class="no-wrap-header">Bác sĩ</th>           @* Index 0 - Cột lọc Bác sĩ *@
-                <th class="no-wrap-header">Ngày làm việc</th>     @* Index 1 - Cột lọc Ngày *@
-                <th class="no-wrap-header">Giờ bắt đầu</th>       @* Index 2 *@
-                <th class="no-wrap-header">Giờ kết thúc</th>      @* Index 3 *@
-                <th class="no-wrap-header text-center">Thời lượng (Phút)</th> @* Index 4 *@
-                <th class="no-wrap-header">Trạng thái</th>       @* Index 5 *@
-                <th class="no-wrap-header hidden-column">Trạng thái (Text)</th> @* Index 6 - Cột lọc Trạng thái ẩn *@
-                <th class="no-wrap-header">Thao tác</th>         @* Index 7 *@
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var obj in Model)
-            {
+    <div class="px-2">
+        <table id="tblData" class="table table-hover align-middle" style="width:100%">
+            <thead class="table-light">
                 <tr>
-                    <td style="vertical-align: middle;">@obj.BacSi.HoTen</td>
-                    <td style="vertical-align: middle;">@obj.NgayLamViec.ToString("dd/MM/yyyy")</td> @* Cột 1 *@
-
-                    <td style="vertical-align: middle;">@obj.GioBatDau.ToString(@"hh\:mm")</td>
-                    <td style="vertical-align: middle;">@obj.GioKetThuc.ToString(@"hh\:mm")</td>
-
-                    <td class="text-center" style="vertical-align: middle;">@obj.ThoiLuongKhungGioPhut</td>
-
-                    <td style="vertical-align: middle;">
-                        @{
-                            string statusText = obj.IsActive ? "Hoạt động" : "Tạm dừng";
-                            string statusClass = obj.IsActive ? "bg-success" : "bg-secondary";
-                        }
-                        <span class="badge rounded-pill @statusClass">
-                            @statusText
-                        </span>
-                    </td>
-                    <td class="hidden-column">@(obj.IsActive ? "Hoạt động" : "Tạm dừng")</td> @* Cột 6: Nội dung ẩn *@
-
-                    <td style="vertical-align: middle;">
-                        <div class="btn-group" role="group">
-                            <a asp-controller="LichLamViec" asp-action="Edit" asp-route-id="@obj.LichLamViecId" class="btn btn-sm btn-outline-primary">
-                                <i class="bi bi-pencil-square"></i>
-                            </a>
-                            <a asp-controller="LichLamViec" asp-action="Delete" asp-route-id="@obj.LichLamViecId" class="btn btn-sm btn-outline-danger">
-                                <i class="bi bi-trash-fill"></i>
-                            </a>
-                        </div>
-                    </td>
+                    <th>Bác sĩ</th>
+                    <th>Ngày làm việc</th>
+                    <th>Giờ bắt đầu</th>
+                    <th>Giờ kết thúc</th>
+                    <th class="text-center">Thời lượng</th>
+                    <th>Trạng thái</th>
+                    <th class="hidden-column">Trạng thái (Text)</th>
+                    <th class="text-end px-4">Thao tác</th>
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach (var obj in Model)
+                {
+                    <tr>
+                        <td data-label="Bác sĩ" class="fw-bold text-dark">@obj.BacSi.HoTen</td>
+                        <td data-label="Ngày">@obj.NgayLamViec.ToString("dd/MM/yyyy")</td>
+                        <td data-label="Bắt đầu">@obj.GioBatDau.ToString(@"hh\:mm")</td>
+                        <td data-label="Kết thúc">@obj.GioKetThuc.ToString(@"hh\:mm")</td>
+                        <td data-label="Thời lượng">@obj.ThoiLuongKhungGioPhut phút</td>
+                        <td data-label="Trạng thái">
+                            @{
+                                string statusText = obj.IsActive ? "Hoạt động" : "Tạm dừng";
+                                string statusClass = obj.IsActive ? "bg-success" : "bg-secondary";
+                            }
+                            <span class="badge rounded-pill @statusClass">@statusText</span>
+                        </td>
+                        <td class="hidden-column">@statusText</td>
+                        <td data-label="Thao tác" class="text-end">
+                            <div class="btn-group">
+                                <a asp-controller="LichLamViec" asp-action="Edit" asp-route-id="@obj.LichLamViecId" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                                <a asp-controller="LichLamViec" asp-action="Delete" asp-route-id="@obj.LichLamViecId" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash-fill"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 </div>
-
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
@@ -173,59 +219,30 @@
     <script src="https://cdn.datatables.net/2.0.8/js/dataTables.bootstrap5.min.js"></script>
 
     <script>
-
-        // Khởi tạo hàm DataTables (Để DataTables.js hoạt động)
         function initializeDataTable(tableId, options) {
             return $(`#${tableId}`).DataTable($.extend(true, {
                 "language": { "url": "/js/i18n/vi.json" },
                 "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "Tất cả"]],
-                "pagingType": "full_numbers",
+                "pagingType": "simple_numbers",
                 "responsive": true,
                 "order": [[1, 'asc']],
             }, options));
         }
 
         $(document).ready(function () {
-
-            // Khởi tạo Tooltip Bootstrap (Nếu cần dùng tooltip cho bất kỳ nút disabled nào)
-            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-                return new bootstrap.Tooltip(tooltipTriggerEl)
-            })
-
-            // --- 1. THÊM CUSTOM FILTER CHO NGÀY (Cột 1) ---
-            $.fn.dataTable.ext.search.push(
-                function(settings, data, dataIndex) {
-                    var ngayFilter = $('#ngayFilter').val(); // Định dạng YYYY-MM-DD
-
-                    if (!ngayFilter || $('#filterNgay').hasClass('d-none')) {
-                        return true; // Bỏ qua lọc nếu không chọn ngày hoặc filter đang ẩn
-                    }
-
-                    var ngayHienThi = data[1]; // Lấy giá trị ngày tháng từ cột 1 (dd/MM/yyyy)
-
-                    // Chuyển đổi định dạng ngày: dd/MM/yyyy -> yyyy-MM-dd để so sánh với input type="date"
-                    var parts = ngayHienThi.split('/');
-                    if (parts.length === 3) {
-                         var ngaySoSanh = parts[2] + '-' + parts[1] + '-' + parts[0];
-                         return ngaySoSanh === ngayFilter;
-                    }
-
-                    return false;
-                }
-            );
-
-            // Khởi tạo DataTables
-            var table = initializeDataTable('tblData', {
-                "order": [[1, 'asc']],
-                "columnDefs": [
-                    // Cột 6 là cột ẩn Trạng thái
-                    { "targets": 6, "visible": false, "searchable": true }
-                ]
+            $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+                var filterVal = $('#ngayFilter').val();
+                if (!filterVal || $('#filterNgay').hasClass('d-none')) return true;
+                var rowDateStr = data[1];
+                var parts = rowDateStr.split('/');
+                var rowDateIso = parts[2] + '-' + parts[1] + '-' + parts[0];
+                return rowDateIso === filterVal;
             });
 
+            var table = initializeDataTable('tblData', {
+                "columnDefs": [{ "targets": 6, "visible": false, "searchable": true }]
+            });
 
-            // Khởi tạo Select2
             $('#bacSiFilter').select2({
                 placeholder: "-- Tất cả --",
                 allowClear: true,
@@ -233,73 +250,39 @@
                 width: '100%'
             });
 
-            // --- 2. HÀM LỌC TỔNG HỢP ---
             function applyFilters() {
-                // Xóa tìm kiếm cột cũ
-                // Cột 0: Bác sĩ, Cột 6: Trạng thái (Text ẩn)
-                table.columns([0, 6]).search('');
-
-                // 1. Lọc theo Bác sĩ (Cột 0)
+                table.column(0).search('');
+                table.column(6).search('');
                 var bacSi = $('#bacSiFilter').val();
                 if (bacSi && $('#filterBacSi').is(':visible')) {
-                    // Lọc chính xác
                     table.column(0).search('^' + bacSi + '$', true, false);
                 }
-
-                // 2. Lọc theo Trạng thái (Cột 6 - Text ẩn)
                 var trangThai = $('#trangThaiFilter').val();
                 if (trangThai && $('#filterTrangThai').is(':visible')) {
-                    // Lọc chính xác trên cột ẨN (Cột 6)
                     table.column(6).search('^' + trangThai + '$', true, false);
                 }
-
-                // Lọc theo Ngày (Kích hoạt bộ lọc tùy chỉnh đã được định nghĩa ở trên)
                 table.draw();
             }
 
-
-            // --- GẮN SỰ KIỆN LỌC MENU VÀ APPLY ---
-
-            // 1. Gắn sự kiện Change cho các Filter để áp dụng lọc cộng dồn
             $('#bacSiFilter, #ngayFilter, #trangThaiFilter').on('change', applyFilters);
 
-            // 2. Hiển thị filter theo menu
             $('.filter-option').on('click', function () {
                 var filter = $(this).data('filter');
-                var table = $('#tblData').DataTable();
-
-                // Reset các giá trị lọc và ẩn khối filter khi chuyển đổi
+                $('#filterBacSi, #filterNgay, #filterTrangThai').addClass('d-none');
+                if (filter === 'bacsi') $('#filterBacSi').removeClass('d-none');
+                else if (filter === 'ngay') $('#filterNgay').removeClass('d-none');
+                else if (filter === 'trangthai') $('#filterTrangThai').removeClass('d-none');
                 $('#bacSiFilter').val('').trigger('change.select2');
                 $('#ngayFilter').val('');
                 $('#trangThaiFilter').val('');
-                table.search('').columns().search('').draw(); // Xóa tất cả lọc cũ
-
-                // Ẩn tất cả các khối trước
-                $('#filterBacSi, #filterNgay, #filterTrangThai').addClass('d-none');
-
-                // Hiển thị khối được chọn
-                if (filter === 'bacsi') {
-                    $('#filterBacSi').removeClass('d-none');
-                } else if (filter === 'ngay') {
-                    $('#filterNgay').removeClass('d-none');
-                } else if (filter === 'trangthai') {
-                    $('#filterTrangThai').removeClass('d-none');
-                }
+                table.search('').columns().search('').draw();
             });
 
-
-            // 3. RESET
             $('#resetFilter').on('click', function () {
-                var table = $('#tblData').DataTable();
-                // Reset giá trị
                 $('#bacSiFilter').val('').trigger('change.select2');
                 $('#ngayFilter').val('');
                 $('#trangThaiFilter').val('');
-
-                // Ẩn tất cả các khối filter
                 $('#filterBacSi, #filterNgay, #filterTrangThai').addClass('d-none');
-
-                // Xóa tất cả các bộ lọc trên DataTables
                 table.search('').columns().search('').draw();
             });
         });

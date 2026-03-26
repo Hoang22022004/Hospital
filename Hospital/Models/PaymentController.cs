@@ -38,6 +38,10 @@ namespace Hospital.Controllers
             decimal total = (hoSo.ChiTietDichVus?.Sum(d => d.DichVu.Gia) ?? 0) +
                             (hoSo.ChiTietDonThuocs?.Sum(t => (decimal)(t.SoLuong) * (t.Thuoc?.GiaBan ?? 0)) ?? 0);
 
+            // TẠO RETURN URL ĐỘNG: 
+            // Tự động lấy tên miền hiện tại (localhost hoặc domain thật) để quay về đúng nơi
+            string returnUrl = Url.Action("VnpayReturn", "Payment", null, Request.Scheme);
+
             var vnpay = new VnPayLibrary();
             vnpay.AddRequestData("vnp_Version", "2.1.0");
             vnpay.AddRequestData("vnp_Command", "pay");
@@ -49,7 +53,10 @@ namespace Hospital.Controllers
             vnpay.AddRequestData("vnp_Locale", "vn");
             vnpay.AddRequestData("vnp_OrderInfo", "Thanh toan ho so benh an: " + id);
             vnpay.AddRequestData("vnp_OrderType", "other");
-            vnpay.AddRequestData("vnp_ReturnUrl", _vnpayConfig.ReturnUrl);
+
+            // Sử dụng URL động thay vì lấy từ file cấu hình cứng nhắc
+            vnpay.AddRequestData("vnp_ReturnUrl", returnUrl);
+
             vnpay.AddRequestData("vnp_TxnRef", id.ToString() + "_" + DateTime.Now.Ticks);
 
             string paymentUrl = vnpay.CreateRequestUrl(_vnpayConfig.BaseUrl, _vnpayConfig.HashSecret);
@@ -103,8 +110,8 @@ namespace Hospital.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ThanhToanTienMat(int id)
         {
-            var hoSo = await _context.HoSoBenhAn.AnyAsync(h => h.Id == id);
-            if (!hoSo) return NotFound();
+            var hoSoExists = await _context.HoSoBenhAn.AnyAsync(h => h.Id == id);
+            if (!hoSoExists) return NotFound();
 
             await CapNhatThanhCong(id);
 

@@ -4,7 +4,7 @@
 <section class="doctors-section py-5">
     <div class="container-fluid px-lg-5">
 
-        @* --- PHẦN TIÊU ĐỀ & NÚT XEM TẤT CẢ CẬP NHẬT MỚI --- *@
+        @* --- PHẦN TIÊU ĐỀ & NÚT XEM TẤT CẢ --- *@
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-5 text-center text-md-start">
             <div>
                 <span class="text-teal fw-bold text-uppercase ls-2 small">Chuyên gia hàng đầu</span>
@@ -18,7 +18,7 @@
             </div>
         </div>
 
-        @* --- GIỮ NGUYÊN TOÀN BỘ CODE CAROUSEL CỦA BẠN --- *@
+        @* --- CAROUSEL BÁC SĨ --- *@
         <div id="doctorCarousel" class="carousel slide" data-bs-ride="carousel">
             <div class="carousel-inner">
                 @if (Model != null && Model.Any())
@@ -31,9 +31,10 @@
                                 isFirst = false;
                             }
                             <div class="doctor-profile-card">
-                                <div class="row align-items-start">
+                                <div class="row align-items-start align-items-lg-center">
                                     <div class="col-lg-5 px-4 text-center">
-                                        <div class="dr-image-container">
+                                        @* Thêm class dr-full-photo-mobile *@
+                                        <div class="dr-image-container dr-full-photo-mobile">
                                             <img src="@(string.IsNullOrEmpty(dr.HinhAnhUrl) ? "/images/default-doctor.jpg" : dr.HinhAnhUrl)"
                                                  alt="@dr.HoTen">
                                         </div>
@@ -43,14 +44,14 @@
                                     <div class="col-lg-7 px-4">
                                         <h2 class="dr-name-right">Bác sĩ @dr.HoTen</h2>
                                         <div class="mb-3">
-                                            <span class="badge" style="background-color: #e0f2fe; color: #0369a1; padding: 10px 18px; border-radius: 50px; font-weight: 700;">
+                                            <span class="badge dr-badge-custom">
                                                 CHUYÊN KHOA: @(dr.ChuyenKhoa?.TenChuyenKhoa?.ToUpper() ?? "DA LIỄU TỔNG QUÁT")
                                             </span>
                                         </div>
                                         <div class="dr-description-content">
                                             @Html.Raw(dr.MoTaChiTiet)
                                         </div>
-                                        <div class="d-flex gap-3 mt-4">
+                                        <div class="d-flex flex-wrap gap-2 gap-md-3 mt-4 justify-content-center justify-content-lg-start">
                                             <a href="/DatLich?bacSiId=@dr.BacSiId" class="btn btn-appointment">
                                                 <i class="bi bi-calendar-check me-2"></i>ĐẶT LỊCH KHÁM
                                             </a>

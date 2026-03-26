@@ -133,6 +133,59 @@
             color: white;
             border-color: var(--clinic-blue);
         }
+
+    /* --- TỐI ƯU GIAO DIỆN ĐIỆN THOẠI (MOBILE RESPONSIVE TABLE) --- */
+    @@media (max-width: 768px) {
+        /* Ẩn tiêu đề bảng */
+        .table thead
+
+    {
+        display: none;
+    }
+
+    /* Biến mỗi dòng tr thành một Card */
+    .table tbody tr {
+        display: block;
+        border-bottom: 8px solid #f1f5f9;
+        padding: 15px;
+        position: relative;
+    }
+
+    /* Biến mỗi ô td thành một dòng trong Card */
+    .table tbody td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        text-align: right;
+        padding: 8px 0 !important;
+        border: none !important;
+        font-size: 0.9rem;
+    }
+
+        /* Tạo tiêu đề giả cho mỗi ô dựa trên data-label */
+        .table tbody td::before {
+            content: attr(data-label);
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            color: #94a3b8;
+            text-align: left;
+            flex: 1;
+        }
+
+        /* Ô thao tác căn giữa và rộng 100% */
+        .table tbody td:last-child {
+            justify-content: center;
+            border-top: 1px solid #f1f5f9 !important;
+            margin-top: 10px;
+            padding-top: 15px !important;
+        }
+
+    .stat-card {
+        margin-bottom: 10px;
+    }
+
+    }
 </style>
 
 <div class="container-fluid py-4 px-lg-5">
@@ -152,34 +205,34 @@
 
     @* DASHBOARD STATS *@
     <div class="row g-3 mb-4">
-        <div class="col-md-3">
+        <div class="col-6 col-md-3">
             <div class="stat-card">
                 <div class="d-flex align-items-center">
-                    <div class="icon-box bg-secondary bg-opacity-10 text-secondary me-3"><i class="fas fa-users"></i></div>
+                    <div class="icon-box bg-secondary bg-opacity-10 text-secondary me-2 me-md-3"><i class="fas fa-users"></i></div>
                     <div><p class="text-muted mb-0 small fw-bold">CHỜ KHÁM</p><h4 class="fw-bold mb-0">@ViewBag.CountChoKham</h4></div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-6 col-md-3">
             <div class="stat-card">
                 <div class="d-flex align-items-center">
-                    <div class="icon-box bg-primary bg-opacity-10 text-primary me-3"><i class="fas fa-stethoscope"></i></div>
+                    <div class="icon-box bg-primary bg-opacity-10 text-primary me-2 me-md-3"><i class="fas fa-stethoscope"></i></div>
                     <div><p class="text-muted mb-0 small fw-bold text-primary">ĐANG KHÁM</p><h4 class="fw-bold mb-0 text-primary">@ViewBag.CountDangKham</h4></div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-6 col-md-3">
             <div class="stat-card">
                 <div class="d-flex align-items-center">
-                    <div class="icon-box bg-warning bg-opacity-10 text-warning me-3"><i class="fas fa-wallet"></i></div>
+                    <div class="icon-box bg-warning bg-opacity-10 text-warning me-2 me-md-3"><i class="fas fa-wallet"></i></div>
                     <div><p class="text-muted mb-0 small fw-bold text-warning">ĐỢI THU PHÍ</p><h4 class="fw-bold mb-0 text-warning">@ViewBag.CountChoThanhToan</h4></div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-6 col-md-3">
             <div class="stat-card">
                 <div class="d-flex align-items-center">
-                    <div class="icon-box bg-success bg-opacity-10 text-success me-3"><i class="fas fa-check-double"></i></div>
+                    <div class="icon-box bg-success bg-opacity-10 text-success me-2 me-md-3"><i class="fas fa-check-double"></i></div>
                     <div><p class="text-muted mb-0 small fw-bold text-success">HOÀN THÀNH</p><h4 class="fw-bold mb-0 text-success">@ViewBag.CountHoanThanh</h4></div>
                 </div>
             </div>
@@ -189,28 +242,28 @@
     @* FILTER FORM *@
     <div class="glass-card shadow-sm">
         <form asp-action="Index" method="get" class="row g-3 align-items-end">
-            <div class="col-md-3">
+            <div class="col-6 col-md-3">
                 <label class="small fw-bold text-muted mb-2">Ngày khám</label>
-                <input type="date" name="searchDate" class="form-control" value="@searchDate" />
+                <input type="date" name="searchDate" class="form-control shadow-sm" value="@searchDate" />
             </div>
-            <div class="col-md-4">
-                <label class="small fw-bold text-muted mb-2">Bệnh nhân</label>
-                <input type="text" name="searchString" class="form-control" placeholder="Tên hoặc SĐT..." value="@searchString" />
-            </div>
-            <div class="col-md-3">
+            <div class="col-6 col-md-3">
                 <label class="small fw-bold text-muted mb-2">Trạng thái</label>
-                <select name="status" class="form-select" asp-items="Html.GetEnumSelectList<TrangThaiHoSo>()">
+                <select name="status" class="form-select shadow-sm" asp-items="Html.GetEnumSelectList<TrangThaiHoSo>()">
                     <option value="">-- Tất cả --</option>
                 </select>
             </div>
+            <div class="col-md-4">
+                <label class="small fw-bold text-muted mb-2">Tìm bệnh nhân</label>
+                <input type="text" name="searchString" class="form-control shadow-sm" placeholder="Tên hoặc SĐT..." value="@searchString" />
+            </div>
             <div class="col-md-2">
-                <button type="submit" class="btn btn-dark w-100 py-2 fw-bold">Lọc dữ liệu</button>
+                <button type="submit" class="btn btn-dark w-100 py-2 fw-bold shadow-sm">Lọc dữ liệu</button>
             </div>
         </form>
     </div>
 
     @* DATA TABLE *@
-    <div class="table-container shadow-sm">
+    <div class="table-container shadow-sm border-0">
         <div class="table-responsive">
             <table class="table align-middle mb-0">
                 <thead>
@@ -229,23 +282,23 @@
                         foreach (var item in Model)
                         {
                             <tr>
-                                <td class="ps-4 fw-bold text-muted">#@item.Id</td>
-                                <td>
-                                    <div class="fw-bold">@item.BenhNhan?.HoTen</div>
+                                <td class="ps-4 fw-bold text-muted" data-label="Mã hồ sơ">#@item.Id</td>
+                                <td data-label="Bệnh nhân">
+                                    <div class="fw-bold text-dark">@item.BenhNhan?.HoTen</div>
                                     <div class="small text-muted"><i class="fas fa-phone-alt me-1"></i> @item.BenhNhan?.SoDienThoai</div>
                                 </td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <i class="fas fa-user-md text-primary me-2"></i>
+                                <td data-label="Bác sĩ">
+                                    <div class="d-flex align-items-center justify-content-end justify-content-md-start">
+                                        <i class="fas fa-user-md text-primary me-2 d-none d-md-block"></i>
                                         <span class="fw-bold">@item.BacSi?.HoTen</span>
                                     </div>
                                 </td>
-                                <td>
+                                <td data-label="Giờ khám">
                                     <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle px-2 py-1">
                                         <i class="far fa-clock me-1"></i> @(item.KhungGioBatDau?.ToString(@"hh\:mm") ?? item.NgayKham.ToString("HH:mm"))
                                     </span>
                                 </td>
-                                <td>
+                                <td data-label="Trạng thái">
                                     @switch (item.TrangThai)
                                     {
                                         case TrangThaiHoSo.ChoKham:
@@ -277,12 +330,10 @@
                                             if (item.TrangThai == TrangThaiHoSo.ChoThanhToan)
                                             {
                                                 <div class="d-flex gap-1">
-                                                    @* Online *@
                                                     <a asp-area="" asp-controller="Payment" asp-action="ThanhToanVnpay" asp-route-id="@item.Id"
                                                        class="btn-action text-success" title="Thanh toán VNPay">
                                                         <i class="fas fa-credit-card"></i>
                                                     </a>
-                                                    @* Tiền mặt với SweetAlert2 *@
                                                     <form asp-area="" asp-controller="Payment" asp-action="ThanhToanTienMat" method="post">
                                                         <input type="hidden" name="id" value="@item.Id" />
                                                         <button type="button" class="btn-action text-warning border-0 bg-transparent btn-confirm-cash"
@@ -302,6 +353,10 @@
                                 </td>
                             </tr>
                         }
+                    }
+                    else
+                    {
+                        <tr><td colspan="6" class="text-center py-5 text-muted">Không tìm thấy dữ liệu hồ sơ phù hợp.</td></tr>
                     }
                 </tbody>
             </table>
@@ -327,7 +382,6 @@
 @section Scripts {
     <script>
         $(document).ready(function () {
-            // Xử lý xác nhận thanh toán tiền mặt bằng SweetAlert2
             $('.btn-confirm-cash').on('click', function () {
                 var $button = $(this);
                 var patientName = $button.data('name');
@@ -364,13 +418,15 @@
         @if (TempData["success"] != null)
         {
             <text>
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Thành công',
-                    text: '@TempData["success"]',
-                    timer: 2500,
-                    showConfirmButton: false
-                });
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Thành công',
+                        text: '@Html.Raw(TempData["success"])',
+                        timer: 2500,
+                        showConfirmButton: false,
+                        toast: true,
+                        position: 'top-end'
+                    });
             </text>
         }
     </script>

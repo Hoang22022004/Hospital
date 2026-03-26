@@ -38,7 +38,7 @@ namespace Hospital.Areas.Admin.Controllers
 
             decimal GetTotal(HoSoBenhAn h) =>
                 (h.ChiTietDichVus?.Sum(d => d.DichVu.Gia) ?? 0) +
-               h.ChiTietDonThuocs?.Sum(t => (decimal)(t.SoLuong) * (t.Thuoc?.GiaBan ?? 0)) ?? 0;
+                (h.ChiTietDonThuocs?.Sum(t => (decimal)(t.SoLuong) * (t.Thuoc?.GiaBan ?? 0)) ?? 0);
 
             // Doanh thu hôm nay
             ViewBag.RevDay = allRecords.Where(h => h.NgayKham.Date == today).Sum(GetTotal);
@@ -48,7 +48,7 @@ namespace Hospital.Areas.Admin.Controllers
             ViewBag.RevMonthTotal = allRecords.Where(h => h.NgayKham.Month == currentMonth).Sum(GetTotal);
             ViewBag.RevYearTotal = allRecords.Sum(GetTotal);
 
-            // 3. DỮ LIỆU BIỂU ĐỒ
+            // 3. DỮ LIỆU BIỂU ĐỒ MẶC ĐỊNH (THEO NĂM)
             var yearData = Enumerable.Range(1, 12).Select(m => allRecords.Where(h => h.NgayKham.Month == m).Sum(GetTotal)).ToArray();
             ViewBag.YearLabels = JsonConvert.SerializeObject(Enumerable.Range(1, 12).Select(m => "T" + m));
             ViewBag.YearData = JsonConvert.SerializeObject(yearData);
@@ -74,6 +74,46 @@ namespace Hospital.Areas.Admin.Controllers
             ViewBag.DrCounts = JsonConvert.SerializeObject(drRanking.Select(d => d.Count));
 
             return View();
+        }
+
+        // --- HÀM MỚI: XỬ LÝ LỌC THEO KHOẢNG NGÀY TÙY CHỈNH ---
+        [HttpGet]
+        public async Task<IActionResult> GetDataByRange(DateTime start, DateTime end)
+        {
+            // Lấy dữ liệu trong khoảng từ start đến hết ngày end
+            var records = await _context.HoSoBenhAn
+                .Where(h => h.NgayKham.Date >= start.Date && h.NgayKham.Date <= end.Date && h.TrangThai == TrangThaiHoSo.HoanThanh)
+                .Include(h => h.ChiTietDichVus).ThenInclude(d => d.DichVu)
+                .Include(h => h.ChiTietDonThuocs).ThenInclude(t => t.Thuoc)
+                .ToListAsync();
+
+            decimal CalculateTotal(HoSoBenhAn h) =>
+                (h.ChiTietDichVus?.Sum(d => d.DichVu.Gia) ?? 0) +
+                (h.ChiTietDonThuocs?.Sum(t => (decimal)(t.SoLuong) * (t.Thuoc?.GiaBan ?? 0)) ?? 0);
+
+            // Nhóm theo ngày để vẽ biểu đồ
+            var groupedData = records
+                .GroupBy(h => h.NgayKham.Date)
+                .Select(g => new
+                {
+                    Date = g.Key,
+                    Total = g.Sum(CalculateTotal)
+                })
+                .OrderBy(x => x.Date)
+                .ToList();
+
+            var labels = groupedData.Select(d => d.Date.ToString("dd/MM")).ToList();
+            var values = groupedData.Select(d => d.Total).ToList();
+            var totalSum = groupedData.Sum(d => d.Total);
+            var dayCount = (end.Date - start.Date).Days + 1;
+
+            return Json(new
+            {
+                labels = labels,
+                values = values,
+                total = totalSum,
+                count = dayCount // Dùng để tính trung bình ngày ở phía View
+            });
         }
     }
 }

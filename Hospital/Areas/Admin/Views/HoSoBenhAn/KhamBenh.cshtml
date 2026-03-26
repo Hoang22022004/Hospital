@@ -83,7 +83,7 @@
         z-index: 5;
     }
 
-    /* Tables */
+    /* Tables UI */
     .table-prescription thead th {
         font-size: 0.7rem;
         text-transform: uppercase;
@@ -96,6 +96,7 @@
         width: 70px !important;
         text-align: center;
         font-weight: bold;
+        font-size: 0.8rem;
     }
 
     .input-day {
@@ -175,6 +176,65 @@
         border-radius: 10px;
         margin-top: 4px;
         font-weight: bold;
+    }
+
+    /* --- MOBILE OPTIMIZATION --- */
+    @@media (max-width: 768px) {
+        .container-fluid {
+            padding: 10px !important;
+        }
+        /* Bảng thuốc và dịch vụ thành card */
+        .table-prescription thead {
+            display: none;
+        }
+
+        .drug-row, #service-body tr {
+            display: block;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #fff;
+        }
+
+            .drug-row td, #service-body tr td {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 5px 0 !important;
+                border: none !important;
+                width: 100% !important;
+            }
+
+                .drug-row td::before, #service-body tr td::before {
+                    content: attr(data-label);
+                    font-weight: bold;
+                    color: #64748b;
+                    font-size: 0.75rem;
+                }
+
+        .input-dosage, .input-day, .input-total {
+            width: 100px !important;
+        }
+        /* Đẩy cột Timeline xuống dưới cùng trên mobile */
+        .row.g-4 {
+            display: flex;
+            flex-direction: column;
+        }
+
+        #mainExamColumn {
+            order: 1;
+        }
+
+        #timelineColumn {
+            order: 2;
+            margin-top: 20px;
+        }
+
+        .sticky-top {
+            position: static !important;
+        }
+        /* Bỏ sticky trên mobile để cuộn tự nhiên */
     }
 </style>
 
@@ -278,19 +338,19 @@
                 @* 4. Hình ảnh *@
                 <div class="card mb-4">
                     <div class="card-body p-4">
-                        <h6 class="fw-bold mb-3">Hình ảnh buổi khám (Click để so sánh)</h6>
+                        <h6 class="fw-bold mb-3">Hình ảnh buổi khám (Click so sánh)</h6>
                         <div class="row g-4">
                             <div class="col-md-5 text-center">
                                 <label class="form-label small">Ảnh chính</label>
                                 <input type="file" name="anhChinh" class="form-control form-control-sm mb-2" onchange="previewMainImage(this)" />
                                 <div class="preview-main-box">
-                                    <img id="img-main-preview" src="/images/no-image.png" class="img-fluid rounded" style="max-height: 250px; cursor: pointer;" onclick="setCompareImage(this.src, 'Hôm nay', 'after')" />
+                                    <img id="img-main-preview" src="/images/no-image.png" class="img-fluid rounded" onclick="setCompareImage(this.src, 'Hôm nay', 'after')" />
                                 </div>
                             </div>
                             <div class="col-md-7">
                                 <div class="d-flex justify-content-between mb-2">
                                     <label class="form-label small mb-0">Ảnh phụ</label>
-                                    <button type="button" class="btn btn-xs btn-primary" onclick="$('#subFiles').click()">+ Thêm ảnh</button>
+                                    <button type="button" class="btn btn-xs btn-primary" onclick="$('#subFiles').click()">+ Thêm</button>
                                 </div>
                                 <input type="file" id="subFiles" name="anhPhu" class="d-none" multiple />
                                 <div id="sub-grid" class="preview-grid"></div>
@@ -299,26 +359,26 @@
                     </div>
                 </div>
 
-                @* 5. Lời dặn & Tái khám *@
+                @* 5. Lời dặn *@
                 <div class="card mb-4">
                     <div class="card-body p-4">
                         <label class="form-label">Lời dặn bác sĩ & Hướng dẫn sử dụng</label>
                         <textarea asp-for="LoiDan" id="LoiDan" class="form-control mb-3" rows="5"></textarea>
                         <div class="row">
-                            <div class="col-md-4">
+                            <div class="col-md-4 col-12">
                                 <label class="form-label text-danger">Ngày hẹn tái khám</label>
                                 <input type="date" asp-for="NgayTaiKham" class="form-control border-danger border-2" style="border-color: #dc3545 !important;" />
                             </div>
                         </div>
-                        <button type="submit" class="btn btn-primary w-100 py-3 fw-bold rounded-pill shadow-lg mt-4">HOÀN TẤT VÀ LƯU HỒ SƠ KHÁM</button>
+                        <button type="submit" class="btn btn-primary w-100 py-3 fw-bold rounded-pill shadow mt-4">HOÀN TẤT VÀ LƯU HỒ SƠ KHÁM</button>
                     </div>
                 </div>
             </form>
         </div>
 
-        @* Cột Lịch sử *@
+        @* Cột Lịch sử (Trên mobile sẽ nằm dưới Hình ảnh/Lời dặn) *@
         <div class="col-xl-4" id="timelineColumn">
-            <div class="card shadow-sm sticky-top" style="top: 85px; height: calc(100vh - 110px);">
+            <div class="card shadow-sm sticky-top" style="top: 85px; height: auto; min-height: 400px;">
                 <div class="card-header bg-white py-3 border-0 border-bottom">
                     <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-clock-history me-2"></i> Lịch sử & So sánh Ảnh</h6>
                 </div>
@@ -351,14 +411,13 @@
 @section Scripts {
     <script>
         let subFilesDataTransfer = new DataTransfer();
-        let globalServices = []; // Biến lưu dịch vụ theo chuyên khoa
+        let globalServices = [];
 
         $(document).ready(function() {
             addMedicine();
             loadTimeline();
-            loadServicesByDoctor(); // Mới: Gọi AJAX lấy dịch vụ theo chuyên khoa
+            loadServicesByDoctor();
 
-            // ICD-10 Search
             $('#select-benhly').select2({
                 theme: 'bootstrap-5',
                 ajax: {
@@ -378,27 +437,24 @@
                 });
             });
 
-            // Delegated Event cho tiền dịch vụ
             $(document).on('change', 'select[name="selectedDichVu"]', function() {
                 var price = $(this).find(':selected').data('price');
                 $(this).closest('tr').find('.price-display').val(price ? price + 'đ' : '0đ');
             });
 
-            // Multi-image Handling
             $('#subFiles').change(function() {
                 for (let file of this.files) { subFilesDataTransfer.items.add(file); }
                 this.files = subFilesDataTransfer.files; renderSubPreviews();
             });
         });
 
-        // HÀM MỚI: Lấy dịch vụ dựa trên chuyên khoa của bác sĩ đang khám
         function loadServicesByDoctor() {
             const bacSiId = '@Model.BacSiId';
             if (bacSiId) {
                 $.get('/Admin/HoSoBenhAn/GetDoctorAdmissionData', { bacSiId: bacSiId }, function(data) {
                     if (data && data.services) {
                         globalServices = data.services;
-                        addService(); // Thêm dòng đầu tiên sau khi đã có dữ liệu
+                        addService();
                     }
                 });
             }
@@ -406,21 +462,15 @@
 
         function addService() {
             let options = '<option value="">-- Chọn dịch vụ --</option>';
-            globalServices.forEach(item => {
-                options += `<option value="${item.value}" data-price="${item.gia}">${item.text}</option>`;
-            });
-
+            globalServices.forEach(item => { options += `<option value="${item.value}" data-price="${item.gia}">${item.text}</option>`; });
             var row = `<tr>
-                <td><select name="selectedDichVu" class="form-select border-0 bg-light">
-                    ${options}
-                </select></td>
-                <td style="width:110px"><input class="form-control-plaintext small fw-bold price-display text-end" readonly value="0đ" /></td>
+                <td data-label="Dịch vụ"><select name="selectedDichVu" class="form-select border-0 bg-light">${options}</select></td>
+                <td data-label="Giá"><input class="form-control-plaintext small fw-bold price-display text-end" readonly value="0đ" /></td>
                 <td class="text-end"><button type="button" class="btn text-danger p-0" onclick="$(this).closest('tr').remove()"><i class="bi bi-trash"></i></button></td>
             </tr>`;
             $('#service-body').append(row);
         }
 
-        // --- Logic thuốc ---
         $(document).on('change', 'select[name="selectedThuoc"]', function() {
             let row = $(this).closest('tr'); let sel = $(this).find(':selected');
             let catType = sel.data('category-type'); let catName = sel.data('category-name');
@@ -451,51 +501,35 @@
 
         function addMedicine() {
             var row = `<tr class="drug-row">
-                <td class="text-start"><select name="selectedThuoc" class="form-select form-select-sm border-0 bg-light"><option value="">-- Thuốc --</option>
+                <td data-label="Tên thuốc"><select name="selectedThuoc" class="form-select form-select-sm border-0 bg-light"><option value="">-- Thuốc --</option>
         @foreach (var t in ViewBag.ThuocList)
         {
-                        <option value="@t.ThuocId" data-category-type="@t.PhanLoaiEnum" data-category-name="@t.PhanLoaiName">@t.TenThuoc</option>
+            <option value="@t.ThuocId" data-category-type="@t.PhanLoaiEnum" data-category-name="@t.PhanLoaiName">@t.TenThuoc</option>
         }
                 </select></td>
-                <td><select name="lieuSang" class="form-select form-select-sm lieu-input input-dosage border-0 bg-light"><option value="0">0</option><option value="0.25">¼</option><option value="0.5">½</option><option value="1">1</option><option value="2">2</option></select></td>
-                <td><select name="lieuTrua" class="form-select form-select-sm lieu-input input-dosage border-0 bg-light"><option value="0">0</option><option value="0.25">¼</option><option value="0.5">½</option><option value="1">1</option></select></td>
-                <td><select name="lieuChieu" class="form-select form-select-sm lieu-input input-dosage border-0 bg-light"><option value="0">0</option><option value="0.25">¼</option><option value="0.5">½</option><option value="1">1</option></select></td>
-                <td><select name="lieuToi" class="form-select form-select-sm lieu-input input-dosage border-0 bg-light"><option value="0">0</option><option value="0.25">¼</option><option value="0.5">½</option><option value="1">1</option></select></td>
-                <td><input type="number" name="soNgayDung" class="form-control form-control-sm input-day border-0" value="0" /></td>
-                <td><input type="number" name="soLuong" class="form-control form-control-sm input-total border-0 bg-calc" value="0" step="any" readonly /></td>
-                <td><input name="ghiChuThuoc" class="form-control form-control-sm border-0 bg-light" /></td>
-                <td><button type="button" class="btn btn-sm text-danger" onclick="$(this).closest('tr').remove()"><i class="bi bi-trash"></i></button></td>
+                <td data-label="Sáng"><select name="lieuSang" class="form-select form-select-sm lieu-input input-dosage border-0 bg-light"><option value="0">0</option><option value="0.25">¼</option><option value="0.5">½</option><option value="1">1</option><option value="2">2</option></select></td>
+                <td data-label="Trưa"><select name="lieuTrua" class="form-select form-select-sm lieu-input input-dosage border-0 bg-light"><option value="0">0</option><option value="0.5">½</option><option value="1">1</option></select></td>
+                <td data-label="Chiều"><select name="lieuChieu" class="form-select form-select-sm lieu-input input-dosage border-0 bg-light"><option value="0">0</option><option value="0.5">½</option><option value="1">1</option></select></td>
+                <td data-label="Tối"><select name="lieuToi" class="form-select form-select-sm lieu-input input-dosage border-0 bg-light"><option value="0">0</option><option value="0.5">½</option><option value="1">1</option></select></td>
+                <td data-label="Ngày"><input type="number" name="soNgayDung" class="form-control form-control-sm input-day border-0" value="0" /></td>
+                <td data-label="Tổng SL"><input type="number" name="soLuong" class="form-control form-control-sm input-total border-0 bg-calc" value="0" step="any" readonly /></td>
+                <td data-label="Ghi chú"><input name="ghiChuThuoc" class="form-control form-control-sm border-0 bg-light" /></td>
+                <td class="text-end"><button type="button" class="btn btn-sm text-danger" onclick="$(this).closest('tr').remove()"><i class="bi bi-trash"></i></button></td>
             </tr>`;
             $('#prescription-body').append(row);
         }
 
-        // --- Helpers Ảnh & Timeline ---
         function previewMainImage(input) { if (input.files && input.files[0]) { var r = new FileReader(); r.onload = function(e) { $('#img-main-preview').attr('src', e.target.result); }; r.readAsDataURL(input.files[0]); } }
-
         function renderSubPreviews() {
             const c = $('#sub-grid'); c.empty();
             Array.from(subFilesDataTransfer.files).forEach((file, index) => {
                 const r = new FileReader(); r.onload = function(e) { c.append(`<div class="img-thumb-container"><button type="button" class="btn-delete-img" onclick="removeSubFile(${index})">&times;</button><img src="${e.target.result}" class="img-thumb" onclick="setCompareImage('${e.target.result}', 'Hôm nay', 'after')" /></div>`); }; r.readAsDataURL(file);
             });
         }
-
         function removeSubFile(index) { const dt = new DataTransfer(); for (let i = 0; i < subFilesDataTransfer.files.length; i++) { if (i !== index) dt.items.add(subFilesDataTransfer.files[i]); } subFilesDataTransfer = dt; document.getElementById('subFiles').files = subFilesDataTransfer.files; renderSubPreviews(); }
-
-        function setBeforeImage(url, date) {
-            $('#before-img').attr('src', url); $('#before-date').text('Trước: ' + date);
-            if ($('#after-img').attr('src')) $('#compareModal').modal('show');
-            else Swal.fire('Thông tin', 'Hãy click tiếp vào 1 ảnh hiện tại bên trái', 'info');
-        }
-
-        function setCompareImage(url, date, type) {
-            if (url.includes("no-image.png")) return;
-            if (type === 'after') { $('#after-img').attr('src', url); $('#after-date').text('Sau: ' + date); }
-            if ($('#before-img').attr('src') && $('#after-img').attr('src')) $('#compareModal').modal('show');
-            else Swal.fire('Thông tin', 'Hãy click vào ảnh trong Timeline bên phải', 'info');
-        }
-
+        function setBeforeImage(url, date) { $('#before-img').attr('src', url); $('#before-date').text('Trước: ' + date); if ($('#after-img').attr('src')) $('#compareModal').modal('show'); else Swal.fire('Thông tin', 'Hãy click tiếp vào 1 ảnh hiện tại bên trái', 'info'); }
+        function setCompareImage(url, date, type) { if (url.includes("no-image.png")) return; if (type === 'after') { $('#after-img').attr('src', url); $('#after-date').text('Sau: ' + date); } if ($('#before-img').attr('src') && $('#after-img').attr('src')) $('#compareModal').modal('show'); else Swal.fire('Thông tin', 'Hãy click vào ảnh trong Timeline bên phải', 'info'); }
         function copyToLoiDan() { var t = document.getElementById('noidung-phacdo').innerText; var v = $('#LoiDan').val(); $('#LoiDan').val(v + (v ? "\n" : "") + "--- GỢI Ý ĐIỀU TRỊ ---\n" + t); }
-
         function loadTimeline() { $.get('@Url.Action("GetPatientTimeline", "HoSoBenhAn")', { benhNhanId: '@Model.BenhNhanId', currentHoSoId: '@Model.Id' }, function(d) { $('#timelineArea').html(d); }); }
     </script>
 }

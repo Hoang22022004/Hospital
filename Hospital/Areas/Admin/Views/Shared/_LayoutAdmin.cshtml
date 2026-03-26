@@ -32,16 +32,30 @@
             font-family: 'Inter', sans-serif;
             background-color: var(--bg-body);
             color: #1e293b;
+            overflow-x: hidden;
         }
 
-        /* SIDEBAR STYLE */
+        /* SIDEBAR STYLE - CẬP NHẬT ĐỂ CÓ THỂ LƯỚT (SCROLL) */
         #sidebar-wrapper {
             background-color: var(--sidebar-bg);
-            min-height: 100vh;
+            height: 100vh; /* Cố định chiều cao bằng màn hình */
             width: 280px;
             transition: all 0.3s;
-            z-index: 1000;
+            z-index: 1050;
+            position: sticky;
+            top: 0;
+            overflow-y: auto; /* Cho phép cuộn nội dung menu */
         }
+
+            /* Tùy chỉnh thanh cuộn Sidebar cho mượt và đẹp */
+            #sidebar-wrapper::-webkit-scrollbar {
+                width: 4px;
+            }
+
+            #sidebar-wrapper::-webkit-scrollbar-thumb {
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 10px;
+            }
 
         .sidebar-brand {
             padding: 2rem 1.5rem;
@@ -83,7 +97,7 @@
             background-color: transparent !important;
             color: #cbd5e1 !important;
             border: none;
-            padding: 10px 1.5rem;
+            padding: 12px 1.5rem;
             font-weight: 500;
             font-size: 0.92rem;
             display: flex;
@@ -138,8 +152,50 @@
                 color: #fff;
             }
 
-        #wrapper.toggled #sidebar-wrapper {
-            margin-left: -280px;
+        /* DESKTOP TOGGLE */
+        @@media (min-width: 769px) {
+            #wrapper.toggled #sidebar-wrapper {
+                margin-left: -280px;
+            }
+        }
+
+        /* MOBILE OPTIMIZATION */
+        @@media (max-width: 768px) {
+            #sidebar-wrapper {
+                margin-left: -280px;
+                position: fixed;
+                height: 100vh;
+                overflow-y: auto; /* Cho phép lướt menu trên điện thoại */
+            }
+
+            #wrapper.toggled #sidebar-wrapper {
+                margin-left: 0;
+                box-shadow: 5px 0 15px rgba(0,0,0,0.2);
+            }
+
+            #wrapper.toggled::before {
+                content: "";
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.5);
+                z-index: 1040;
+            }
+
+            .navbar {
+                padding: 0.5rem 1rem;
+            }
+
+            .user-name-text {
+                display: none;
+            }
+        }
+
+        /* Lớp hiển thị SweetAlert2 trên cùng */
+        .swal2-container {
+            z-index: 2100 !important;
         }
     </style>
 </head>
@@ -228,9 +284,9 @@
         </div>
 
         <div id="page-content-wrapper" class="w-100">
-            <nav class="navbar navbar-expand-lg navbar-light sticky-top">
+            <nav class="navbar navbar-expand-lg navbar-light sticky-top shadow-sm">
                 <div class="container-fluid">
-                    <button class="btn border-0 shadow-none" id="menu-toggle"><i class="bi bi-list fs-4"></i></button>
+                    <button class="btn border-0 shadow-none" id="menu-toggle"><i class="bi bi-list fs-3"></i></button>
 
                     <div class="ms-auto d-flex align-items-center">
                         <a href="/" class="btn-view-site me-3 d-none d-md-block">
@@ -240,15 +296,18 @@
                         @if (SignInManager.IsSignedIn(User))
                         {
                             <div class="dropdown">
-                                <a class="nav-link dropdown-toggle fw-bold" href="#" role="button" data-bs-toggle="dropdown">
-                                    <span class="d-none d-sm-inline">Chào, </span> @UserManager.GetUserName(User)
+                                <a class="nav-link dropdown-toggle fw-bold d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
+                                    <div class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-sm-2" style="width: 35px; height: 35px;">
+                                        <i class="bi bi-person-circle text-primary fs-5"></i>
+                                    </div>
+                                    <span class="d-none d-sm-inline user-name-text">Chào, @UserManager.GetUserName(User)</span>
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-3 p-2">
-                                    <li><a class="dropdown-item rounded" href="#"><i class="bi bi-person me-2"></i>Hồ sơ</a></li>
+                                    <li><a class="dropdown-item rounded py-2" href="#"><i class="bi bi-person me-2"></i>Hồ sơ</a></li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li>
                                         <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
-                                            <button type="submit" class="dropdown-item text-danger rounded">
+                                            <button type="submit" class="dropdown-item text-danger rounded py-2">
                                                 <i class="bi bi-power me-2"></i>Đăng xuất
                                             </button>
                                         </form>
@@ -268,47 +327,37 @@
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        // Logic đóng mở menu sidebar
+        // Toggle Menu
         $("#menu-toggle").click(function(e) {
             e.preventDefault();
             $("#wrapper").toggleClass("toggled");
         });
 
+        // Close Sidebar on Mobile click outside
+        $(document).click(function(e) {
+            if ($(window).width() <= 768) {
+                var container = $("#sidebar-wrapper, #menu-toggle");
+                if (!container.is(e.target) && container.has(e.target).length === 0 && $("#wrapper").hasClass("toggled")) {
+                    $("#wrapper").removeClass("toggled");
+                }
+            }
+        });
+
         $(document).ready(function() {
-            // Logic Active Menu
-            var currentPath = window.location.pathname;
-            $(".list-group-item").each(function() {
-                var href = $(this).attr("href");
-                if (href && currentPath.includes(href) && href !== "/Admin/Dashboard/AdminDashboard") {
-                    $(this).addClass("active");
-                    $(this).closest(".collapse").addClass("show");
-                }
-            });
-
-            // Sửa lỗi Select2 không focus được ô nhập liệu trên một số trình duyệt
-            $(document).on('select2:open', () => {
-                let allSearchFields = document.querySelectorAll('.select2-container--open .select2-search__field');
-                if (allSearchFields.length > 0) {
-                    allSearchFields[allSearchFields.length - 1].focus();
-                }
-            });
-
-            // Hiển thị thông báo TempData
-            var successMessage = '@Html.Raw(TempData["success"])';
-            var errorMessage = '@Html.Raw(TempData["error"])';
+            // FIX LỖI FONT CHỮ THÔNG BÁO (Dùng Html.Raw chuẩn)
+            var successMessage = '@Html.Raw(TempData["success"]?.ToString()?.Replace("'", "\\'"))';
+            var errorMessage = '@Html.Raw(TempData["error"]?.ToString()?.Replace("'", "\\'"))';
 
             if (successMessage && successMessage.trim() !== "") {
                 Swal.fire({
                     title: 'Thành công!',
                     text: successMessage,
                     icon: 'success',
-                    timer: 3000,
+                    timer: 4000,
                     toast: true,
                     position: 'top-end',
                     showConfirmButton: false,
@@ -321,14 +370,21 @@
                     title: 'Thông báo lỗi!',
                     text: errorMessage,
                     icon: 'error',
-                    confirmButtonColor: '#6366f1',
-                    confirmButtonText: 'Đóng'
+                    confirmButtonColor: '#6366f1'
                 });
             }
+
+            // Active Menu Logic
+            var currentPath = window.location.pathname;
+            $(".list-group-item").each(function() {
+                var href = $(this).attr("href");
+                if (href && currentPath.includes(href) && href !== "/Admin/Dashboard/AdminDashboard") {
+                    $(this).addClass("active");
+                    $(this).closest(".collapse").addClass("show");
+                }
+            });
         });
     </script>
-
     @await RenderSectionAsync("Scripts", required: false)
-
 </body>
 </html>
