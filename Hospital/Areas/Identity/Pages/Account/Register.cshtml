@@ -8,7 +8,6 @@
     /* SỬ DỤNG LẠI CSS CỦA TRANG LOGIN ĐỂ ĐỒNG BỘ */
     .register-container {
         min-height: 100vh;
-        /* Ảnh nền khác một chút để tạo sự tươi mới */
         background: url('https://images.unsplash.com/photo-1600334129128-685c5582fd35?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80') no-repeat center center fixed;
         background-size: cover;
         display: flex;
@@ -30,7 +29,6 @@
         display: flex;
     }
 
-    /* PHẦN ẢNH TRÁI - THAY ĐỔI NỘI DUNG CHÀO MỪNG */
     .register-image-side {
         background: url('https://images.unsplash.com/photo-1552693673-1bf958298935?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80') no-repeat center center;
         background-size: cover;
@@ -41,7 +39,6 @@
     .register-image-overlay {
         position: absolute;
         inset: 0;
-        /* Gradient ngược lại so với trang login để tạo điểm nhấn */
         background: linear-gradient(to bottom, rgba(69, 195, 210, 0.6), rgba(0, 45, 91, 0.8));
         display: flex;
         flex-direction: column;
@@ -55,7 +52,6 @@
         padding: 3rem;
     }
 
-    /* NÚT BẤM VÀ INPUT ĐỒNG BỘ */
     .btn-hello-paris {
         background: #45c3d2;
         color: white;
@@ -86,8 +82,8 @@
         }
 
     .social-btn {
-        width: 50px;
-        height: 50px;
+        width: 45px;
+        height: 45px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -121,24 +117,14 @@
 
         <div class="register-image-side">
             <div class="register-image-overlay text-center">
-                <img src="~/images/layout/logohelloparis.png"
-                     alt="Hello Paris Logo"
-                     class="mb-4 img-fluid"
-                     style="height: 80px; width: auto; object-fit: contain;">
-
+                <img src="~/images/layout/logohelloparis.png" alt="Logo" class="mb-4 img-fluid" style="height: 80px;">
                 <h2 class="Montserrat fw-bold mb-3">Gia nhập Hello Paris</h2>
-                <p class="lead mb-4 fw-light">Bắt đầu hành trình chăm sóc sắc đẹp chuẩn y khoa ngay hôm nay.</p>
+                <p class="lead mb-4 fw-light small">Bắt đầu hành trình chăm sóc sắc đẹp chuẩn y khoa ngay hôm nay.</p>
 
                 <ul class="text-start d-inline-block small ps-3" style="list-style-type: none;">
-                    <li class="mb-2">
-                        <i class="bi bi-check2-circle me-2 text-info"></i>Đặt lịch ưu tiên
-                    </li>
-                    <li class="mb-2">
-                        <i class="bi bi-check2-circle me-2 text-info"></i>Theo dõi hồ sơ điều trị
-                    </li>
-                    <li>
-                        <i class="bi bi-check2-circle me-2 text-info"></i>Nhận ưu đãi hội viên
-                    </li>
+                    <li class="mb-2"><i class="bi bi-check2-circle me-2 text-info"></i>Đặt lịch ưu tiên</li>
+                    <li class="mb-2"><i class="bi bi-check2-circle me-2 text-info"></i>Theo dõi hồ sơ điều trị</li>
+                    <li><i class="bi bi-check2-circle me-2 text-info"></i>Nhận ưu đãi hội viên</li>
                 </ul>
             </div>
         </div>
@@ -146,20 +132,36 @@
         <div class="register-form-side bg-white bg-opacity-75">
             <div class="text-center mb-4">
                 <h3 class="fw-bold text-navy Montserrat">Tạo tài khoản mới</h3>
-                <p class="text-muted small">Điền thông tin của bạn để đăng ký</p>
+                <p class="text-muted small">Điền thông tin để kết nối hồ sơ bệnh án của bạn</p>
             </div>
 
             <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
                 <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
 
+                @* 1. Ô NHẬP EMAIL (ĐÃ ĐƯA LÊN ĐẦU) *@
                 <div class="form-floating mb-3">
-                    <input asp-for="Input.Email" class="form-control bg-light rounded-3 shadow-none" autocomplete="username" aria-required="true" placeholder="name@example.com" />
+                    <input asp-for="Input.Email" class="form-control bg-light rounded-3 shadow-none" autocomplete="username" placeholder="name@example.com" />
                     <label asp-for="Input.Email" class="text-muted small">Địa chỉ Email</label>
                     <span asp-validation-for="Input.Email" class="text-danger small"></span>
                 </div>
 
+                @* 2. Ô NHẬP SỐ ĐIỆN THOẠI *@
+                <div class="form-floating mb-3">
+                    <input asp-for="Input.PhoneNumber" class="form-control bg-light rounded-3 shadow-none" placeholder="0905xxxxxx" />
+                    <label asp-for="Input.PhoneNumber" class="text-muted small">Số điện thoại liên kết</label>
+                    <span asp-validation-for="Input.PhoneNumber" class="text-danger small"></span>
+                </div>
+
+                @* 3. Ô NHẬP HỌ TÊN *@
+                <div class="form-floating mb-3">
+                    <input asp-for="Input.FullName" class="form-control bg-light rounded-3 shadow-none" placeholder="Nguyễn Văn A" />
+                    <label asp-for="Input.FullName" class="text-muted small">Họ và Tên</label>
+                    <span asp-validation-for="Input.FullName" class="text-danger small"></span>
+                </div>
+
+                @* MẬT KHẨU *@
                 <div class="form-floating mb-3 position-relative">
-                    <input asp-for="Input.Password" id="passwordField" class="form-control bg-light rounded-3 shadow-none" autocomplete="new-password" aria-required="true" placeholder="password" />
+                    <input asp-for="Input.Password" id="passwordField" class="form-control bg-light rounded-3 shadow-none" autocomplete="new-password" placeholder="password" />
                     <label asp-for="Input.Password" class="text-muted small">Mật khẩu</label>
                     <span class="position-absolute end-0 top-50 translate-middle-y pe-3 toggle-password" style="cursor: pointer; z-index: 10;" data-target="#passwordField">
                         <i class="bi bi-eye text-muted"></i>
@@ -167,8 +169,9 @@
                     <span asp-validation-for="Input.Password" class="text-danger small"></span>
                 </div>
 
+                @* NHẬP LẠI MẬT KHẨU *@
                 <div class="form-floating mb-4 position-relative">
-                    <input asp-for="Input.ConfirmPassword" id="confirmPasswordField" class="form-control bg-light rounded-3 shadow-none" autocomplete="new-password" aria-required="true" placeholder="password" />
+                    <input asp-for="Input.ConfirmPassword" id="confirmPasswordField" class="form-control bg-light rounded-3 shadow-none" autocomplete="new-password" placeholder="password" />
                     <label asp-for="Input.ConfirmPassword" class="text-muted small">Nhập lại mật khẩu</label>
                     <span class="position-absolute end-0 top-50 translate-middle-y pe-3 toggle-password" style="cursor: pointer; z-index: 10;" data-target="#confirmPasswordField">
                         <i class="bi bi-eye text-muted"></i>
@@ -178,17 +181,15 @@
 
                 <button id="registerSubmit" type="submit" class="btn btn-hello-paris w-100 mb-4 shadow-sm py-3 fw-bold">ĐĂNG KÝ THÀNH VIÊN</button>
 
-                <div class="text-center mb-4">
-                    <div class="mb-4">
-                        <span class="text-muted small">Hoặc đăng ký nhanh với</span>
-                    </div>
-                    <div class="d-flex justify-content-center gap-3">
-                        <a href="#" class="social-btn shadow-sm"><i class="bi bi-google"></i></a>
-                        <a href="#" class="social-btn shadow-sm"><i class="bi bi-facebook"></i></a>
+                <div class="text-center mb-3">
+                    <span class="text-muted extra-small">Hoặc tham gia nhanh với</span>
+                    <div class="d-flex justify-content-center gap-3 mt-2">
+                        <a href="#" class="social-btn shadow-sm text-decoration-none"><i class="bi bi-google"></i></a>
+                        <a href="#" class="social-btn shadow-sm text-decoration-none"><i class="bi bi-facebook"></i></a>
                     </div>
                 </div>
 
-                <p class="text-center text-muted small mb-0">
+                <p class="text-center text-muted small mb-0 mt-4">
                     Đã có tài khoản? <a asp-page="./Login" asp-route-returnUrl="@Model.ReturnUrl" class="fw-bold text-decoration-none" style="color: #45c3d2;">Đăng nhập ngay</a>
                 </p>
             </form>
@@ -200,9 +201,8 @@
     <partial name="_ValidationScriptsPartial" />
     <script>
         $(document).ready(function() {
-            // XỬ LÝ ẨN/HIỆN CHO CẢ 2 Ô MẬT KHẨU
             $('.toggle-password').on('click', function() {
-                const targetId = $(this).data('target'); // Lấy ID của ô input mục tiêu
+                const targetId = $(this).data('target');
                 const passwordField = $(targetId);
                 const icon = $(this).find('i');
 

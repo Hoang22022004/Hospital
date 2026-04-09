@@ -45,7 +45,7 @@ namespace Hospital.Areas.Admin.Controllers
                 }
             }
 
-            return View(await query.ToListAsync());
+            return View(await query.OrderByDescending(l => l.ThoiGianDat).ToListAsync());
         }
 
         // 2. DUYỆT LỊCH HẸN
@@ -139,6 +139,21 @@ namespace Hospital.Areas.Admin.Controllers
 
             if (ModelState.IsValid)
             {
+                // --- ĐIỀU KIỆN 1: TỰ ĐỘNG KIỂM TRA/TẠO BỆNH NHÂN ---
+                var benhNhan = await _db.BenhNhan.FirstOrDefaultAsync(b => b.SoDienThoai == lichHen.SoDienThoai);
+                if (benhNhan == null)
+                {
+                    benhNhan = new BenhNhan
+                    {
+                        HoTen = lichHen.TenKhachHang,
+                        SoDienThoai = lichHen.SoDienThoai,
+                        Email = lichHen.Email,
+                        NgayTao = DateTime.Now
+                    };
+                    _db.BenhNhan.Add(benhNhan);
+                    await _db.SaveChangesAsync();
+                }
+
                 var llv = _db.LichLamViec.FirstOrDefault(l => l.LichLamViecId == lichHen.LichLamViecId);
                 if (llv == null)
                 {
@@ -147,11 +162,34 @@ namespace Hospital.Areas.Admin.Controllers
                 else
                 {
                     lichHen.BacSiId = llv.BacSiId;
-                    lichHen.TrangThai = TrangThaiLichHen.ChoDuyet;
+                    lichHen.TrangThai = TrangThaiLichHen.DaXacNhan;
                     lichHen.ThoiGianDat = DateTime.Now;
                     _db.LichHen.Add(lichHen);
                     await _db.SaveChangesAsync();
-                    TempData["success"] = "Đặt lịch thành công!";
+
+                    // --- ĐIỀU KIỆN 2: NẾU KHÁM TRONG HÔM NAY, TỰ ĐỘNG TẠO HỒ SƠ BỆNH ÁN ---
+                    if (llv.NgayLamViec.Date == DateTime.Today)
+                    {
+                        var hoSoMoi = new HoSoBenhAn
+                        {
+                            BenhNhanId = benhNhan.BenhNhanId,
+                            BacSiId = lichHen.BacSiId,
+                            NgayKham = DateTime.Now,
+                            TrangThai = TrangThaiHoSo.ChoKham,
+                            TrieuChung = lichHen.TrieuChung,
+                            LichHenId = lichHen.LichHenId,
+                            LichLamViecId = lichHen.LichLamViecId,
+                            KhungGioBatDau = lichHen.KhungGioBatDau
+                        };
+                        _db.HoSoBenhAn.Add(hoSoMoi);
+                        await _db.SaveChangesAsync();
+                        TempData["success"] = "Đặt lịch thành công và đã chuyển vào danh sách Chờ khám hôm nay!";
+                    }
+                    else
+                    {
+                        TempData["success"] = "Đặt lịch thành công cho ngày " + llv.NgayLamViec.ToString("dd/MM/yyyy");
+                    }
+
                     return RedirectToAction(nameof(Index));
                 }
             }
@@ -165,6 +203,19 @@ namespace Hospital.Areas.Admin.Controllers
             }
             PrepareViewData(lichHen.BacSiId, lichHen.DichVuId);
             return View(lichHen);
+        }
+
+        // --- MỚI: API TRA CỨU SĐT CHO GIAO DIỆN ADMIN ---
+        [HttpGet]
+        public async Task<IActionResult> CheckPhoneNumber(string phone)
+        {
+            if (string.IsNullOrEmpty(phone)) return Json(new { found = false });
+            var patient = await _db.BenhNhan.FirstOrDefaultAsync(b => b.SoDienThoai == phone);
+            if (patient != null)
+            {
+                return Json(new { found = true, name = patient.HoTen, email = patient.Email });
+            }
+            return Json(new { found = false });
         }
 
         // --- CÁC HÀM AJAX VÀ HELPER DỮ LIỆU ---
@@ -234,6 +285,20 @@ namespace Hospital.Areas.Admin.Controllers
             return View(lichHen);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(LichHen lichHen)
+        {
+            if (ModelState.IsValid)
+            {
+                _db.Update(lichHen);
+                await _db.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+            PrepareViewData(lichHen.BacSiId, lichHen.DichVuId);
+            return View(lichHen);
+        }
+
         // 5. XÓA LỊCH HẸN (GET)
         [HttpGet]
         public async Task<IActionResult> Delete(int? id)
@@ -258,10 +323,9 @@ namespace Hospital.Areas.Admin.Controllers
         }
 
         // 6. XÓA LỊCH HẸN (POST - Xử lý xóa)
-        // Đổi tên hàm thành DeletePost để khớp với asp-action="DeletePost" trong View
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeletePost(int LichHenId) // Tham số đổi thành LichHenId để khớp với asp-for
+        public async Task<IActionResult> DeletePost(int LichHenId)
         {
             var lichHen = await _db.LichHen.FindAsync(LichHenId);
 

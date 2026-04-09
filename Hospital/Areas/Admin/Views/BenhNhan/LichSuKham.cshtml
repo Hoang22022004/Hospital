@@ -1,69 +1,93 @@
 ﻿@model IEnumerable<Hospital.Models.HoSoBenhAn>
+@using Hospital.Models
 
 @{
     ViewData["Title"] = "Lịch sử khám bệnh";
     Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+
+    // Lấy danh sách bệnh lý từ ViewBag gửi qua để tra cứu tên
+    var benhLyList = ViewBag.BenhLyList as List<BenhLy>;
 }
 
 <div class="container-fluid py-4">
+    @* --- HEADER --- *@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h3 class="text-primary fw-bold mb-0">Lịch sử khám bệnh</h3>
-            <p class="text-muted">Bệnh nhân: <span class="text-dark fw-bold">@ViewBag.TenBenhNhan</span></p>
+            <p class="text-muted small">Bệnh nhân: <span class="text-dark fw-bold text-uppercase">@ViewBag.TenBenhNhan</span></p>
         </div>
-        <a asp-action="Index" class="btn btn-outline-secondary rounded-pill">
+        <a asp-action="Index" class="btn btn-outline-secondary rounded-pill shadow-sm">
             <i class="bi bi-arrow-left me-1"></i> Quay lại danh sách
         </a>
     </div>
 
+    @* --- BẢNG DỮ LIỆU --- *@
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="bg-light">
                     <tr>
-                        <th class="ps-4">Ngày khám</th>
-                        <th>Bác sĩ phụ trách</th>
-                        <th>Chẩn đoán</th>
-                        <th>Trạng thái</th>
-                        <th class="text-center">Thao tác</th>
+                        <th class="ps-4 py-3" style="width: 150px;">Ngày khám</th>
+                        <th style="width: 200px;">Bác sĩ phụ trách</th>
+                        <th>Chẩn đoán bệnh lý</th>
+                        <th style="width: 150px;">Trạng thái</th>
+                        <th class="text-center" style="width: 150px;">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @if (Model.Any())
+                    @if (Model != null && Model.Any())
                     {
                         foreach (var item in Model)
                         {
                             <tr>
                                 <td class="ps-4">
-                                    <div class="fw-bold">@item.NgayKham.ToString("dd/MM/yyyy")</div>
+                                    <div class="fw-bold text-dark">@item.NgayKham.ToString("dd/MM/yyyy")</div>
                                     <small class="text-muted">@item.NgayKham.ToString("HH:mm")</small>
                                 </td>
                                 <td>
                                     <div class="d-flex align-items-center">
-                                        <i class="bi bi-person-badge me-2 text-primary"></i>
-                                        <span>@item.BacSi?.HoTen</span>
+                                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                                            <i class="bi bi-person-badge small"></i>
+                                        </div>
+                                        <span class="fw-semibold">@item.BacSi?.HoTen</span>
                                     </div>
                                 </td>
                                 <td>
-                                    <div class="text-truncate" style="max-width: 300px;" title="@item.ChanDoan">
-                                        @item.ChanDoan
+                                    @* LOGIC TRA CỨU TÊN BỆNH LÝ TỪ MÃ *@
+                                    <div class="fw-bold text-dark">
+                                        @{
+                                            var thongTinBenh = benhLyList?.FirstOrDefault(b => b.BenhLyId == item.ChanDoan);
+                                            if (thongTinBenh != null)
+                                            {
+                                                <span class="text-navy">@thongTinBenh.TenBenhLy</span>
+                                                <div class="small text-muted fw-normal">Mã bệnh: @item.ChanDoan</div>
+                                            }
+                                            else
+                                            {
+                                                @* Nếu không khớp mã trong bảng BenhLy thì hiện text bác sĩ gõ *@
+                                                <span class="text-secondary">@item.ChanDoan</span>
+                                            }
+                                        }
                                     </div>
                                 </td>
                                 <td>
                                     @if (item.TrangThai == TrangThaiHoSo.HoanThanh)
                                     {
-                                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3">Hoàn thành</span>
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-2">
+                                            <i class="bi bi-check-circle-fill me-1"></i> Hoàn thành
+                                        </span>
                                     }
                                     else
                                     {
-                                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-3">@item.TrangThai</span>
+                                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-3 py-2">
+                                            @item.TrangThai
+                                        </span>
                                     }
                                 </td>
                                 <td class="text-center">
-                                    @* Nút xem chi tiết hồ sơ bệnh án *@
                                     <a asp-controller="HoSoBenhAn" asp-action="Details" asp-route-id="@item.Id"
-                                       class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm">
-                                        <i class="bi bi-file-earmark-medical me-1"></i> Xem chi tiết
+                                       class="btn btn-sm btn-white border text-primary rounded-pill px-3 shadow-sm fw-bold">
+                                        <i class="bi bi-eye-fill me-1"></i> Chi tiết
                                     </a>
                                 </td>
                             </tr>
@@ -73,8 +97,10 @@
                     {
                         <tr>
                             <td colspan="5" class="text-center py-5 text-muted fst-italic">
-                                <i class="bi bi-folder2-open fs-1 d-block mb-2"></i>
-                                Bệnh nhân này chưa có lịch sử khám bệnh nào.
+                                <div class="mb-2">
+                                    <i class="bi bi-folder2-open fs-1 opacity-25"></i>
+                                </div>
+                                Bệnh nhân này chưa có dữ liệu lịch sử khám bệnh.
                             </td>
                         </tr>
                     }

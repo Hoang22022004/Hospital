@@ -5,8 +5,8 @@
 }
 
 <div class="container-fluid px-4 py-3">
-    <form asp-action="Edit">
-        @* --- TOP BAR: CHỈ CÒN TIÊU ĐỀ --- *@
+    <form asp-action="Edit" id="editForm">
+        @* --- TOP BAR --- *@
         <div class="mb-4">
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb mb-1">
@@ -18,7 +18,6 @@
         </div>
 
         <div class="row g-4">
-            @* --- CỘT TRÁI: THÔNG TIN CHÍNH --- *@
             <div class="col-xl-8">
                 <div class="card border-0 shadow-sm rounded-4">
                     <div class="card-header bg-white py-3 border-bottom-0">
@@ -28,9 +27,7 @@
                     </div>
                     <div class="card-body p-4 pt-0">
                         <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-
-                        @* QUAN TRỌNG: Trường ẩn ID *@
-                        <input type="hidden" asp-for="BenhNhanId" />
+                        <input type="hidden" asp-for="BenhNhanId" id="benhNhanId" />
 
                         <div class="row g-3">
                             <div class="col-md-8">
@@ -43,7 +40,7 @@
 
                             <div class="col-md-4">
                                 <div class="form-floating mb-3">
-                                    <input asp-for="SoDienThoai" class="form-control border-2 fw-bold text-primary" placeholder="SĐT" />
+                                    <input asp-for="SoDienThoai" id="phoneInput" class="form-control border-2 fw-bold text-primary" placeholder="SĐT" />
                                     <label asp-for="SoDienThoai">Số điện thoại <span class="text-danger">*</span></label>
                                     <span asp-validation-for="SoDienThoai" class="text-danger small"></span>
                                 </div>
@@ -80,7 +77,6 @@
                                 </div>
                             </div>
 
-                            @* --- NÚT BẤM DƯỚI PHẦN ĐỊA CHỈ --- *@
                             <div class="col-12 mt-4 pt-3 border-top d-flex justify-content-end gap-2">
                                 <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4 fw-bold shadow-sm">
                                     <i class="bi bi-arrow-left me-1"></i> Quay lại
@@ -94,7 +90,6 @@
                 </div>
             </div>
 
-            @* --- CỘT PHẢI: THÔNG TIN Y TẾ & GHI CHÚ --- *@
             <div class="col-xl-4">
                 <div class="card border-0 shadow-sm rounded-4 bg-light h-100">
                     <div class="card-header bg-transparent py-3 border-bottom-0">
@@ -106,7 +101,6 @@
                         <div class="form-floating mb-3">
                             <textarea asp-for="TienSuBenh" class="form-control border-2" style="height: 120px" placeholder="Tiền sử"></textarea>
                             <label asp-for="TienSuBenh">Dị ứng / Tiền sử bệnh</label>
-                            <span asp-validation-for="TienSuBenh" class="text-danger small"></span>
                         </div>
 
                         <div class="form-floating mb-3">
@@ -118,7 +112,7 @@
                             <div class="d-flex">
                                 <i class="bi bi-info-circle-fill me-2 fs-5 text-warning"></i>
                                 <div class="small text-dark">
-                                    <strong>Lưu ý:</strong> Việc thay đổi SĐT có thể ảnh hưởng đến việc tìm kiếm hồ sơ cũ của bệnh nhân này.
+                                    <strong>Lưu ý:</strong> Việc thay đổi SĐT có thể ảnh hưởng đến việc tìm kiếm hồ sơ của bệnh nhân.
                                 </div>
                             </div>
                         </div>
@@ -133,6 +127,25 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    <script>
+        $(document).ready(function () {
+            $('#phoneInput').on('change', function () {
+                var phone = $(this).val();
+                var currentId = $('#benhNhanId').val();
+                if (phone.length >= 10) {
+                    $.get(`/Admin/BenhNhan/CheckPhoneNumber?phone=${phone}`, function (res) {
+                        // Nếu tìm thấy SĐT này nhưng ID khác với bệnh nhân đang sửa -> Trùng SĐT người khác
+                        if (res.found && res.id != currentId) {
+                            Swal.fire('Cảnh báo trùng!', `Số điện thoại này đã được sử dụng bởi bệnh nhân: ${res.name}`, 'error');
+                            $('#phoneInput').addClass('is-invalid');
+                        } else {
+                            $('#phoneInput').removeClass('is-invalid');
+                        }
+                    });
+                }
+            });
+        });
+    </script>
     <style>
         body {
             background-color: #f8f9fa;

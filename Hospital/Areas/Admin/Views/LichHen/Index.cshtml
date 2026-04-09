@@ -8,47 +8,132 @@
 }
 
 @* Thư viện bổ trợ *@
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <style>
-    /* CSS CŨ CỦA HUY - GIỮ NGUYÊN */
-    .text-choDuyet {
-        color: #ffc107 !important;
-        font-weight: bold !important;
+    /* GIỮ NGUYÊN CSS TRẠNG THÁI CỦA BẠN */
+    .badge-status {
+        padding: 6px 12px;
+        border-radius: 50px;
+        font-weight: 700;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: inline-flex;
+        align-items: center;
     }
 
-    .text-daXacNhan {
-        color: #198754 !important;
-        font-weight: bold !important;
+    .bg-cho-duyet {
+        background-color: #fffbeb;
+        color: #b45309;
+        border: 1px solid #fde68a;
     }
 
-    .text-daHuy {
-        color: #dc3545 !important;
-        font-weight: bold !important;
+    .bg-da-xac-nhan {
+        background-color: #f0fdf4;
+        color: #15803d;
+        border: 1px solid #bbf7d0;
     }
 
-    .text-hoanThanh {
-        color: #0dcaf0 !important;
-        font-weight: bold !important;
+    .bg-da-huy {
+        background-color: #fef2f2;
+        color: #b91c1c;
+        border: 1px solid #fecaca;
     }
 
-    #tblData tbody td {
-        vertical-align: middle;
-        text-align: center;
+    .bg-hoan-thanh {
+        background-color: #eff6ff;
+        color: #1d4ed8;
+        border: 1px solid #bfdbfe;
     }
 
-        #tblData tbody td.text-start {
-            text-align: left !important;
+    /* CSS ĐỂ TRẢI RỘNG VÀ XÓA NỀN PHẦN BẢNG */
+    .table-container-flat {
+        background: transparent !important; /* Xóa nền trắng của card */
+        padding: 0 !important;
+    }
+
+    #tblData {
+        background-color: transparent !important;
+        border-collapse: separate;
+        border-spacing: 0 8px; /* Tạo khoảng cách nhẹ giữa các hàng nếu muốn */
+        width: 100% !important;
+    }
+
+        #tblData thead th {
+            background-color: transparent !important; /* Xóa nền xám của header bảng */
+            border-bottom: 2px solid #dee2e6;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            color: #64748b;
+            text-align: center;
         }
 
-    .hidden-column {
-        display: none !important;
+        #tblData tbody td {
+            background-color: white; /* Giữ nền trắng cho từng ô để chữ rõ hơn */
+            border-top: 1px solid #f1f5f9;
+            border-bottom: 1px solid #f1f5f9;
+            padding: 15px;
+            vertical-align: middle;
+            text-align: center;
+        }
+
+        /* Bo góc cho hàng đầu và cuối của mỗi dòng (nếu thích kiểu thẻ phẳng) */
+        #tblData tbody tr td:first-child {
+            border-left: 1px solid #f1f5f9;
+            border-top-left-radius: 10px;
+            border-bottom-left-radius: 10px;
+        }
+
+        #tblData tbody tr td:last-child {
+            border-right: 1px solid #f1f5f9;
+            border-top-right-radius: 10px;
+            border-bottom-right-radius: 10px;
+        }
+
+    /* LÀM NỔI BẬT NÚT DUYỆT */
+    .btn-duyet-highlight {
+        background-color: #0d6efd;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        padding: 8px 16px;
+        font-weight: bold;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        box-shadow: 0 4px 6px rgba(13, 110, 253, 0.2);
+        transition: all 0.2s;
     }
 
-    /* CSS DASHBOARD & MODERN BADGES */
+        .btn-duyet-highlight:hover {
+            background-color: #0b5ed7;
+            transform: translateY(-2px);
+            color: white;
+            box-shadow: 0 6px 12px rgba(13, 110, 253, 0.3);
+        }
+
+    .btn-action-sm {
+        width: 34px;
+        height: 34px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        border: 1px solid #dee2e6;
+        background: white;
+        color: #64748b;
+    }
+
+        .btn-action-sm:hover {
+            background: #f8fafc;
+            color: #0d6efd;
+        }
+
+    .btn-delete-sm:hover {
+        color: #dc3545;
+    }
+
     .stat-card {
         background: white;
         border-radius: 16px;
@@ -57,61 +142,9 @@
         transition: 0.3s;
     }
 
-    .icon-box {
-        width: 48px;
-        height: 48px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 20px;
+    .hidden-column {
+        display: none !important;
     }
-
-    .badge-status {
-        padding: 6px 12px;
-        border-radius: 8px;
-        font-weight: 700;
-        font-size: 0.75rem;
-        display: inline-block;
-        border: 1px solid rgba(0,0,0,0.05);
-    }
-
-    .bg-cho-duyet {
-        background-color: #fffbeb;
-        color: #b45309;
-    }
-
-    .bg-da-xac-nhan {
-        background-color: #f0fdf4;
-        color: #15803d;
-    }
-
-    .bg-da-huy {
-        background-color: #fef2f2;
-        color: #b91c1c;
-    }
-
-    .bg-hoan-thanh {
-        background-color: #eff6ff;
-        color: #1d4ed8;
-    }
-
-    .btn-duyet-modern {
-        background: #3b82f6;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        padding: 6px 14px;
-        font-weight: 600;
-        font-size: 0.8rem;
-        transition: 0.2s;
-    }
-
-        .btn-duyet-modern:hover {
-            background: #2563eb;
-            transform: scale(1.05);
-            color: white;
-        }
 </style>
 
 <div class="container-fluid p-0">
@@ -120,18 +153,19 @@
             <h2 class="text-primary mb-0 fw-bold"><i class="fas fa-calendar-check me-2"></i>Danh sách Lịch hẹn</h2>
         </div>
         <div class="col-6 text-end">
-            <a asp-controller="LichHen" asp-action="Create" class="btn btn-primary shadow-sm" style="border-radius:10px;">
+            <a asp-action="Create" class="btn btn-primary shadow-sm" style="border-radius:10px;">
                 <i class="fas fa-plus-circle"></i> &nbsp; Đặt Lịch hẹn mới
             </a>
         </div>
     </div>
     <hr class="mt-2 mb-4" />
 
+    @* GIỮ NGUYÊN THỐNG KÊ *@
     <div class="row g-3 mb-4 px-3">
         <div class="col-md-3">
             <div class="stat-card">
                 <div class="d-flex align-items-center">
-                    <div class="icon-box bg-warning bg-opacity-10 text-warning me-3"><i class="fas fa-clock"></i></div>
+                    <div class="icon-box bg-warning bg-opacity-10 text-warning me-3" style="width:48px; height:48px; display:flex; align-items:center; justify-content:center; border-radius:12px;"><i class="fas fa-clock"></i></div>
                     <div>
                         <p class="text-muted mb-0 small fw-bold">CHỜ DUYỆT</p>
                         <h4 class="fw-bold mb-0">@Model.Count(x => x.TrangThai == TrangThaiLichHen.ChoDuyet)</h4>
@@ -142,7 +176,7 @@
         <div class="col-md-3">
             <div class="stat-card">
                 <div class="d-flex align-items-center">
-                    <div class="icon-box bg-success bg-opacity-10 text-success me-3"><i class="fas fa-user-check"></i></div>
+                    <div class="icon-box bg-success bg-opacity-10 text-success me-3" style="width:48px; height:48px; display:flex; align-items:center; justify-content:center; border-radius:12px;"><i class="fas fa-user-check"></i></div>
                     <div>
                         <p class="text-muted mb-0 small fw-bold">ĐÃ XÁC NHẬN</p>
                         <h4 class="fw-bold mb-0">@Model.Count(x => x.TrangThai == TrangThaiLichHen.DaXacNhan)</h4>
@@ -152,79 +186,61 @@
         </div>
     </div>
 
-    @* === BỘ LỌC CŨ CỦA HUY - GIỮ NGUYÊN === *@
+    @* GIỮ NGUYÊN BỘ LỌC *@
     <div class="row mb-3 px-3">
         <div class="col-md-4">
             <div class="dropdown">
                 <button class="btn btn-outline-info dropdown-toggle w-100" type="button" data-bs-toggle="dropdown">
-                    <i class="bi bi-funnel"></i> Lọc theo
+                    <i class="fas fa-filter"></i> Lọc dữ liệu theo...
                 </button>
                 <ul class="dropdown-menu w-100">
-                    <li><a class="dropdown-item filter-option" data-filter="trangthai"><i class="bi bi-toggle2-on"></i> Trạng thái</a></li>
-                    <li><a class="dropdown-item filter-option" data-filter="bacsi"><i class="bi bi-person-badge"></i> Bác sĩ</a></li>
-                    <li><a class="dropdown-item filter-option" data-filter="ngayhen"><i class="bi bi-calendar-date"></i> Ngày hẹn</a></li>
+                    <li><a class="dropdown-item filter-option" data-filter="trangthai">Trạng thái</a></li>
+                    <li><a class="dropdown-item filter-option" data-filter="bacsi">Bác sĩ</a></li>
+                    <li><a class="dropdown-item filter-option" data-filter="ngayhen">Ngày hẹn</a></li>
                 </ul>
             </div>
         </div>
         <div class="col-md-2">
-            <button id="resetFilter" class="btn btn-outline-secondary w-100">
-                <i class="bi bi-x-circle"></i> Đặt lại
-            </button>
+            <button id="resetFilter" class="btn btn-outline-secondary w-100">Đặt lại</button>
         </div>
     </div>
 
     <div id="filterTrangThai" class="mb-3 px-3 d-none">
-        <label class="form-label small fw-bold">Lọc theo Trạng thái:</label>
-        <select id="trangThaiFilter" class="form-select">
-            <option value="">-- Tất cả --</option>
-            <option value="Chờ Duyệt">Chờ Duyệt</option>
-            <option value="Đã Xác Nhận">Đã Xác Nhận</option>
-            <option value="Đã Hủy">Đã Hủy</option>
-            <option value="Hoàn Thành">Hoàn Thành</option>
-        </select>
+        <select id="trangThaiFilter" class="form-select"><option value="">-- Tất cả Trạng thái --</option><option value="Chờ Duyệt">Chờ Duyệt</option><option value="Đã Xác Nhận">Đã Xác Nhận</option><option value="Đã Hủy">Đã Hủy</option><option value="Hoàn Thành">Hoàn Thành</option></select>
     </div>
 
     <div id="filterBacSi" class="mb-3 px-3 d-none">
-        <label class="form-label small fw-bold">Lọc theo Bác sĩ:</label>
-        <select id="bacSiFilter" class="form-select select2-dropdown">
-            <option value="">-- Tất cả --</option>
-            @if (bacSiList != null)
+        <select id="bacSiFilter" class="form-select">
+            <option value="">-- Tất cả Bác sĩ --</option>
+            @foreach (var item in bacSiList)
             {
-                @foreach (var item in bacSiList)
-                {
-                    <option value="@item.Text">@item.Text</option>
-                }
+                <option value="@item.Text">@item.Text</option>
             }
         </select>
     </div>
 
     <div id="filterNgayHen" class="mb-3 px-3 d-none">
-        <label class="form-label small fw-bold">Lọc theo Ngày hẹn:</label>
         <input type="date" id="ngayHenFilter" class="form-control" />
     </div>
 
-    @* === BẢNG DỮ LIỆU === *@
-    <div class="px-3">
-        <table id="tblData" class="table table-striped table-hover shadow-sm border" style="width:100%">
-            <thead class="table-light">
+    @* PHẦN NỘI DUNG THAY ĐỔI: TRẢI RỘNG VÀ XÓA NỀN *@
+    <div class="table-container-flat px-3">
+        <table id="tblData" class="table table-hover align-middle">
+            <thead>
                 <tr>
-                    <th style="text-align: left;">Khách hàng</th>
-                    <th class="text-center">Điện thoại</th>
-                    <th class="text-center">Khung giờ hẹn</th>
-                    <th class="text-center">Bác sĩ</th>
-                    <th class="text-center">Dịch vụ</th>
-                    <th class="text-center">Ngày đặt</th>
-                    <th class="hidden-column">Trạng thái (Text)</th>
-                    <th class="text-center">Trạng thái</th>
-                    <th class="text-center">Thao tác</th>
+                    <th style="text-align: left;">Khách hàng & SĐT</th>
+                    <th>Thời gian hẹn</th>
+                    <th>Bác sĩ & Dịch vụ</th>
+                    <th>Ngày đặt</th>
+                    <th class="hidden-column">StatusHidden</th>
+                    <th>Trạng thái</th>
+                    <th style="width: 200px;">Thao tác</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach (var obj in Model)
                 {
                     TimeSpan endTimeSlot = obj.KhungGioBatDau.Add(TimeSpan.FromMinutes(obj.LichLamViec.ThoiLuongKhungGioPhut));
-
-                    // CHUYỂN ĐỔI TIẾNG VIỆT CHO TRẠNG THÁI
                     string statusText = obj.TrangThai switch
                     {
                         TrangThaiLichHen.ChoDuyet => "Chờ Duyệt",
@@ -233,7 +249,6 @@
                         TrangThaiLichHen.HoanThanh => "Hoàn Thành",
                         _ => obj.TrangThai.ToString()
                     };
-
                     string statusClass = obj.TrangThai switch
                     {
                         TrangThaiLichHen.ChoDuyet => "bg-cho-duyet",
@@ -243,37 +258,35 @@
                         _ => "bg-light"
                     };
 
-                    bool canDuyet = obj.TrangThai == TrangThaiLichHen.ChoDuyet;
-
                     <tr>
-                        <td class="text-start fw-bold text-dark">@obj.TenKhachHang</td>
-                        <td>@obj.SoDienThoai</td>
-                        <td>@obj.LichLamViec.NgayLamViec.ToString("dd/MM/yyyy") (@obj.KhungGioBatDau.ToString(@"hh\:mm") - @endTimeSlot.ToString(@"hh\:mm"))</td>
-                        <td><i class="fas fa-user-md me-1 text-primary"></i> <b>@obj.BacSi.HoTen</b></td>
-                        <td>@obj.DichVu.TenDichVu</td>
-                        <td>@obj.ThoiGianDat.ToString("dd/MM/yyyy HH:mm")</td>
-
-                        <td class="hidden-column">@statusText</td>
-
-                        <td>
-                            @* HIỂN THỊ CỐ ĐỊNH DẠNG BADGE - KHÔNG CHO SỬA TẠI ĐÂY *@
-                            <span class="badge-status @statusClass">
-                                @statusText
-                            </span>
+                        <td style="text-align: left;">
+                            <div class="fw-bold text-dark">@obj.TenKhachHang</div>
+                            <div class="text-muted small">@obj.SoDienThoai</div>
                         </td>
                         <td>
-                            <div class="btn-group gap-1">
-                                @if (canDuyet)
+                            <div class="fw-bold">@obj.LichLamViec.NgayLamViec.ToString("dd/MM/yyyy")</div>
+                            <div class="text-primary small fw-bold">@obj.KhungGioBatDau.ToString(@"hh\:mm") - @endTimeSlot.ToString(@"hh\:mm")</div>
+                        </td>
+                        <td>
+                            <div class="small fw-bold text-dark"><i class="fas fa-user-md text-primary me-1"></i> @obj.BacSi.HoTen</div>
+                            <div class="text-muted extra-small">@obj.DichVu.TenDichVu</div>
+                        </td>
+                        <td class="small text-muted">@obj.ThoiGianDat.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td class="hidden-column">@statusText</td>
+                        <td>
+                            <span class="badge-status @statusClass">@statusText</span>
+                        </td>
+                        <td>
+                            <div class="d-flex justify-content-center align-items-center gap-2">
+                                @if (obj.TrangThai == TrangThaiLichHen.ChoDuyet)
                                 {
-                                    <button type="button" class="btn-duyet-modern" onclick="confirmDuyet('@obj.LichHenId', '@obj.TenKhachHang')">
-                                        <i class="fas fa-check-circle me-1"></i> Duyệt
+                                    <button class="btn-duyet-highlight" onclick="confirmDuyet('@obj.LichHenId', '@obj.TenKhachHang')">
+                                        <i class="fas fa-check me-1"></i> DUYỆT
                                     </button>
-                                    <form id="form-duyet-@obj.LichHenId" asp-action="DuyetLich" asp-route-id="@obj.LichHenId" method="post" class="d-none">
-                                        @Html.AntiForgeryToken()
-                                    </form>
+                                    <form id="form-duyet-@obj.LichHenId" asp-action="DuyetLich" asp-route-id="@obj.LichHenId" method="post" class="d-none">@Html.AntiForgeryToken()</form>
                                 }
-                                <a asp-action="Edit" asp-route-id="@obj.LichHenId" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil-square"></i></a>
-                                <a asp-action="Delete" asp-route-id="@obj.LichHenId" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash-fill"></i></a>
+                                <a asp-action="Edit" asp-route-id="@obj.LichHenId" class="btn-action-sm" title="Sửa"><i class="fas fa-edit"></i></a>
+                                <a asp-action="Delete" asp-route-id="@obj.LichHenId" class="btn-action-sm btn-delete-sm" title="Xóa"><i class="fas fa-trash"></i></a>
                             </div>
                         </td>
                     </tr>
@@ -284,80 +297,53 @@
 </div>
 
 @section Scripts {
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdn.datatables.net/2.0.8/js/dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/2.0.8/js/dataTables.bootstrap5.min.js"></script>
-
     <script>
-        // HÀM XÁC NHẬN DUYỆT - NỘI DUNG HUY YÊU CẦU
         function confirmDuyet(id, name) {
             Swal.fire({
-                title: 'Xác nhận Duyệt?',
-                text: "Xác nhận duyệt lịch hẹn cho bệnh nhân " + name + "? Hệ thống sẽ tự động đồng bộ thông tin vào danh sách chờ khám.",
+                title: 'Duyệt lịch hẹn?',
+                text: "Xác nhận cho bệnh nhân " + name + " và tạo hồ sơ bệnh án?",
                 icon: 'question',
                 showCancelButton: true,
-                confirmButtonColor: '#3b82f6',
-                cancelButtonColor: '#94a3b8',
-                confirmButtonText: 'Đồng ý Duyệt',
-                cancelButtonText: 'Hủy'
+                confirmButtonColor: '#0d6efd',
+                confirmButtonText: 'Đồng ý Duyệt'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    Swal.fire({ title: 'Đang xử lý...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+                    Swal.fire({ title: 'Đang xử lý...', didOpen: () => { Swal.showLoading() } });
                     document.getElementById('form-duyet-' + id).submit();
                 }
             })
         }
 
         $(document).ready(function () {
-            // FILTER NGÀY HẸN CỦA HUY - GIỮ NGUYÊN
-            $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
-                var selectedDate = $('#ngayHenFilter').val();
-                if (selectedDate === '') return true;
-                var appointmentCol = data[2];
-                var datePartMatch = appointmentCol.match(/(\d{2}\/\d{2}\/\d{4})/);
-                if (!datePartMatch) return true;
-                var dateText = datePartMatch[1];
-                var parts = dateText.split('/');
-                var tableDate = parts[2] + '-' + parts[1] + '-' + parts[0];
-                return selectedDate === tableDate;
-            });
-
             var table = $('#tblData').DataTable({
                 "language": { "url": "/js/i18n/vi.json" },
-                "order": [[5, 'desc']],
-                "columnDefs": [{ "targets": 6, "visible": false, "searchable": true }]
+                "order": [[3, 'desc']],
+                "columnDefs": [{ "targets": 4, "visible": false, "searchable": true }],
+                "dom": '<"row mb-2"<"col-md-6"l><"col-md-6"f>>rt<"row mt-2"<"col-md-6"i><"col-md-6"p>>'
             });
 
-            $('#bacSiFilter').select2({ theme: 'bootstrap-5', width: '100%' });
-
-            // LOGIC LỌC CỦA HUY - GIỮ NGUYÊN
-            function resetAllFilters() {
-                table.columns().search('').draw();
-                $('#bacSiFilter').val('').trigger('change.select2');
-                $('#trangThaiFilter').val('');
-                $('#ngayHenFilter').val('');
-                $('#filterBacSi, #filterTrangThai, #filterNgayHen').addClass('d-none');
-                table.draw();
-            }
-
             function applyFilters() {
-                table.columns().search('');
                 var bacSi = $('#filterBacSi').is(':visible') ? $('#bacSiFilter').val() : '';
                 var trangThai = $('#filterTrangThai').is(':visible') ? $('#trangThaiFilter').val() : '';
-                table.column(3).search(bacSi ? '^' + bacSi + '$' : '', true, false);
-                table.column(6).search(trangThai ? '^' + trangThai + '$' : '', true, false);
-                table.draw();
+                table.column(2).search(bacSi).column(4).search(trangThai).draw();
             }
 
-            $('#bacSiFilter, #trangThaiFilter, #ngayHenFilter').on('change', applyFilters);
+            $('#bacSiFilter, #trangThaiFilter').on('change', applyFilters);
             $('.filter-option').on('click', function () {
                 var filter = $(this).data('filter');
-                resetAllFilters();
+                $('#filterBacSi, #filterTrangThai, #filterNgayHen').addClass('d-none');
                 if (filter === 'bacsi') $('#filterBacSi').removeClass('d-none');
                 else if (filter === 'trangthai') $('#filterTrangThai').removeClass('d-none');
                 else if (filter === 'ngayhen') $('#filterNgayHen').removeClass('d-none');
             });
-            $('#resetFilter').on('click', resetAllFilters);
+
+            $('#resetFilter').on('click', function() {
+                $('#bacSiFilter, #trangThaiFilter, #ngayHenFilter').val('');
+                table.search('').columns().search('').draw();
+                $('#filterBacSi, #filterTrangThai, #filterNgayHen').addClass('d-none');
+            });
         });
     </script>
 }

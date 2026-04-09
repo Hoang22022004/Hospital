@@ -25,6 +25,11 @@ namespace Hospital.Areas.Admin.Models
         [Required(ErrorMessage = "Vui lòng nhập Họ tên")]
         public string FullName { get; set; }
 
+        // --- BỔ SUNG SỐ ĐIỆN THOẠI ĐỂ LIÊN KẾT HỒ SƠ ---
+        [Required(ErrorMessage = "Vui lòng nhập Số điện thoại")]
+        [Phone(ErrorMessage = "Số điện thoại không hợp lệ")]
+        public string PhoneNumber { get; set; }
+
         [Required(ErrorMessage = "Vui lòng nhập Mật khẩu")]
         [DataType(DataType.Password)]
         public string Password { get; set; }
@@ -33,11 +38,10 @@ namespace Hospital.Areas.Admin.Models
         [Display(Name = "Vai trò")]
         public string Role { get; set; }
 
-        // Danh sách Role để chọn
         public IEnumerable<SelectListItem>? RoleList { get; set; }
-    } // <--- ĐÓNG NGOẶC CỦA CreateUserViewModel TẠI ĐÂY
+    }
 
-    // 3. Dùng để chỉnh sửa (Edit) - NẰM NGOÀI, NGANG HÀNG
+    // 3. Dùng để chỉnh sửa (Edit)
     public class EditUserViewModel
     {
         public string Id { get; set; }
@@ -48,6 +52,11 @@ namespace Hospital.Areas.Admin.Models
         [Required(ErrorMessage = "Vui lòng nhập Họ tên")]
         [Display(Name = "Họ và Tên")]
         public string FullName { get; set; }
+
+        // --- BỔ SUNG SỐ ĐIỆN THOẠI ĐỂ LIÊN KẾT HỒ SƠ ---
+        [Required(ErrorMessage = "Vui lòng nhập Số điện thoại")]
+        [Phone(ErrorMessage = "Số điện thoại không hợp lệ")]
+        public string PhoneNumber { get; set; }
 
         [Display(Name = "Vai trò")]
         public string Role { get; set; }

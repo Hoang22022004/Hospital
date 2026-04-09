@@ -11,23 +11,23 @@
 
     .form-floating > .form-control:focus ~ label,
     .form-floating > .form-control:not(:placeholder-shown) ~ label {
-        color: #e67e22; /* Màu cam cho trang Edit để phân biệt */
+        color: #e67e22;
         font-weight: 500;
     }
 
     .password-section {
         background-color: #fff3cd;
         border: 1px dashed #ffecb5;
-        border-radius: 8px;
+        border-radius: 12px;
     }
 </style>
 
-<div class="container-fluid p-0">
-    @* --- HEADER --- *@
+<div class="container-fluid p-0 animate__animated animate__fadeIn">
+    @* HEADER *@
     <div class="d-flex justify-content-between align-items-center pt-4 pb-3">
         <div>
-            <h2 class="text-primary fw-bold mb-0">Cập nhật Tài khoản</h2>
-            <p class="text-muted small mb-0">Chỉnh sửa thông tin, phân quyền hoặc đặt lại mật khẩu.</p>
+            <h2 class="text-navy fw-bold mb-0">Cập nhật thông tin</h2>
+            <p class="text-muted small mb-0">Chỉnh sửa hồ sơ nhân sự hoặc thay đổi phân quyền người dùng.</p>
         </div>
         <div>
             <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4">
@@ -41,58 +41,68 @@
     <div class="row">
         <div class="col-lg-8 mx-auto">
             <div class="card border-0 shadow-sm rounded-4">
-                <div class="card-body p-4">
+                <div class="card-body p-4 p-md-5">
                     <form method="post">
                         <input type="hidden" asp-for="Id" />
                         <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
-                        @* 1. Thông tin Readonly *@
+                        @* Email (Readonly) *@
                         <div class="mb-4">
-                            <label class="form-label text-muted small text-uppercase fw-bold">Tài khoản (Email)</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light border-0"><i class="bi bi-envelope-fill text-secondary"></i></span>
-                                <input asp-for="Email" class="form-control bg-light border-0 fw-bold text-dark" readonly />
+                            <label class="form-label text-muted small text-uppercase fw-bold">Tài khoản đăng nhập</label>
+                            <div class="input-group shadow-sm rounded-3 overflow-hidden">
+                                <span class="input-group-text bg-white border-0"><i class="bi bi-envelope text-primary"></i></span>
+                                <input asp-for="Email" class="form-control bg-white border-0 fw-bold" readonly />
                             </div>
-                            <small class="text-muted fst-italic ms-2">* Không thể thay đổi Email đăng nhập.</small>
+                            <small class="text-muted fst-italic ms-2">* Email đăng nhập không được thay đổi để bảo mật.</small>
                         </div>
 
-                        @* 2. Thông tin chính *@
                         <div class="row g-3 mb-4">
+                            @* Họ tên *@
                             <div class="col-md-6">
                                 <div class="form-floating">
-                                    <input asp-for="FullName" class="form-control" placeholder="Họ tên" />
+                                    <input asp-for="FullName" class="form-control rounded-3" placeholder="Họ tên" />
                                     <label asp-for="FullName">Họ và Tên</label>
                                     <span asp-validation-for="FullName" class="text-danger small"></span>
                                 </div>
                             </div>
+
+                            @* Số điện thoại *@
                             <div class="col-md-6">
                                 <div class="form-floating">
-                                    <select asp-for="Role" asp-items="@Model.RoleList" class="form-select">
-                                    </select>
+                                    <input asp-for="PhoneNumber" class="form-control rounded-3" placeholder="SĐT" />
+                                    <label asp-for="PhoneNumber">Số điện thoại</label>
+                                    <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+                                </div>
+                            </div>
+
+                            @* Vai trò *@
+                            <div class="col-md-12">
+                                <div class="form-floating">
+                                    <select asp-for="Role" asp-items="@Model.RoleList" class="form-select rounded-3"></select>
                                     <label asp-for="Role">Phân quyền</label>
                                     <span asp-validation-for="Role" class="text-danger small"></span>
                                 </div>
                             </div>
                         </div>
 
-                        @* 3. Khu vực Reset Mật khẩu *@
-                        <div class="password-section p-3 mb-4">
+                        @* Khu vực Reset Mật khẩu *@
+                        <div class="password-section p-4 mb-4 shadow-sm">
                             <div class="d-flex align-items-center mb-2">
-                                <i class="bi bi-key-fill text-warning fs-5 me-2"></i>
-                                <h6 class="fw-bold text-dark mb-0">Đặt lại Mật khẩu (Reset Password)</h6>
+                                <i class="bi bi-shield-lock-fill text-warning fs-5 me-2"></i>
+                                <h6 class="fw-bold text-dark mb-0">Cấp lại Mật khẩu (Reset Password)</h6>
                             </div>
-                            <p class="small text-muted mb-2">Chỉ nhập vào ô bên dưới nếu bạn muốn thay đổi mật khẩu cho người dùng này. Nếu không, hãy để trống.</p>
+                            <p class="small text-muted mb-3">Chỉ nhập nếu muốn đổi mật khẩu mới. Nếu giữ nguyên mật khẩu cũ, vui lòng để trống ô này.</p>
 
-                            <div class="form-floating bg-white rounded">
-                                <input asp-for="NewPassword" class="form-control" placeholder="Mật khẩu mới" autocomplete="new-password" />
-                                <label asp-for="NewPassword">Mật khẩu mới...</label>
+                            <div class="form-floating bg-white rounded-3">
+                                <input asp-for="NewPassword" type="password" class="form-control" placeholder="Mật khẩu mới" autocomplete="new-password" />
+                                <label asp-for="NewPassword">Nhập mật khẩu mới tại đây...</label>
                                 <span asp-validation-for="NewPassword" class="text-danger small"></span>
                             </div>
                         </div>
 
                         <div class="text-end">
-                            <button type="submit" class="btn btn-warning text-white btn-lg rounded-pill px-5 shadow-sm">
-                                <i class="bi bi-save"></i> Lưu thay đổi
+                            <button type="submit" class="btn btn-hello-paris text-white btn-lg rounded-pill px-5 shadow fw-bold" style="background-color:#45c3d2; border:none;">
+                                <i class="bi bi-save me-2"></i>LƯU THAY ĐỔI
                             </button>
                         </div>
                     </form>

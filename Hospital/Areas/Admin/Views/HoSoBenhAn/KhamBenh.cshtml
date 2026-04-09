@@ -93,11 +93,19 @@
     }
 
     .input-dosage {
-        width: 70px !important;
+        width: 75px !important;
         text-align: center;
         font-weight: bold;
         font-size: 0.8rem;
+        cursor: pointer;
     }
+
+        /* Xóa mũi tên tăng giảm mặc định */
+        .input-dosage::-webkit-outer-spin-button,
+        .input-dosage::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
 
     .input-day {
         width: 60px !important;
@@ -183,7 +191,7 @@
         .container-fluid {
             padding: 10px !important;
         }
-        /* Bảng thuốc và dịch vụ thành card */
+
         .table-prescription thead {
             display: none;
         }
@@ -216,7 +224,7 @@
         .input-dosage, .input-day, .input-total {
             width: 100px !important;
         }
-        /* Đẩy cột Timeline xuống dưới cùng trên mobile */
+
         .row.g-4 {
             display: flex;
             flex-direction: column;
@@ -234,7 +242,6 @@
         .sticky-top {
             position: static !important;
         }
-        /* Bỏ sticky trên mobile để cuộn tự nhiên */
     }
 </style>
 
@@ -324,7 +331,7 @@
                                         <th>Chiều</th>
                                         <th>Tối</th>
                                         <th>Ngày</th>
-                                        <th>Tổng</th>
+                                        <th>Tổng SL</th>
                                         <th>Ghi chú</th>
                                         <th></th>
                                     </tr>
@@ -335,10 +342,10 @@
                     </div>
                 </div>
 
-                @* 4. Hình ảnh *@
+                @* 4. Hình ảnh BUỔI KHÁM HIỆN TẠI *@
                 <div class="card mb-4">
                     <div class="card-body p-4">
-                        <h6 class="fw-bold mb-3">Hình ảnh buổi khám (Click so sánh)</h6>
+                        <h6 class="fw-bold mb-3">Hình ảnh buổi khám này (Click so sánh)</h6>
                         <div class="row g-4">
                             <div class="col-md-5 text-center">
                                 <label class="form-label small">Ảnh chính</label>
@@ -376,13 +383,13 @@
             </form>
         </div>
 
-        @* Cột Lịch sử (Trên mobile sẽ nằm dưới Hình ảnh/Lời dặn) *@
+        @* Cột Lịch sử - NƠI CHỨA ẢNH "TRƯỚC" *@
         <div class="col-xl-4" id="timelineColumn">
             <div class="card shadow-sm sticky-top" style="top: 85px; height: auto; min-height: 400px;">
                 <div class="card-header bg-white py-3 border-0 border-bottom">
                     <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-clock-history me-2"></i> Lịch sử & So sánh Ảnh</h6>
                 </div>
-                <div class="card-body timeline-wrapper" id="timelineArea"></div>
+                <div class="card-body timeline-wrapper" id="timelineArea">Lưu ý: Nếu không thấy lịch sử, hãy kiểm tra lại Bệnh nhân ID.</div>
             </div>
         </div>
     </div>
@@ -414,8 +421,10 @@
         let globalServices = [];
 
         $(document).ready(function() {
-            addMedicine();
+            // --- SỬA LỖI 1: GỌI HÀM TẢI LỊCH SỬ KHI VỪA VÀO TRANG ---
             loadTimeline();
+
+            addMedicine();
             loadServicesByDoctor();
 
             $('#select-benhly').select2({
@@ -448,6 +457,27 @@
             });
         });
 
+        // Tải lịch sử và ảnh từ Controller
+        function loadTimeline() {
+            var patientId = '@Model.BenhNhanId';
+            var currentId = '@Model.Id';
+
+            if (!patientId || patientId === '0') {
+                $('#timelineArea').html('<div class="alert alert-warning">Không tìm thấy mã bệnh nhân.</div>');
+                return;
+            }
+
+            $.get('@Url.Action("GetPatientTimeline", "HoSoBenhAn")', { benhNhanId: patientId, currentHoSoId: currentId }, function(d) {
+                if(d && d.trim() != "") {
+                    $('#timelineArea').html(d);
+                } else {
+                    $('#timelineArea').html('<div class="text-center text-muted small py-4">Chưa có lịch sử ảnh.</div>');
+                }
+            }).fail(function() {
+                $('#timelineArea').html('<div class="text-danger small">Lỗi khi tải lịch sử.</div>');
+            });
+        }
+
         function loadServicesByDoctor() {
             const bacSiId = '@Model.BacSiId';
             if (bacSiId) {
@@ -472,64 +502,176 @@
         }
 
         $(document).on('change', 'select[name="selectedThuoc"]', function() {
-            let row = $(this).closest('tr'); let sel = $(this).find(':selected');
-            let catType = sel.data('category-type'); let catName = sel.data('category-name');
+            let row = $(this).closest('tr');
+            let sel = $(this).find(':selected');
+            let catType = sel.data('category-type');
+            let catName = sel.data('category-name');
+
             row.find('.category-badge').remove();
-            if (catName) { let cls = (catType === "ThuocUong") ? "bg-primary text-white" : "bg-warning text-dark"; $(this).after(`<div class="category-badge ${cls}">${catName}</div>`); }
+            if (catName) {
+                let cls = (catType === "ThuocUong") ? "bg-primary text-white" : "bg-warning text-dark";
+                $(this).after(`<div class="category-badge ${cls}">${catName}</div>`);
+            }
+
             if (catType === "ThuocBoi" || catType === "DuocMyPham") {
                 row.find('input[name="soNgayDung"]').val(0).addClass('bg-disabled').prop('readonly', true);
                 row.find('input[name="soLuong"]').val(1).removeClass('bg-calc').prop('readonly', false);
             } else {
                 row.find('input[name="soNgayDung"]').removeClass('bg-disabled').prop('readonly', false);
-                row.find('input[name="soLuong"]').addClass('bg-calc').prop('readonly', true); tinhTongSoLuong(row);
+                row.find('input[name="soLuong"]').addClass('bg-calc').prop('readonly', true);
+                tinhTongSoLuong(row);
             }
         });
 
-        $(document).on('input change', '.lieu-input, input[name="soNgayDung"]', function() { tinhTongSoLuong($(this).closest('tr')); });
+        $(document).on('input change', '.lieu-input, input[name="soNgayDung"]', function() {
+            tinhTongSoLuong($(this).closest('tr'));
+        });
 
         function tinhTongSoLuong(row) {
-            let cat = row.find('select[name="selectedThuoc"] :selected').data('category-type');
+            let selThuoc = row.find('select[name="selectedThuoc"] :selected');
+            let cat = selThuoc.data('category-type');
             if (cat !== "ThuocUong") return;
-            let s = parseFloat(row.find('select[name="lieuSang"]').val()) || 0;
-            let t = parseFloat(row.find('select[name="lieuTrua"]').val()) || 0;
-            let c = parseFloat(row.find('select[name="lieuChieu"]').val()) || 0;
-            let to = parseFloat(row.find('select[name="lieuToi"]').val()) || 0;
+
+            let s = parseFloat(row.find('input[name="lieuSang"]').val()) || 0;
+            let t = parseFloat(row.find('input[name="lieuTrua"]').val()) || 0;
+            let c = parseFloat(row.find('input[name="lieuChieu"]').val()) || 0;
+            let to = parseFloat(row.find('input[name="lieuToi"]').val()) || 0;
             let n = parseInt(row.find('input[name="soNgayDung"]').val()) || 0;
-            if ((s+t+c+to) > 0 && n <= 0) { n = 3; row.find('input[name="soNgayDung"]').val(3); }
-            row.find('input[name="soLuong"]').val(((s+t+c+to) * n).toFixed(1).replace('.0',''));
+
+            if ((s+t+c+to) > 0 && n <= 0) {
+                n = 3;
+                row.find('input[name="soNgayDung"]').val(3);
+            }
+            let tong = (s + t + c + to) * n;
+            row.find('input[name="soLuong"]').val(tong.toFixed(1).replace('.0',''));
         }
 
         function addMedicine() {
-            var row = `<tr class="drug-row">
-                <td data-label="Tên thuốc"><select name="selectedThuoc" class="form-select form-select-sm border-0 bg-light"><option value="">-- Thuốc --</option>
+            const uniqueId = 'list-' + Date.now() + Math.floor(Math.random() * 100);
+
+            // Gợi ý chỉ hiện số đơn giản
+            const doseSuggestions = `
+                <datalist id="${uniqueId}">
+                    <option value="0">
+                    <option value="0.5">
+                    <option value="1">
+                    <option value="1.5">
+                    <option value="2">
+                </datalist>
+            `;
+
+            var row = `
+                <tr class="drug-row">
+                    <td data-label="Tên thuốc">
+                        <select name="selectedThuoc" class="form-select form-select-sm border-0 bg-light">
+                            <option value="">-- Chọn thuốc --</option>
         @foreach (var t in ViewBag.ThuocList)
         {
-            <option value="@t.ThuocId" data-category-type="@t.PhanLoaiEnum" data-category-name="@t.PhanLoaiName">@t.TenThuoc</option>
+                                    <option value="@t.ThuocId" data-category-type="@t.PhanLoaiEnum" data-category-name="@t.PhanLoaiName">@t.TenThuoc</option>
         }
-                </select></td>
-                <td data-label="Sáng"><select name="lieuSang" class="form-select form-select-sm lieu-input input-dosage border-0 bg-light"><option value="0">0</option><option value="0.25">¼</option><option value="0.5">½</option><option value="1">1</option><option value="2">2</option></select></td>
-                <td data-label="Trưa"><select name="lieuTrua" class="form-select form-select-sm lieu-input input-dosage border-0 bg-light"><option value="0">0</option><option value="0.5">½</option><option value="1">1</option></select></td>
-                <td data-label="Chiều"><select name="lieuChieu" class="form-select form-select-sm lieu-input input-dosage border-0 bg-light"><option value="0">0</option><option value="0.5">½</option><option value="1">1</option></select></td>
-                <td data-label="Tối"><select name="lieuToi" class="form-select form-select-sm lieu-input input-dosage border-0 bg-light"><option value="0">0</option><option value="0.5">½</option><option value="1">1</option></select></td>
-                <td data-label="Ngày"><input type="number" name="soNgayDung" class="form-control form-control-sm input-day border-0" value="0" /></td>
-                <td data-label="Tổng SL"><input type="number" name="soLuong" class="form-control form-control-sm input-total border-0 bg-calc" value="0" step="any" readonly /></td>
-                <td data-label="Ghi chú"><input name="ghiChuThuoc" class="form-control form-control-sm border-0 bg-light" /></td>
-                <td class="text-end"><button type="button" class="btn btn-sm text-danger" onclick="$(this).closest('tr').remove()"><i class="bi bi-trash"></i></button></td>
-            </tr>`;
+                        </select>
+                        ${doseSuggestions}
+                    </td>
+                    <td data-label="Sáng">
+                        <input type="text" name="lieuSang" list="${uniqueId}"
+                               class="form-control form-control-sm lieu-input input-dosage border-0 bg-light"
+                               value="0" onfocus="this.value=''" onblur="if(this.value=='') this.value='0'">
+                    </td>
+                    <td data-label="Trưa">
+                        <input type="text" name="lieuTrua" list="${uniqueId}"
+                               class="form-control form-control-sm lieu-input input-dosage border-0 bg-light"
+                               value="0" onfocus="this.value=''" onblur="if(this.value=='') this.value='0'">
+                    </td>
+                    <td data-label="Chiều">
+                        <input type="text" name="lieuChieu" list="${uniqueId}"
+                               class="form-control form-control-sm lieu-input input-dosage border-0 bg-light"
+                               value="0" onfocus="this.value=''" onblur="if(this.value=='') this.value='0'">
+                    </td>
+                    <td data-label="Tối">
+                        <input type="text" name="lieuToi" list="${uniqueId}"
+                               class="form-control form-control-sm lieu-input input-dosage border-0 bg-light"
+                               value="0" onfocus="this.value=''" onblur="if(this.value=='') this.value='0'">
+                    </td>
+                    <td data-label="Ngày"><input type="number" name="soNgayDung" class="form-control form-control-sm input-day border-0" value="0" /></td>
+                    <td data-label="Tổng SL"><input type="number" name="soLuong" class="form-control form-control-sm input-total border-0 bg-calc" value="0" step="any" readonly /></td>
+                    <td data-label="Ghi chú"><input name="ghiChuThuoc" class="form-control form-control-sm border-0 bg-light" /></td>
+                    <td class="text-end">
+                        <button type="button" class="btn btn-sm text-danger" onclick="$(this).closest('tr').remove()"><i class="bi bi-trash"></i></button>
+                    </td>
+                </tr>`;
             $('#prescription-body').append(row);
         }
 
         function previewMainImage(input) { if (input.files && input.files[0]) { var r = new FileReader(); r.onload = function(e) { $('#img-main-preview').attr('src', e.target.result); }; r.readAsDataURL(input.files[0]); } }
+
         function renderSubPreviews() {
             const c = $('#sub-grid'); c.empty();
             Array.from(subFilesDataTransfer.files).forEach((file, index) => {
-                const r = new FileReader(); r.onload = function(e) { c.append(`<div class="img-thumb-container"><button type="button" class="btn-delete-img" onclick="removeSubFile(${index})">&times;</button><img src="${e.target.result}" class="img-thumb" onclick="setCompareImage('${e.target.result}', 'Hôm nay', 'after')" /></div>`); }; r.readAsDataURL(file);
+                const r = new FileReader(); r.onload = function(e) {
+                    c.append(`<div class="img-thumb-container">
+                                <button type="button" class="btn-delete-img" onclick="removeSubFile(${index})">&times;</button>
+                                <img src="${e.target.result}" class="img-thumb" onclick="setCompareImage('${e.target.result}', 'Hôm nay', 'after')" />
+                              </div>`);
+                };
+                r.readAsDataURL(file);
             });
         }
-        function removeSubFile(index) { const dt = new DataTransfer(); for (let i = 0; i < subFilesDataTransfer.files.length; i++) { if (i !== index) dt.items.add(subFilesDataTransfer.files[i]); } subFilesDataTransfer = dt; document.getElementById('subFiles').files = subFilesDataTransfer.files; renderSubPreviews(); }
-        function setBeforeImage(url, date) { $('#before-img').attr('src', url); $('#before-date').text('Trước: ' + date); if ($('#after-img').attr('src')) $('#compareModal').modal('show'); else Swal.fire('Thông tin', 'Hãy click tiếp vào 1 ảnh hiện tại bên trái', 'info'); }
-        function setCompareImage(url, date, type) { if (url.includes("no-image.png")) return; if (type === 'after') { $('#after-img').attr('src', url); $('#after-date').text('Sau: ' + date); } if ($('#before-img').attr('src') && $('#after-img').attr('src')) $('#compareModal').modal('show'); else Swal.fire('Thông tin', 'Hãy click vào ảnh trong Timeline bên phải', 'info'); }
-        function copyToLoiDan() { var t = document.getElementById('noidung-phacdo').innerText; var v = $('#LoiDan').val(); $('#LoiDan').val(v + (v ? "\n" : "") + "--- GỢI Ý ĐIỀU TRỊ ---\n" + t); }
-        function loadTimeline() { $.get('@Url.Action("GetPatientTimeline", "HoSoBenhAn")', { benhNhanId: '@Model.BenhNhanId', currentHoSoId: '@Model.Id' }, function(d) { $('#timelineArea').html(d); }); }
+
+        function removeSubFile(index) {
+            const dt = new DataTransfer();
+            for (let i = 0; i < subFilesDataTransfer.files.length; i++) {
+                if (i !== index) dt.items.add(subFilesDataTransfer.files[i]);
+            }
+            subFilesDataTransfer = dt;
+            document.getElementById('subFiles').files = subFilesDataTransfer.files;
+            renderSubPreviews();
+        }
+
+        // --- SỬA LỖI 2: KHÔI PHỤC HÀM CHỌN ẢNH "TRƯỚC" (DÙNG CHO TIMELINE AREA) ---
+        // Hàm này được Controller GetPatientTimeline gọi qua sự kiện onclick
+        function setBeforeImage(url, date) {
+            if (!url || url.includes("no-image.png")) {
+                Swal.fire('Lỗi', 'Không thể chọn ảnh này.', 'error');
+                return;
+            }
+            $('#before-img').attr('src', url);
+            $('#before-date').text('Trước: ' + date);
+
+            checkAndShowCompareModal();
+        }
+
+        // Hàm chọn ảnh "Sau" (Dùng cho ảnh buổi khám hiện tại)
+        function setCompareImage(url, date, type) {
+            if (url.includes("no-image.png")) return;
+            if (type === 'after') {
+                $('#after-img').attr('src', url);
+                $('#after-date').text('Sau: ' + date);
+            }
+
+            checkAndShowCompareModal();
+        }
+
+        // Kiểm tra nếu đủ 2 ảnh thì hiện Modal so sánh
+        function checkAndShowCompareModal() {
+            var beforeSrc = $('#before-img').attr('src');
+            var afterSrc = $('#after-img').attr('src');
+
+            if (beforeSrc && afterSrc && beforeSrc !== "" && afterSrc !== "") {
+                $('#compareModal').modal('show');
+            } else {
+                // Thêm thông báo nhỏ để bác sĩ biết cần làm gì tiếp theo
+                if (!beforeSrc) {
+                    Swal.fire('Thông tin', 'Hãy click vào một ảnh trong Timeline (cột phải) để làm ảnh "TRƯỚC".', 'info');
+                } else if (!afterSrc) {
+                    Swal.fire('Thông tin', 'Hãy click vào một ảnh bạn vừa tải lên (buổi khám này) để làm ảnh "SAU".', 'info');
+                }
+            }
+        }
+
+        function copyToLoiDan() {
+            var t = document.getElementById('noidung-phacdo').innerText;
+            var v = $('#LoiDan').val();
+            $('#LoiDan').val(v + (v ? "\n" : "") + "--- GỢI Ý ĐIỀU TRỊ ---\n" + t);
+        }
     </script>
 }

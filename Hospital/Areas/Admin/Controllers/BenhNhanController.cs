@@ -22,7 +22,7 @@ namespace Hospital.Areas.Admin.Controllers
             _context = context;
         }
 
-        // --- 1. INDEX: TẤT CẢ ĐỀU XEM ĐƯỢC ---
+        // --- 1. INDEX: DANH SÁCH BỆNH NHÂN ---
         public async Task<IActionResult> Index(string searchString, DateTime? searchDate, int page = 1)
         {
             int pageSize = 10;
@@ -52,11 +52,17 @@ namespace Hospital.Areas.Admin.Controllers
             return View(data);
         }
 
-        // --- 2. CREATE: CHỈ ADMIN VÀ RECEPTIONIST ---
+        // --- 2. CREATE: TIẾP NHẬN BỆNH NHÂN MỚI ---
         [Authorize(Roles = "Admin,Receptionist")]
-        public IActionResult Create()
+        public IActionResult Create(string phone)
         {
-            return View();
+            // Nếu có SĐT truyền từ trang Đặt lịch sang thì tự điền vào Model
+            var model = new BenhNhan();
+            if (!string.IsNullOrEmpty(phone))
+            {
+                model.SoDienThoai = phone;
+            }
+            return View(model);
         }
 
         [HttpPost]
@@ -66,10 +72,11 @@ namespace Hospital.Areas.Admin.Controllers
         {
             if (ModelState.IsValid)
             {
+                // Kiểm tra trùng SĐT
                 bool isDuplicate = await _context.BenhNhan.AnyAsync(x => x.SoDienThoai == benhNhan.SoDienThoai);
                 if (isDuplicate)
                 {
-                    ModelState.AddModelError("SoDienThoai", "Số điện thoại này đã tồn tại!");
+                    ModelState.AddModelError("SoDienThoai", "Số điện thoại này đã tồn tại trên hệ thống!");
                     return View(benhNhan);
                 }
 
@@ -82,7 +89,7 @@ namespace Hospital.Areas.Admin.Controllers
             return View(benhNhan);
         }
 
-        // --- 3. EDIT: CHỈ ADMIN VÀ RECEPTIONIST ---
+        // --- 3. EDIT: CHỈNH SỬA HỒ SƠ ---
         [Authorize(Roles = "Admin,Receptionist")]
         public async Task<IActionResult> Edit(int? id)
         {
@@ -103,6 +110,7 @@ namespace Hospital.Areas.Admin.Controllers
             {
                 try
                 {
+                    // Giữ nguyên ngày tạo ban đầu
                     var existingData = await _context.BenhNhan.AsNoTracking().FirstOrDefaultAsync(x => x.BenhNhanId == id);
                     if (existingData != null) benhNhan.NgayTao = existingData.NgayTao;
 
@@ -120,7 +128,7 @@ namespace Hospital.Areas.Admin.Controllers
             return View(benhNhan);
         }
 
-        // --- 4. DETAILS & LỊCH SỬ: TẤT CẢ ĐỀU XEM ĐƯỢC ---
+        // --- 4. DETAILS & LỊCH SỬ KHÁM ---
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null) return NotFound();
@@ -135,18 +143,45 @@ namespace Hospital.Areas.Admin.Controllers
             var benhNhan = await _context.BenhNhan.FirstOrDefaultAsync(m => m.BenhNhanId == id);
             if (benhNhan == null) return NotFound();
 
+            // 1. Lấy danh sách hồ sơ bệnh án (KHÔNG DÙNG INCLUDE BENHLY ĐỂ TRÁNH LỖI)
             var lichSu = await _context.HoSoBenhAn
                 .Include(h => h.BacSi)
                 .Where(h => h.BenhNhanId == id)
                 .OrderByDescending(h => h.NgayKham)
                 .ToListAsync();
 
+            // 2. Lấy danh sách Bệnh lý bỏ vào ViewBag để View tra cứu Tên từ Mã (ChanDoan)
+            ViewBag.BenhLyList = await _context.BenhLy.AsNoTracking().ToListAsync();
+
             ViewBag.TenBenhNhan = benhNhan.HoTen;
             ViewBag.IdBenhNhan = id;
             return View(lichSu);
         }
 
-        // --- 5. DELETE: CHỈ ADMIN VÀ RECEPTIONIST ---
+        // --- 5. API CHECK SĐT (DÙNG CHO AJAX TRÊN VIEW) ---
+        [HttpGet]
+        public async Task<IActionResult> CheckPhoneNumber(string phone)
+        {
+            if (string.IsNullOrEmpty(phone)) return Json(new { found = false });
+
+            var patient = await _context.BenhNhan
+                .AsNoTracking()
+                .FirstOrDefaultAsync(b => b.SoDienThoai == phone);
+
+            if (patient != null)
+            {
+                return Json(new
+                {
+                    found = true,
+                    name = patient.HoTen,
+                    email = patient.Email,
+                    id = patient.BenhNhanId
+                });
+            }
+            return Json(new { found = false });
+        }
+
+        // --- 6. DELETE ---
         [Authorize(Roles = "Admin,Receptionist")]
         public async Task<IActionResult> Delete(int? id)
         {

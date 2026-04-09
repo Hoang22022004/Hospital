@@ -5,6 +5,7 @@
 }
 
 <style>
+    /* Avatar chữ cái đầu tên */
     .avatar-initial {
         width: 40px;
         height: 40px;
@@ -31,39 +32,47 @@
         font-size: 0.8rem;
     }
 
-    /* Role Badges */
+    /* Role Badges - Thiết kế hiện đại */
     .role-badge {
-        padding: 5px 10px;
+        padding: 5px 12px;
         border-radius: 50px;
-        font-size: 0.75rem;
-        font-weight: 600;
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
 
     .role-admin {
         background-color: #ffe3e3;
         color: #c92a2a;
+        border: 1px solid #ffc9c9;
     }
 
     .role-doctor {
         background-color: #e7f5ff;
         color: #1864ab;
+        border: 1px solid #d0ebff;
     }
 
     .role-receptionist {
         background-color: #e6fffa;
         color: #087f5b;
+        border: 1px solid #c3fae8;
     }
-    /* MỚI: Màu Lễ tân */
+
     .role-patient {
         background-color: #ebfbee;
         color: #2b8a3e;
+        border: 1px solid #d3f9d8;
     }
 
     .role-default {
         background-color: #f8f9fa;
         color: #495057;
+        border: 1px solid #e9ecef;
     }
 
+    /* Trạng thái */
     .status-dot {
         height: 8px;
         width: 8px;
@@ -74,11 +83,12 @@
 
     .status-active {
         background-color: #20c997;
-        box-shadow: 0 0 4px #20c997;
+        box-shadow: 0 0 5px #20c997;
     }
 
     .status-locked {
         background-color: #fa5252;
+        box-shadow: 0 0 5px #fa5252;
     }
 
     .custom-total-badge {
@@ -87,123 +97,168 @@
         padding: 6px 16px;
         border-radius: 30px;
         font-weight: 600;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         border: 1px solid #d0ebff;
         display: inline-flex;
         align-items: center;
     }
+
+    /* Hiệu ứng bảng */
+    .table hover tbody tr:hover {
+        background-color: rgba(69, 195, 210, 0.03);
+    }
 </style>
 
-<div class="container-fluid p-0">
+<div class="container-fluid p-0 animate__animated animate__fadeIn">
+    @* TIÊU ĐỀ VÀ NÚT THÊM *@
     <div class="d-flex justify-content-between align-items-center pt-4 pb-3">
-        <h3 class="text-primary fw-bold mb-0">Danh sách Tài khoản</h3>
-        <a asp-action="Create" class="btn btn-primary shadow-sm rounded-pill px-4">
-            <i class="bi bi-person-plus-fill"></i> Thêm mới
+        <div>
+            <h3 class="text-navy fw-bold mb-0">Hệ thống Tài khoản</h3>
+            <p class="text-muted small mb-0">Quản lý quyền truy cập và bảo mật người dùng</p>
+        </div>
+        <a asp-action="Create" class="btn btn-primary shadow-sm rounded-pill px-4 py-2 fw-bold">
+            <i class="bi bi-person-plus-fill me-2"></i>THÊM TÀI KHOẢN
         </a>
     </div>
 
+    @* Badge tổng số lượng ẩn đi để DataTable gọi vào *@
     <div id="totalUserHtml" class="d-none">
         <span class="custom-total-badge shadow-sm">
-            <i class="bi bi-people-fill me-2"></i> Tổng: @Model.Count() User
+            <i class="bi bi-people-fill me-2"></i> TỔNG CỘNG: @Model.Count() NGƯỜI DÙNG
         </span>
     </div>
 
-    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    @* BẢNG DỮ LIỆU *@
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mt-3">
         <div class="card-body p-0">
-            <table id="tblUser" class="table align-middle mb-0" style="width:100%">
-                <thead class="bg-light">
-                    <tr>
-                        <th class="ps-4 py-3">Người dùng</th>
-                        <th>Vai trò</th>
-                        <th>Trạng thái</th>
-                        <th class="text-center" style="width: 120px;">Thao tác</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var item in Model)
-                    {
+            <div class="table-responsive">
+                <table id="tblUser" class="table align-middle mb-0" style="width:100%">
+                    <thead class="bg-light">
                         <tr>
-                            <td class="ps-4">
-                                <div class="d-flex align-items-center">
-                                    <div class="avatar-initial me-3">@item.FullName?.Substring(0, 1).ToUpper()</div>
-                                    <div class="d-flex flex-column">
-                                        <span class="user-name">@item.FullName</span>
-                                        <span class="user-email">@item.Email</span>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                @{
-                                    string roleClass = item.Role switch
-                                    {
-                                        "Admin" => "role-admin",
-                                        "Doctor" => "role-doctor",
-                                        "Receptionist" => "role-receptionist",
-                                        "Patient" => "role-patient",
-                                        _ => "role-default"
-                                    };
-                                    string roleIcon = item.Role switch
-                                    {
-                                        "Admin" => "bi-shield-fill",
-                                        "Doctor" => "bi-heart-pulse-fill",
-                                        "Receptionist" => "bi-person-vcard-fill",
-                                        "Patient" => "bi-person-fill",
-                                        _ => "bi-question"
-                                    };
-                                }
-                                <span class="role-badge @roleClass"><i class="bi @roleIcon me-1"></i>@item.Role</span>
-                            </td>
-                            <td>
-                                @if (item.IsLocked)
-                                {
-                                    <span class="text-danger fw-bold small"><span class="status-dot status-locked"></span>Đang khóa</span>
-                                }
-                                else
-                                {
-                                    <span class="text-success fw-bold small"><span class="status-dot status-active"></span>Hoạt động</span>
-                                }
-                            </td>
-                            <td class="text-center">
-                                <div class="btn-group">
-                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-light text-primary" title="Sửa"><i class="bi bi-pencil-square"></i></a>
-                                    @if (item.Role != "Admin")
-                                    {
-                                        <a onclick="confirmLockUnlock('@item.Id', '@(item.IsLocked ? "unlock" : "lock")')"
-                                           class="btn btn-sm btn-light @(item.IsLocked ? "text-success" : "text-danger")">
-                                            <i class="bi @(item.IsLocked ? "bi-unlock-fill" : "bi-lock-fill")"></i>
-                                        </a>
-                                    }
-                                </div>
-                            </td>
+                            <th class="ps-4 py-3 text-uppercase small fw-bold text-muted">Người dùng</th>
+                            <th class="text-uppercase small fw-bold text-muted">Vai trò</th>
+                            <th class="text-uppercase small fw-bold text-muted">Trạng thái</th>
+                            <th class="text-center text-uppercase small fw-bold text-muted" style="width: 150px;">Thao tác</th>
                         </tr>
-                    }
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-initial me-3">
+                                            @(string.IsNullOrEmpty(item.FullName) ? "?" : item.FullName.Substring(0, 1).ToUpper())
+                                        </div>
+                                        <div class="d-flex flex-column">
+                                            <span class="user-name">@item.FullName</span>
+                                            <span class="user-email">@item.Email</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    @{
+                                        // Logic chọn màu sắc theo Role
+                                        string roleClass = item.Role switch
+                                        {
+                                            "Admin" => "role-admin",
+                                            "Doctor" => "role-doctor",
+                                            "Receptionist" => "role-receptionist",
+                                            "Patient" or "Customer" or "Khách hàng" => "role-patient",
+                                            _ => "role-default"
+                                        };
+                                        string roleIcon = item.Role switch
+                                        {
+                                            "Admin" => "bi-shield-lock-fill",
+                                            "Doctor" => "bi-heart-pulse-fill",
+                                            "Receptionist" => "bi-person-vcard-fill",
+                                            "Patient" or "Customer" or "Khách hàng" => "bi-person-fill",
+                                            _ => "bi-person-circle"
+                                        };
+                                    }
+                                    <span class="role-badge @roleClass">
+                                        <i class="bi @roleIcon me-1"></i>@item.Role
+                                    </span>
+                                </td>
+                                <td>
+                                    @if (item.IsLocked)
+                                    {
+                                        <span class="text-danger fw-bold small">
+                                            <span class="status-dot status-locked"></span>Bị khóa
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-success fw-bold small">
+                                            <span class="status-dot status-active"></span>Hoạt động
+                                        </span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group">
+                                        <a asp-action="Edit" asp-route-id="@item.Id"
+                                           class="btn btn-sm btn-outline-primary border-0 bg-light me-1 rounded-2"
+                                           title="Chỉnh sửa thông tin">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </a>
+
+                                        @if (item.Role != "Admin")
+                                        {
+                                            <button onclick="confirmLockUnlock('@item.Id', '@(item.IsLocked ? "unlock" : "lock")')"
+                                                    class="btn btn-sm @(item.IsLocked ? "btn-outline-success" : "btn-outline-danger") border-0 bg-light rounded-2"
+                                                    title="@(item.IsLocked ? "Mở khóa tài khoản" : "Khóa tài khoản")">
+                                                <i class="bi @(item.IsLocked ? "bi-unlock-fill" : "bi-lock-fill")"></i>
+                                            </button>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
 
-<form id="lockUnlockForm" method="post" asp-action="LockUnlock"><input type="hidden" name="id" id="userIdToLock" /></form>
+@* Form ẩn để thực hiện khóa tài khoản *@
+<form id="lockUnlockForm" method="post" asp-action="LockUnlock">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="id" id="userIdToLock" />
+</form>
 
 @section Scripts {
     <script>
         $(document).ready(function () {
             $('#tblUser').DataTable({
-                "language": { "url": "/js/i18n/vi.json" },
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.13.4/i18n/vi.json"
+                },
                 "dom": '<"row p-3 align-items-center"<"col-md-4"l><"col-md-4 text-center"i><"col-md-4"f>>rtp',
+                "pageLength": 10,
+                "ordering": true,
                 "initComplete": function() {
-                    $('#tblUser_wrapper .col-md-4:nth-child(2)').html($('#totalUserHtml').html()).addClass('d-flex justify-content-center');
+                    // Đưa số lượng tổng vào thanh công cụ của DataTable
+                    $('#tblUser_wrapper .col-md-4:nth-child(2)').html($('#totalUserHtml').html());
                 }
             });
         });
 
         function confirmLockUnlock(id, action) {
+            const title = action === 'lock' ? "Khóa tài khoản?" : "Mở khóa tài khoản?";
+            const text = action === 'lock' ? "Người dùng này sẽ không thể đăng nhập vào hệ thống!" : "Khôi phục quyền truy cập cho người dùng này.";
+            const confirmBtnText = action === 'lock' ? 'Đúng, khóa ngay' : 'Mở khóa ngay';
+            const confirmColor = action === 'lock' ? "#dc3545" : "#198754";
+
             Swal.fire({
-                title: action === 'lock' ? "Khóa tài khoản?" : "Mở khóa?",
+                title: title,
+                text: text,
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: action === 'lock' ? "#dc3545" : "#198754",
-                confirmButtonText: 'Đồng ý'
+                confirmButtonColor: confirmColor,
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: confirmBtnText,
+                cancelButtonText: 'Hủy'
             }).then((result) => {
                 if (result.isConfirmed) {
                     $('#userIdToLock').val(id);
